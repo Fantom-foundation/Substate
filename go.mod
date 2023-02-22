@@ -1,4 +1,4 @@
-module Substate
+module github.com/Fantom-foundation/Substate
 
 go 1.19
 
