@@ -1,14 +1,9 @@
-# Ethereum Substate Recorder/Replayer
-Ethereum substate recorder/replayer based on the paper:
+# Substate 
+Substate database is used as the Off-The-Chain testing module in the applications for recording or replaying transactions. The Replayer can execute any transaction in complete isolation by loading the substate of the transaction and executing the transaction.
 
-**Yeonsoo Kim, Seongho Jeong, Kamil Jezek, Bernd Burgstaller, and Bernhard Scholz**: _An Off-The-Chain Execution Environment for Scalable Testing and Profiling of Smart Contracts_,  USENIX ATC'21
+Database contains a minimal subset of the World-State Trie to faithfully replay transactions in isolation. The subset contains all the entries represented as a flat key-value store (and is not stored as a slow Merkle Patricia Trie) for executing a transaction.
 
-To build all programs, simply run `make all`.
-You can find all executables including `geth` and our `substate-cli` in `build/bin/` directory.
-
-## Record transaction substates
-Use `geth import` to save transaction substates in the argument of `--substatedir`
-(default: `substate.ethereum`).
+## Data Structure
 
 There are 5 data structures stored in a substate DB:
 1. `SubstateAccount`: account information (nonce, balance, code, storage)
@@ -29,98 +24,9 @@ The first 2 bytes of a key in a substate DB represent different data types as fo
 `T` and `N` are encoded in a big-endian 64-bit binary.
 2. `1c`: EVM bytecode, a key is `"1c"+codeHash` where `codeHash` is Keccak256 hash of the bytecode.
 
-## Replay transactions
-`substate-cli replay` executes transaction substates in a given block range.
-If `substate-cli replay` finds an execution result that is not equivalent to the recorded result,
-it returns an error immediately.
+# Ethereum Substate Recorder/Replayer
+Ethereum substate recorder/replayer based on the paper:
 
-For example, if you want to replay transactions from block 1,000,001 to block 2,000,000 in `substate.ethereum`:
-```bash
-./substate-cli replay 1000001 2000000
-```
+**Yeonsoo Kim, Seongho Jeong, Kamil Jezek, Bernd Burgstaller, and Bernhard Scholz**: _An Off-The-Chain Execution Environment for Scalable Testing and Profiling of Smart Contracts_,  USENIX ATC'21
 
-Here are command line options for `substate-cli replay`:
-```
-replay [command options] <blockNumFirst> <blockNumLast>
-
-The substate-cli replay command requires two arguments:
-<blockNumFirst> <blockNumLast>
-
-<blockNumFirst> and <blockNumLast> are the first and
-last block of the inclusive range of blocks to replay transactions.
-
-OPTIONS:
-   --workers value      Number of worker threads that execute in parallel (default: 4)
-   --skip-transfer-txs  Skip executing transactions that only transfer ETH
-   --skip-call-txs      Skip executing CALL transactions to accounts with contract bytecode
-   --skip-create-txs    Skip executing CREATE transactions
-   --substatedir value  Data directory for substate recorder/replayer (default: "substate.ethereum")
-```
-
-For example, if you want 32 workers to replay transactions except CREATE transactions:
-```bash
-./substate-cli replay 1000001 2000000 --workers 32 --skip-create-txs
-```
-
-If you want to replay only CALL transactions and skip the other types of transactions:
-```bash
-./substate-cli replay 1000001 2000000 --skip-transfer-txs --skip-create-txs
-```
-
-If you want to use a substate DB other than `substate.ethereum` (e.g. `/path/to/substate_db`):
-```bash
-./substate-cli replay 1000001 2000000 --substatedir /path/to/substate_db
-```
-
-### Hard-fork assessment
-To assess hard-forks with prior transactions, use `substate-cli replay-fork` command. Run `./substate-cli replay-fork --help` for more details:
-
-```
-replay-fork [command options] <blockNumFirst> <blockNumLast>
-
-The replay-fork command requires two arguments:
-<blockNumFirst> <blockNumLast>
-
-<blockNumFirst> and <blockNumLast> are the first and
-last block of the inclusive range of blocks to replay transactions.
-
---hard-fork parameter is recommended for this command.
-
-OPTIONS:
-   --workers value      Number of worker threads that execute in parallel (default: 4)
-   --skip-transfer-txs  Skip executing transactions that only transfer ETH
-   --skip-call-txs      Skip executing CALL transactions to accounts with contract bytecode
-   --skip-create-txs    Skip executing CREATE transactions
-   --hard-fork value    Hard-fork block number, won't change block number in Env for NUMBER instruction
-                          1: Frontier
-                          1150000: Homestead
-                          2463000: Tangerine Whistle
-                          2675000: Spurious Dragon
-                          4370000: Byzantium
-                          7280000: Constantinople + Petersburg
-                          9069000: Istanbul
-                          12244000: Berlin
-                          12965000: London (default: 12965000)
-   --substatedir value  Data directory for substate recorder/replayer (default: "substate.ethereum")
-```
-
-## Substate DB manipulation
-`substate-cli db` is an additional command to directly manipulate substate DBs.
-
-### `upgrade`
-`substate-cli db upgrade` command converts the old DB layout (`stage1-substate`) used for the USENIX ATC'21 paper to the latest DB layout (`substate.ethereum`).
-```
-./substate-cli db upgrade stage1-substate substate.ethereum
-```
-
-### `clone`
-`substate-cli db clone` command reads substates of a given block range and copies them in a substate DB clone.
-```
-./substate-cli db clone srcdb dstdb 46147 50000
-```
-
-### `compact`
-`substate-cli db compact` command compacts any LevelDB instance including the substate DB.
-```
-./substate-cli db compact substate.ethereum
-```
+You can find all executables including `geth` and our `substate-cli` in `build/bin/` directory.
