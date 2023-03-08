@@ -26,8 +26,7 @@ func NewUpdateSetRLP(updateset SubstateAlloc, deletedAccounts []common.Address) 
 }
 
 const (
-	SubstateAllocPrefix     = "2s" // SubstateAllocPrefix + block (64-bit) + tx (64-bit) -> substateRLP
-	SubstateAllocCodePrefix = "2c" // SubstateAllocCodePrefix + codeHash (256-bit) -> code
+	SubstateAllocPrefix = "2s" // SubstateAllocPrefix + block (64-bit) + tx (64-bit) -> substateRLP
 )
 
 func SubstateAllocKey(block uint64) []byte {
@@ -243,6 +242,7 @@ type UpdateSetIterator struct {
 
 func NewUpdateSetIterator(db *UpdateDB, startBlock, endBlock uint64, workers int) UpdateSetIterator {
 	start := SubstateAllocBlockPrefix(startBlock)
+	// updateset prefix is already in start
 	iter := db.backend.NewIterator(nil, start)
 
 	// Create channels
