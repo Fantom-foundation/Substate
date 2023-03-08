@@ -242,6 +242,7 @@ type UpdateSetIterator struct {
 
 func NewUpdateSetIterator(db *UpdateDB, startBlock, endBlock uint64, workers int) UpdateSetIterator {
 	start := SubstateAllocBlockPrefix(startBlock)
+	// updateset prefix is already in start
 	iter := db.backend.NewIterator(nil, start)
 
 	// Create channels
