@@ -66,8 +66,8 @@ func CloseFakeSubstateDB() {
 	staticSubstateDB.Close()
 }
 
-func SetSubstateFlags(newSubstateDir string) {
-	substateDir = newSubstateDir
+func SetSubstateFlags(ctx *cli.Context) {
+	substateDir = ctx.String(SubstateDirFlag.Name)
 	fmt.Printf("record-replay: --substatedir=%s\n", substateDir)
 }
 
