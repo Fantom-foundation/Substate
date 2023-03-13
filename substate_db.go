@@ -347,6 +347,7 @@ type SubstateIterator struct {
 func NewSubstateIterator(start_block uint64, num_workers int) SubstateIterator {
 	db := staticSubstateDB
 	start := Stage1SubstateBlockPrefix(start_block)
+	// substate prefix is already in start
 	iter := db.backend.NewIterator(nil, start)
 
 	// Create channels

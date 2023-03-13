@@ -69,13 +69,16 @@ func (db *DestroyedAccountDB) getFirstKeyInBlock(block uint64) []byte {
 	binary.BigEndian.PutUint64(blockBytes[len(prefix):], block)
 	iter := db.backend.NewIterator(blockBytes, nil)
 	defer iter.Release()
-	return iter.Key()
+	if iter.Key() != nil {
+		return iter.Key()[len(prefix):]
+	}
+	return nil
 }
 
 // GetAccountsDestroyedInRange get list of all accounts between block from and to (including from and to).
 func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]common.Address, error) {
 	firstKey := db.getFirstKeyInBlock(from)
-	iter := db.backend.NewIterator(nil, firstKey)
+	iter := db.backend.NewIterator([]byte(destroyedAccountPrefix), firstKey)
 	defer iter.Release()
 	isDestroyed := make(map[common.Address]bool)
 	for iter.Next() {
