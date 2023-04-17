@@ -51,15 +51,6 @@ func DecodeSubstateAllocKey(key []byte) (block uint64, err error) {
 	return
 }
 
-func SubstateAllocBlockPrefix(block uint64) []byte {
-	prefix := []byte(SubstateAllocPrefix)
-
-	blockBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(blockBytes[0:8], block)
-
-	return append(prefix, blockBytes...)
-}
-
 type UpdateDB struct {
 	backend BackendDatabase
 }
@@ -241,9 +232,9 @@ type UpdateSetIterator struct {
 }
 
 func NewUpdateSetIterator(db *UpdateDB, startBlock, endBlock uint64, workers int) UpdateSetIterator {
-	start := SubstateAllocBlockPrefix(startBlock)
+	start := BlockToBytes(startBlock)
 	// updateset prefix is already in start
-	iter := db.backend.NewIterator(nil, start)
+	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), start)
 
 	// Create channels
 	done := make(chan int)

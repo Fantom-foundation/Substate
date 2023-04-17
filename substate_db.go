@@ -43,12 +43,12 @@ func DecodeStage1SubstateKey(key []byte) (block uint64, tx int, err error) {
 }
 
 func Stage1SubstateBlockPrefix(block uint64) []byte {
-	prefix := []byte(stage1SubstatePrefix)
-
+	return append([]byte(stage1SubstatePrefix), BlockToBytes(block)...)
+}
+func BlockToBytes(block uint64) []byte {
 	blockBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(blockBytes[0:8], block)
-
-	return append(prefix, blockBytes...)
+	return blockBytes
 }
 
 func Stage1CodeKey(codeHash common.Hash) []byte {
@@ -346,9 +346,9 @@ type SubstateIterator struct {
 
 func NewSubstateIterator(start_block uint64, num_workers int) SubstateIterator {
 	db := staticSubstateDB
-	start := Stage1SubstateBlockPrefix(start_block)
+	start := BlockToBytes(start_block)
 	// substate prefix is already in start
-	iter := db.backend.NewIterator(nil, start)
+	iter := db.backend.NewIterator([]byte(stage1SubstatePrefix), start)
 
 	// Create channels
 	done := make(chan int)
