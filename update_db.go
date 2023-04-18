@@ -240,7 +240,7 @@ func NewUpdateSetIterator(db *UpdateDB, startBlock, endBlock uint64, workers int
 	done := make(chan int)
 	rawData := make([]chan rawEntry, workers)
 	results := make([]chan *UpdateBlock, workers)
-	result := make(chan *UpdateBlock, 10)
+	result := make(chan *UpdateBlock, 1)
 
 	for i := 0; i < workers; i++ {
 		rawData[i] = make(chan rawEntry, 1)
