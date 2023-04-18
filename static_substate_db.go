@@ -10,9 +10,10 @@ import (
 
 var (
 	SubstateDirFlag = cli.StringFlag{
-		Name:  "substatedir",
-		Usage: "Data directory for substate recorder/replayer",
-		Value: "./substate.fantom",
+		Name:    "substatedir",
+		Usage:   "Data directory for substate recorder/replayer",
+		Value:   "./substate.fantom",
+		Aliases: []string{"aida-db"},
 	}
 	substateDir      = SubstateDirFlag.Value
 	staticSubstateDB *SubstateDB
