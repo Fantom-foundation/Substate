@@ -36,14 +36,14 @@ func SubstateAllocKey(block uint64) []byte {
 	return append(prefix, blockTx...)
 }
 
-func DecodeSubstateAllocKey(key []byte) (block uint64, err error) {
+func DecodeUpdateSetKey(key []byte) (block uint64, err error) {
 	prefix := SubstateAllocPrefix
 	if len(key) != len(prefix)+8 {
-		err = fmt.Errorf("invalid length of stage1 substate key: %v", len(key))
+		err = fmt.Errorf("invalid length of updateset key: %v", len(key))
 		return
 	}
 	if p := string(key[:len(prefix)]); p != prefix {
-		err = fmt.Errorf("invalid prefix of stage1 substate key: %#x", p)
+		err = fmt.Errorf("invalid prefix of updateset key: %#x", p)
 		return
 	}
 	blockTx := key[len(prefix):]
@@ -60,7 +60,7 @@ func NewUpdateDB(backend BackendDatabase) *UpdateDB {
 }
 
 func OpenUpdateDB(updateSetDir string) *UpdateDB {
-	fmt.Println("record-replay: OpenUpdateSetDB")
+	fmt.Println("substate: OpenUpdateSetDB")
 	backend, err := rawdb.NewLevelDBDatabase(updateSetDir, 1024, 100, "updatesetdir", false)
 	if err != nil {
 		panic(fmt.Errorf("error opening update-set leveldb %s: %v", updateSetDir, err))
@@ -69,7 +69,7 @@ func OpenUpdateDB(updateSetDir string) *UpdateDB {
 }
 
 func OpenUpdateDBReadOnly(updateSetDir string) *UpdateDB {
-	fmt.Println("record-replay: OpenUpdateSetDB")
+	fmt.Println("substate: OpenUpdateSetDB")
 	backend, err := rawdb.NewLevelDBDatabase(updateSetDir, 1024, 100, "updatesetdir", true)
 	if err != nil {
 		panic(fmt.Errorf("error opening update-set leveldb %s: %v", updateSetDir, err))
@@ -85,6 +85,20 @@ func (db *UpdateDB) Close() error {
 	return db.backend.Close()
 }
 
+func (db *UpdateDB) GetLastKey() uint64 {
+	var block uint64
+	var err error
+	iter := db.backend.NewIterator(nil, []byte(SubstateAllocPrefix))
+	for iter.Next() {
+		block, err = DecodeUpdateSetKey(iter.Key())
+		if err != nil {
+			panic(fmt.Errorf("error iterating updateDB: %v", err))
+		}
+	}
+	iter.Release()
+	return block
+}
+
 func (db *UpdateDB) HasCode(codeHash common.Hash) bool {
 	if codeHash == EmptyCodeHash {
 		return false
@@ -92,7 +106,7 @@ func (db *UpdateDB) HasCode(codeHash common.Hash) bool {
 	key := Stage1CodeKey(codeHash)
 	has, err := db.backend.Has(key)
 	if err != nil {
-		panic(fmt.Errorf("record-replay: error checking bytecode for codeHash %s: %v", codeHash.Hex(), err))
+		panic(fmt.Errorf("substate: error checking bytecode for codeHash %s: %v", codeHash.Hex(), err))
 	}
 	return has
 }
@@ -104,7 +118,7 @@ func (db *UpdateDB) GetCode(codeHash common.Hash) []byte {
 	key := Stage1CodeKey(codeHash)
 	code, err := db.backend.Get(key)
 	if err != nil {
-		panic(fmt.Errorf("record-replay: error getting code %s: %v", codeHash.Hex(), err))
+		panic(fmt.Errorf("substate: error getting code %s: %v", codeHash.Hex(), err))
 	}
 	return code
 }
@@ -117,7 +131,7 @@ func (db *UpdateDB) PutCode(code []byte) {
 	key := Stage1CodeKey(codeHash)
 	err := db.backend.Put(key, code)
 	if err != nil {
-		panic(fmt.Errorf("record-replay: error putting code %s: %v", codeHash.Hex(), err))
+		panic(fmt.Errorf("substate: error putting code %s: %v", codeHash.Hex(), err))
 	}
 }
 
@@ -127,12 +141,11 @@ func (db *UpdateDB) HasUpdateSet(block uint64) bool {
 	return has
 }
 
-func (alloc *SubstateAlloc) SetUpdateSetRLP(allocRLP SubstateAllocRLP, db *UpdateDB) {
-	*alloc = make(SubstateAlloc)
-	for i, addr := range allocRLP.Addresses {
+func (up *UpdateSetRLP) GetSubstateAlloc(db *UpdateDB) *SubstateAlloc {
+	alloc := make(SubstateAlloc)
+	for i, addr := range up.SubstateAlloc.Addresses {
 		var sa SubstateAccount
-
-		saRLP := allocRLP.Accounts[i]
+		saRLP := up.SubstateAlloc.Accounts[i]
 		sa.Balance = saRLP.Balance
 		sa.Nonce = saRLP.Nonce
 		sa.Code = db.GetCode(saRLP.CodeHash)
@@ -140,9 +153,9 @@ func (alloc *SubstateAlloc) SetUpdateSetRLP(allocRLP SubstateAllocRLP, db *Updat
 		for i := range saRLP.Storage {
 			sa.Storage[saRLP.Storage[i][0]] = saRLP.Storage[i][1]
 		}
-
-		(*alloc)[addr] = &sa
+		alloc[addr] = &sa
 	}
+	return &alloc
 }
 
 func (db *UpdateDB) GetUpdateSet(block uint64) *SubstateAlloc {
@@ -150,14 +163,15 @@ func (db *UpdateDB) GetUpdateSet(block uint64) *SubstateAlloc {
 	key := SubstateAllocKey(block)
 	value, err := db.backend.Get(key)
 	if err != nil {
-		panic(fmt.Errorf("record-replay: error getting substate %v from substate DB: %v,", block, err))
+		panic(fmt.Errorf("substate: error getting substate %v from substate DB: %v,", block, err))
 	}
-	// try decoding as substates from latest hard forks
+	// decode value
 	updateSetRLP := UpdateSetRLP{}
-	err = rlp.DecodeBytes(value, &updateSetRLP)
-	updateSet := SubstateAlloc{}
-	updateSet.SetUpdateSetRLP(updateSetRLP.SubstateAlloc, db)
-	return &updateSet
+	if err := rlp.DecodeBytes(value, &updateSetRLP); err != nil {
+		panic(fmt.Errorf("substate: failed to decode updateset value at block %v, key %v", block, key))
+	}
+	updateSet := updateSetRLP.GetSubstateAlloc(db)
+	return updateSet
 }
 
 func (db *UpdateDB) PutUpdateSet(block uint64, updateSet *SubstateAlloc, deletedAccounts []common.Address) {
@@ -170,7 +184,7 @@ func (db *UpdateDB) PutUpdateSet(block uint64, updateSet *SubstateAlloc, deleted
 	key := SubstateAllocKey(block)
 	defer func() {
 		if err != nil {
-			panic(fmt.Errorf("record-replay: error putting update-set %v into substate DB: %v", block, err))
+			panic(fmt.Errorf("substate: error putting update-set %v into substate DB: %v", block, err))
 		}
 	}()
 
@@ -204,19 +218,18 @@ func parseUpdateSet(db *UpdateDB, data rawEntry) *UpdateBlock {
 	key := data.key
 	value := data.value
 
-	block, err := DecodeSubstateAllocKey(data.key)
+	block, err := DecodeUpdateSetKey(data.key)
 	if err != nil {
-		panic(fmt.Errorf("record-replay: invalid update-set key found: %v - issue: %v", key, err))
+		panic(fmt.Errorf("substate: invalid update-set key found: %v - issue: %v", key, err))
 	}
 
 	updateSetRLP := UpdateSetRLP{}
 	rlp.DecodeBytes(value, &updateSetRLP)
-	updateSet := SubstateAlloc{}
-	updateSet.SetUpdateSetRLP(updateSetRLP.SubstateAlloc, db)
+	updateSet := updateSetRLP.GetSubstateAlloc(db)
 
 	return &UpdateBlock{
 		Block:           block,
-		UpdateSet:       &updateSet,
+		UpdateSet:       updateSet,
 		DeletedAccounts: updateSetRLP.DeletedAccounts,
 	}
 }
@@ -231,41 +244,24 @@ type UpdateSetIterator struct {
 	done   chan<- int
 }
 
-func NewUpdateSetIterator(db *UpdateDB, startBlock, endBlock uint64, workers int) UpdateSetIterator {
+func NewUpdateSetIterator(db *UpdateDB, startBlock, endBlock uint64) UpdateSetIterator {
 	start := BlockToBytes(startBlock)
 	// updateset prefix is already in start
 	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), start)
 
-	// Create channels
 	done := make(chan int)
-	rawData := make([]chan rawEntry, workers)
-	results := make([]chan *UpdateBlock, workers)
 	result := make(chan *UpdateBlock, 1)
 
-	for i := 0; i < workers; i++ {
-		rawData[i] = make(chan rawEntry, 1)
-		results[i] = make(chan *UpdateBlock, 1)
-	}
-
-	// Start iter => raw data stage
 	go func() {
-		defer func() {
-			for _, c := range rawData {
-				close(c)
-			}
-		}()
-		step := 0
-		for {
-			if !iter.Next() {
-				return
-			}
+		defer close(result)
+		for iter.Next() {
 
 			key := make([]byte, len(iter.Key()))
 			copy(key, iter.Key())
 
 			// Decode key, if past the end block, stop here.
 			// This avoids filling channels which huge data objects that are not consumed.
-			block, err := DecodeSubstateAllocKey(key)
+			block, err := DecodeUpdateSetKey(key)
 			if err != nil {
 				panic(fmt.Errorf("worldstate-upate: invalid update-set key found: %v - issue: %v", key, err))
 			}
@@ -276,40 +272,13 @@ func NewUpdateSetIterator(db *UpdateDB, startBlock, endBlock uint64, workers int
 			value := make([]byte, len(iter.Value()))
 			copy(value, iter.Value())
 
-			res := rawEntry{key, value}
+			raw := rawEntry{key, value}
 
 			select {
 			case <-done:
 				return
-			case rawData[step] <- res: // fall-through
+			case result <- parseUpdateSet(db, raw): //fall-through
 			}
-			step = (step + 1) % workers
-		}
-	}()
-
-	// Start raw data => parsed transaction stage (parallel)
-	for i := 0; i < workers; i++ {
-		id := i
-		go func() {
-			defer close(results[id])
-			for raw := range rawData[id] {
-				results[id] <- parseUpdateSet(db, raw)
-			}
-		}()
-	}
-
-	// Start the go routine moving transactions from parsers to sink in order
-	go func() {
-		defer close(result)
-		step := 0
-		for openProducers := workers; openProducers > 0; {
-			next := <-results[step%workers]
-			if next != nil {
-				result <- next
-			} else {
-				openProducers--
-			}
-			step++
 		}
 	}()
 
