@@ -69,6 +69,38 @@ func (sa *SubstateAccount) CodeHash() common.Hash {
 
 type SubstateAlloc map[common.Address]*SubstateAccount
 
+// EstinateIncrementalSize returns estimated substate size increase after merge
+func (x SubstateAlloc) EstimateIncrementalSize (y SubstateAlloc) uint64 {
+	var (
+		size          uint64 = 0
+		sizeOfAddress uint64 = 20
+		sizeOfHash    uint64 = 32
+		sizeOfNonce   uint64 = 8
+	)
+	for addr, account := range y {
+		if xaccount, found := x[addr]; found {
+			// skip if no diff
+			if xaccount.Equal(account) {
+				continue
+			}
+			// update storage by y
+			for key, _ := range account.Storage {
+				// only add new storage keys
+				if _, found := x[addr].Storage[key]; !found {
+					size += sizeOfHash // add sizeof(common.Hash)
+				}
+			}
+		} else {
+			// add size of new accounts
+			// address + nonce + balance + codehash
+			size += sizeOfAddress + sizeOfNonce + uint64(len(account.Balance.Bytes())) + sizeOfHash
+			// storage slots * sizeof(common.Hash)
+			size += uint64(len(account.Storage)) * sizeOfHash
+		}
+	}
+	return size
+}
+
 func (x SubstateAlloc) Merge(y SubstateAlloc) {
 	for addr, account := range y {
 		if xaccount, found := x[addr]; found {
