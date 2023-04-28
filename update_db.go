@@ -88,7 +88,7 @@ func (db *UpdateDB) Close() error {
 func (db *UpdateDB) GetLastKey() uint64 {
 	var block uint64
 	var err error
-	iter := db.backend.NewIterator(nil, []byte(SubstateAllocPrefix))
+	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), nil)
 	for iter.Next() {
 		block, err = DecodeUpdateSetKey(iter.Key())
 		if err != nil {
