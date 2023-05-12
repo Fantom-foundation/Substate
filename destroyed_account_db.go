@@ -63,7 +63,7 @@ func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]comm
 }
 
 func (db *DestroyedAccountDB) getFirstKeyInBlock(block uint64) []byte {
-	prefix := []byte(destroyedAccountPrefix)
+	prefix := []byte(DestroyedAccountPrefix)
 	blockBytes := make([]byte, len(prefix)+8)
 	copy(blockBytes[0:], prefix)
 	binary.BigEndian.PutUint64(blockBytes[len(prefix):], block)
@@ -78,7 +78,7 @@ func (db *DestroyedAccountDB) getFirstKeyInBlock(block uint64) []byte {
 // GetAccountsDestroyedInRange get list of all accounts between block from and to (including from and to).
 func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]common.Address, error) {
 	firstKey := db.getFirstKeyInBlock(from)
-	iter := db.backend.NewIterator([]byte(destroyedAccountPrefix), firstKey)
+	iter := db.backend.NewIterator([]byte(DestroyedAccountPrefix), firstKey)
 	defer iter.Release()
 	isDestroyed := make(map[common.Address]bool)
 	for iter.Next() {
@@ -111,11 +111,11 @@ func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]co
 }
 
 const (
-	destroyedAccountPrefix = "da" // destroyedAccountPrefix + block (64-bit) -> SuicidedAccountLists
+	DestroyedAccountPrefix = "da" // DestroyedAccountPrefix + block (64-bit) -> SuicidedAccountLists
 )
 
 func encodeDestroyedAccountKey(block uint64, tx int) []byte {
-	prefix := []byte(destroyedAccountPrefix)
+	prefix := []byte(DestroyedAccountPrefix)
 	key := make([]byte, len(prefix)+12)
 	copy(key[0:], prefix)
 	binary.BigEndian.PutUint64(key[len(prefix):], block)
@@ -124,14 +124,14 @@ func encodeDestroyedAccountKey(block uint64, tx int) []byte {
 }
 
 func decodeDestroyedAccountKey(data []byte) (uint64, int, error) {
-	if len(data) != len(destroyedAccountPrefix)+12 {
-		return 0, 0, fmt.Errorf("invalid length of destroyed account key, expected %d, got %d", len(destroyedAccountPrefix)+12, len(data))
+	if len(data) != len(DestroyedAccountPrefix)+12 {
+		return 0, 0, fmt.Errorf("invalid length of destroyed account key, expected %d, got %d", len(DestroyedAccountPrefix)+12, len(data))
 	}
-	if string(data[0:len(destroyedAccountPrefix)]) != destroyedAccountPrefix {
+	if string(data[0:len(DestroyedAccountPrefix)]) != DestroyedAccountPrefix {
 		return 0, 0, fmt.Errorf("invalid prefix of destroyed account key")
 	}
-	block := binary.BigEndian.Uint64(data[len(destroyedAccountPrefix):])
-	tx := binary.BigEndian.Uint32(data[len(destroyedAccountPrefix)+8:])
+	block := binary.BigEndian.Uint64(data[len(DestroyedAccountPrefix):])
+	tx := binary.BigEndian.Uint32(data[len(DestroyedAccountPrefix)+8:])
 	return block, int(tx), nil
 }
 
