@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	SubstateDirFlag = cli.StringFlag{
-		Name:  "substatedir",
+	SubstateDbFlag = cli.StringFlag{
+		Name:  "substate-db",
 		Usage: "Data directory for substate recorder/replayer",
 	}
-	substateDir      = SubstateDirFlag.Value
+	substateDir      = SubstateDbFlag.Value
 	staticSubstateDB *SubstateDB
 	RecordReplay     bool = false
 )
@@ -65,8 +65,8 @@ func CloseFakeSubstateDB() {
 	staticSubstateDB.Close()
 }
 
-func SetSubstateFlags(ctx *cli.Context) {
-	substateDir = ctx.String(SubstateDirFlag.Name)
+func SetSubstateDbFlags(ctx *cli.Context) {
+	substateDir = ctx.String(SubstateDbFlag.Name)
 	fmt.Printf("record-replay: --substatedir=%s\n", substateDir)
 }
 
