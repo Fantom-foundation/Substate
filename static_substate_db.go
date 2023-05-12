@@ -70,7 +70,7 @@ func SetSubstateDbFlags(ctx *cli.Context) {
 	fmt.Printf("record-replay: --substatedir=%s\n", substateDir)
 }
 
-func SetSubstateDirectory(dir string) {
+func SetSubstateDb(dir string) {
 	substateDir = dir
 }
 
