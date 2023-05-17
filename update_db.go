@@ -208,6 +208,18 @@ func (db *UpdateDB) DeleteSubstateAlloc(block uint64) {
 	}
 }
 
+const MetadataPrefix = "md" // used for interval with size of UpdateSet
+
+const (
+	UpdateSetInterval = "interval"
+	UpdateSetSize     = "size"
+)
+
+func (db *UpdateDB) PutMetadata(typ byte, value []byte) error {
+	key := append([]byte(MetadataPrefix), typ)
+	return db.backend.Put(key, value)
+}
+
 type UpdateBlock struct {
 	Block           uint64
 	UpdateSet       *SubstateAlloc
