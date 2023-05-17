@@ -208,6 +208,43 @@ func (db *UpdateDB) DeleteSubstateAlloc(block uint64) {
 	}
 }
 
+const MetadataPrefix = "md" // used for interval with size of UpdateSet
+
+type MetadataType byte
+
+const (
+	UpdatesetInterval MetadataType = iota
+	UpdatesetSize
+)
+
+func (db *UpdateDB) PutMetadata(typ MetadataType, val uint64) error {
+	var (
+		byteType []byte
+		err      error
+	)
+
+	switch typ {
+	case UpdatesetInterval:
+		byteType, err = rlp.EncodeToBytes("interval")
+	case UpdatesetSize:
+		byteType, err = rlp.EncodeToBytes("size")
+	default:
+		return fmt.Errorf("unknown metadata type")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	key := append([]byte(MetadataPrefix), byteType...)
+	value, err := rlp.EncodeToBytes(val)
+	if err != nil {
+		return err
+	}
+
+	return db.backend.Put(key, value)
+}
+
 type UpdateBlock struct {
 	Block           uint64
 	UpdateSet       *SubstateAlloc
