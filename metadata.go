@@ -47,7 +47,7 @@ func (db *UpdateDB) PutMetadata(typ MetadataType, val uint64) error {
 		return err
 	}
 
-	var value []byte
+	value := make([]byte, 8)
 	binary.BigEndian.PutUint64(value, val)
 
 	return db.backend.Put(key, value)

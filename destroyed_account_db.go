@@ -18,21 +18,21 @@ func NewDestroyedAccountDB(backend BackendDatabase) *DestroyedAccountDB {
 	return &DestroyedAccountDB{backend: backend}
 }
 
-func OpenDestroyedAccountDB(destroyedAccountDir string) *DestroyedAccountDB {
+func OpenDestroyedAccountDB(destroyedAccountDir string) (*DestroyedAccountDB, error) {
 	return openDestroyedAccountDB(destroyedAccountDir, false)
 }
 
-func OpenDestroyedAccountDBReadOnly(destroyedAccountDir string) *DestroyedAccountDB {
+func OpenDestroyedAccountDBReadOnly(destroyedAccountDir string) (*DestroyedAccountDB, error) {
 	return openDestroyedAccountDB(destroyedAccountDir, true)
 }
 
-func openDestroyedAccountDB(destroyedAccountDir string, readOnly bool) *DestroyedAccountDB {
+func openDestroyedAccountDB(destroyedAccountDir string, readOnly bool) (*DestroyedAccountDB, error) {
 	log.Println("substate: OpenDestroyedAccountDB")
 	backend, err := rawdb.NewLevelDBDatabase(destroyedAccountDir, 1024, 100, "destroyed_accounts", readOnly)
 	if err != nil {
-		panic(fmt.Errorf("error opening destroyed account leveldb %s: %v", destroyedAccountDir, err))
+		return nil, fmt.Errorf("error opening deletion-db %s: %v", destroyedAccountDir, err)
 	}
-	return NewDestroyedAccountDB(backend)
+	return NewDestroyedAccountDB(backend), nil
 }
 
 func (db *DestroyedAccountDB) Close() error {
