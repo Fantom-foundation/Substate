@@ -59,22 +59,22 @@ func NewUpdateDB(backend BackendDatabase) *UpdateDB {
 	return &UpdateDB{backend: backend}
 }
 
-func OpenUpdateDB(updateSetDir string) *UpdateDB {
+func OpenUpdateDB(updateSetDir string) (*UpdateDB, error) {
 	fmt.Println("substate: OpenUpdateSetDB")
 	backend, err := rawdb.NewLevelDBDatabase(updateSetDir, 1024, 100, "updatesetdir", false)
 	if err != nil {
-		panic(fmt.Errorf("error opening update-set leveldb %s: %v", updateSetDir, err))
+		return nil, fmt.Errorf("error opening update-set leveldb %s: %v", updateSetDir, err)
 	}
-	return NewUpdateDB(backend)
+	return NewUpdateDB(backend), nil
 }
 
-func OpenUpdateDBReadOnly(updateSetDir string) *UpdateDB {
+func OpenUpdateDBReadOnly(updateSetDir string) (*UpdateDB, error) {
 	fmt.Println("substate: OpenUpdateSetDB")
 	backend, err := rawdb.NewLevelDBDatabase(updateSetDir, 1024, 100, "updatesetdir", true)
 	if err != nil {
-		panic(fmt.Errorf("error opening update-set leveldb %s: %v", updateSetDir, err))
+		return nil, fmt.Errorf("error opening update-set leveldb %s: %v", updateSetDir, err)
 	}
-	return NewUpdateDB(backend)
+	return NewUpdateDB(backend), nil
 }
 
 func (db *UpdateDB) Compact(start []byte, limit []byte) error {
