@@ -93,7 +93,7 @@ func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64
 	}
 	sort.Slice(txNumbers, func(i, j int) bool { return txNumbers[i] < txNumbers[j] })
 
-	for tx := range txNumbers {
+	for _, tx := range txNumbers {
 		substate := transactions[tx]
 		alloc := substate.InputAlloc
 		msg := substate.Message
@@ -115,7 +115,6 @@ func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64
 			// skip CREATE transactions
 			continue
 		}
-
 		err = pool.TaskFunc(block, tx, substate, pool)
 		if err != nil {
 			return numTx, gas, fmt.Errorf("%s: %v_%v: %v", pool.Name, block, tx, err)

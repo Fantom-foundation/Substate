@@ -347,11 +347,30 @@ func (db *SubstateDB) GetFirstSubstate() *Substate {
 	}
 }
 
-// GetLastSubstate searches for last substate
+// GetLastSubstate returns substate of the highest transaction index in the last block
 func (db *SubstateDB) GetLastSubstate() (*Substate, error) {
-	zeroBytes, err := db.getLongestEncodedKeyZeroPrefixLength()
+	block, err := db.GetLastBlock()
 	if err != nil {
 		return nil, err
+	}
+	substates := db.GetBlockSubstates(block)
+	if len(substates) == 0 {
+		return nil, fmt.Errorf("block %v doesn't have any substates.", block)
+	}
+	maxTx := 0
+	for txIdx, _ := range substates {
+		if txIdx > maxTx {
+			maxTx = txIdx
+		}
+	}
+	return substates[maxTx], nil
+}
+
+// GetLastSubstate searches for last substate
+func (db *SubstateDB) GetLastBlock() (uint64, error) {
+	zeroBytes, err := db.getLongestEncodedKeyZeroPrefixLength()
+	if err != nil {
+		return 0, err
 	}
 
 	var lastKeyPrefix []byte
@@ -369,7 +388,7 @@ func (db *SubstateDB) GetLastSubstate() (*Substate, error) {
 	for {
 		nextBiggestPrefixValue, err := db.binarySearchForLastPrefixKey(lastKeyPrefix)
 		if err != nil {
-			return nil, err
+			return 0, err
 		}
 		lastKeyPrefix = append(lastKeyPrefix, nextBiggestPrefixValue)
 		// we have all 8 bytes of uint64 encoded block
@@ -378,10 +397,9 @@ func (db *SubstateDB) GetLastSubstate() (*Substate, error) {
 			substateBlockValue := lastKeyPrefix[substatePrefixSize:]
 
 			if len(substateBlockValue) != 8 {
-				return nil, fmt.Errorf("undefined behaviour in GetLastSubstate search; retrieved block bytes can't be converted")
+				return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search; retrieved block bytes can't be converted")
 			}
-			block := binary.BigEndian.Uint64(substateBlockValue)
-			return db.GetSubstate(block, 0), nil
+			return binary.BigEndian.Uint64(substateBlockValue), nil
 		}
 	}
 }
