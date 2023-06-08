@@ -63,6 +63,13 @@ func (sa *SubstateAccount) Copy() *SubstateAccount {
 	return saCopy
 }
 
+// CopySotrageFrom
+func (x *SubstateAccount) CopyStorageFrom (y *SubstateAccount) {
+	for key, value := range y.Storage {
+		x.Storage[key] = value
+	}
+}
+
 func (sa *SubstateAccount) CodeHash() common.Hash {
 	return crypto.Keccak256Hash(sa.Code)
 }
@@ -70,7 +77,7 @@ func (sa *SubstateAccount) CodeHash() common.Hash {
 type SubstateAlloc map[common.Address]*SubstateAccount
 
 // EstinateIncrementalSize returns estimated substate size increase after merge
-func (x SubstateAlloc) EstimateIncrementalSize (y SubstateAlloc) uint64 {
+func (x SubstateAlloc) EstimateMergeSize (y SubstateAlloc) uint64 {
 	var (
 		size          uint64 = 0
 		sizeOfAddress uint64 = 20
@@ -101,6 +108,7 @@ func (x SubstateAlloc) EstimateIncrementalSize (y SubstateAlloc) uint64 {
 	return size
 }
 
+// Merge combines accounts in y to x
 func (x SubstateAlloc) Merge(y SubstateAlloc) {
 	for addr, account := range y {
 		if xaccount, found := x[addr]; found {
@@ -116,9 +124,64 @@ func (x SubstateAlloc) Merge(y SubstateAlloc) {
 			// create new account details in x
 			x[addr] = NewSubstateAccount(account.Nonce, account.Balance, account.Code)
 		}
-		// update storage by y
-		for key, value := range account.Storage {
-			x[addr].Storage[key] = value
+		x[addr].CopyStorageFrom(account)
+	}
+}
+
+// EstinateIncrementalSize returns estimated substate size increase after merge
+func (x SubstateAlloc) EstimateConditionalMergeSize (y SubstateAlloc, targets AccessedAccounts) uint64 {
+	var (
+		size          uint64 = 0
+		sizeOfAddress uint64 = 20
+		sizeOfHash    uint64 = 32
+		sizeOfNonce   uint64 = 8
+	)
+	for addr, account := range y {
+		if xaccount, found := x[addr]; found {
+			// skip if no diff
+			if xaccount.Equal(account) {
+				continue
+			}
+			// update storage by y
+			for key, _ := range account.Storage {
+				// only add new storage keys
+				if _, found := x[addr].Storage[key]; !found {
+					size += sizeOfHash // add sizeof(common.Hash)
+				}
+			}
+		} else {
+			if _, found := targets[addr]; found {
+				// add size of new accounts
+				// address + nonce + balance + codehash
+				size += sizeOfAddress + sizeOfNonce + uint64(len(account.Balance.Bytes())) + sizeOfHash
+				// storage slots * sizeof(common.Hash)
+				size += uint64(len(account.Storage)) * sizeOfHash
+			}
+		}
+	}
+	return size
+}
+
+
+// ConditionalMerge add accounts in y to x if accounts exist in a target list.
+func (x SubstateAlloc) ConditionalMerge(y SubstateAlloc, targets AccessedAccounts) {
+	for addr, account := range y {
+		if xaccount, found := x[addr]; found {
+			if xaccount.Equal(account) {
+				continue
+			}
+			// overwrite account details in x by y
+			x[addr].Nonce = account.Nonce
+			x[addr].Balance = new(big.Int).Set(account.Balance)
+			x[addr].Code = make([]byte, len(account.Code))
+			copy(x[addr].Code, account.Code)
+			x[addr].CopyStorageFrom(account)
+		} else {
+			// only merge account which exist in the target list
+			if _, found := targets[addr]; found{
+				x[addr] = NewSubstateAccount(account.Nonce, account.Balance, account.Code)
+				x[addr].CopyStorageFrom(account)
+			}
 		}
 	}
 }
@@ -136,6 +199,18 @@ func (x SubstateAlloc) Equal(y SubstateAlloc) bool {
 	}
 
 	return true
+}
+
+type AccessedAccounts map[common.Address]struct{}
+
+// Merge adds accessed accounts in y to x
+func (x AccessedAccounts) Merge(y SubstateAlloc) {
+	for addr, _ := range y {
+		if _, found := x[addr]; !found {
+			// create new account in x
+			x[addr] = struct{}{}
+		}
+	}
 }
 
 type SubstateEnv struct {
