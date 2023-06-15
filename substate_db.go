@@ -349,14 +349,14 @@ func (db *SubstateDB) GetFirstSubstate() *Substate {
 
 // GetLastSubstate searches for last substate
 func (db *SubstateDB) GetLastSubstate() (*Substate, error) {
-	index := db.getLongestEncodedKeyZeroPrefixLength()
-	if index > 8 {
-		return nil, fmt.Errorf("unable to find prefix of substate with biggest block")
+	zeroBytes, err := db.getLongestEncodedKeyZeroPrefixLength()
+	if err != nil {
+		return nil, err
 	}
 
 	var lastKeyPrefix []byte
-	if index > 0 {
-		blockBytes := make([]byte, index)
+	if zeroBytes > 0 {
+		blockBytes := make([]byte, zeroBytes)
 
 		lastKeyPrefix = append([]byte(Stage1SubstatePrefix), blockBytes...)
 	} else {
@@ -390,12 +390,12 @@ func (db *SubstateDB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, 
 	var min uint16 = 0
 	var max uint16 = 255
 
-	searchingPrefix := make([]byte, 1)
+	startIndex := make([]byte, 1)
 
 	for max-min > 1 {
 		searchHalf := (max + min) / 2
-		searchingPrefix[0] = byte(searchHalf)
-		if db.HasKeyValuesFor(lastKeyPrefix, searchingPrefix) {
+		startIndex[0] = byte(searchHalf)
+		if db.HasKeyValuesFor(lastKeyPrefix, startIndex) {
 			min = searchHalf
 		} else {
 			max = searchHalf
@@ -407,10 +407,10 @@ func (db *SubstateDB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, 
 		return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search; max - min == 0")
 	}
 
-	searchingPrefix[0] = byte(min)
-	if db.HasKeyValuesFor(lastKeyPrefix, searchingPrefix) {
-		searchingPrefix[0] = byte(max)
-		if db.HasKeyValuesFor(lastKeyPrefix, searchingPrefix) {
+	startIndex[0] = byte(min)
+	if db.HasKeyValuesFor(lastKeyPrefix, startIndex) {
+		startIndex[0] = byte(max)
+		if db.HasKeyValuesFor(lastKeyPrefix, startIndex) {
 			return byte(max), nil
 		} else {
 			return byte(min), nil
@@ -421,20 +421,17 @@ func (db *SubstateDB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, 
 }
 
 // getLongestEncodedValue returns longest index of biggest block number to be search for in its search
-func (db *SubstateDB) getLongestEncodedKeyZeroPrefixLength() byte {
+func (db *SubstateDB) getLongestEncodedKeyZeroPrefixLength() (byte, error) {
 	var i byte
-	for i = 0; ; i++ {
-		prefix := make([]byte, 8)
-		prefix[i] = 1
-		if db.HasKeyValuesFor([]byte(Stage1SubstatePrefix), prefix) {
-			if i == 0 {
-				return 255
-			}
-			return i - 1
+	for i = 0; i < 8; i++ {
+		startingIndex := make([]byte, 8)
+		startingIndex[i] = 1
+		if db.HasKeyValuesFor([]byte(Stage1SubstatePrefix), startingIndex) {
+			return i, nil
 		}
 	}
 
-	return 255
+	return 0, fmt.Errorf("unable to find prefix of substate with biggest block")
 }
 
 func (db *SubstateDB) HasKeyValuesFor(prefix []byte, start []byte) bool {
