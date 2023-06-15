@@ -105,3 +105,11 @@ func PutSubstate(block uint64, tx int, substate *Substate) {
 func DeleteSubstate(block uint64, tx int) {
 	staticSubstateDB.DeleteSubstate(block, tx)
 }
+
+func GetFirstSubstate() *Substate {
+	return staticSubstateDB.GetFirstSubstate()
+}
+
+func GetLastSubstate() (*Substate, error) {
+	return staticSubstateDB.GetLastSubstate()
+}

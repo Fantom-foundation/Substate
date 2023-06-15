@@ -334,6 +334,115 @@ func parseTransaction(db *SubstateDB, data rawEntry) *Transaction {
 	}
 }
 
+func (db *SubstateDB) GetFirstSubstate() *Substate {
+	iter := NewSubstateIterator(0, 1)
+
+	defer iter.Release()
+
+	// start with writing first block
+	if iter.Next() {
+		return iter.Value().Substate
+	} else {
+		return nil
+	}
+}
+
+// GetLastSubstate searches for last substate
+func (db *SubstateDB) GetLastSubstate() (*Substate, error) {
+	index := db.getLongestEncodedKeyZeroPrefixLength()
+	if index > 8 {
+		return nil, fmt.Errorf("unable to find prefix of substate with biggest block")
+	}
+
+	var lastKeyPrefix []byte
+	if index > 0 {
+		blockBytes := make([]byte, index)
+
+		lastKeyPrefix = append([]byte(Stage1SubstatePrefix), blockBytes...)
+	} else {
+		lastKeyPrefix = []byte(Stage1SubstatePrefix)
+	}
+
+	substatePrefixSize := len([]byte(Stage1SubstatePrefix))
+
+	// binary search for biggest key
+	for {
+		nextBiggestPrefixValue, err := db.binarySearchForLastPrefixKey(lastKeyPrefix)
+		if err != nil {
+			return nil, err
+		}
+		lastKeyPrefix = append(lastKeyPrefix, nextBiggestPrefixValue)
+		// we have all 8 bytes of uint64 encoded block
+		if len(lastKeyPrefix) == (substatePrefixSize + 8) {
+			// full key is already found
+			substateBlockValue := lastKeyPrefix[substatePrefixSize:]
+
+			if len(substateBlockValue) != 8 {
+				return nil, fmt.Errorf("undefined behaviour in GetLastSubstate search; retrieved block bytes can't be converted")
+			}
+			block := binary.BigEndian.Uint64(substateBlockValue)
+			return db.GetSubstate(block, 0), nil
+		}
+	}
+}
+
+func (db *SubstateDB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, error) {
+	var min uint16 = 0
+	var max uint16 = 255
+
+	searchingPrefix := make([]byte, 1)
+
+	for max-min > 1 {
+		searchHalf := (max + min) / 2
+		searchingPrefix[0] = byte(searchHalf)
+		if db.HasKeyValuesFor(lastKeyPrefix, searchingPrefix) {
+			min = searchHalf
+		} else {
+			max = searchHalf
+		}
+	}
+
+	// shouldn't occure
+	if max-min == 0 {
+		return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search; max - min == 0")
+	}
+
+	searchingPrefix[0] = byte(min)
+	if db.HasKeyValuesFor(lastKeyPrefix, searchingPrefix) {
+		searchingPrefix[0] = byte(max)
+		if db.HasKeyValuesFor(lastKeyPrefix, searchingPrefix) {
+			return byte(max), nil
+		} else {
+			return byte(min), nil
+		}
+	} else {
+		return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search")
+	}
+}
+
+// getLongestEncodedValue returns longest index of biggest block number to be search for in its search
+func (db *SubstateDB) getLongestEncodedKeyZeroPrefixLength() byte {
+	var i byte
+	for i = 0; ; i++ {
+		prefix := make([]byte, 8)
+		prefix[i] = 1
+		if db.HasKeyValuesFor([]byte(Stage1SubstatePrefix), prefix) {
+			if i == 0 {
+				return 255
+			}
+			return i - 1
+		}
+	}
+
+	return 255
+}
+
+func (db *SubstateDB) HasKeyValuesFor(prefix []byte, start []byte) bool {
+	iter := db.backend.NewIterator(prefix, start)
+	defer iter.Release()
+	return iter.Next()
+}
+
 type SubstateIterator struct {
 	db   *SubstateDB
 	iter ethdb.Iterator
