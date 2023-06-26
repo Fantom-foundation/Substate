@@ -3,6 +3,7 @@ package substate
 import (
 	"fmt"
 	"runtime"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -82,7 +83,18 @@ func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, err error
 	if pool.TaskFunc == nil {
 		return int64(len(transactions)), nil
 	}
-	for tx, substate := range transactions {
+
+	// Fix the order in which transactions are processed in a block
+	// such that in cases where only a single worker is processing
+	// transactions the execution order is deterministic.
+	txNumbers := make([]int, 0, len(transactions))
+	for tx := range transactions {
+		txNumbers = append(txNumbers, tx)
+	}
+	sort.Slice(txNumbers, func(i, j int) bool { return txNumbers[i] < txNumbers[j] })
+
+	for tx := range txNumbers {
+		substate := transactions[tx]
 		alloc := substate.InputAlloc
 		msg := substate.Message
 
