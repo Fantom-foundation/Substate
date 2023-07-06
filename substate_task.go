@@ -72,16 +72,16 @@ func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uin
 }
 
 // ExecuteBlock function iterates on substates of a given block call TaskFunc
-func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, err error) {
+func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64, err error) {
 	transactions := pool.DB.GetBlockSubstates(block)
 	if pool.BlockFunc != nil {
 		err := pool.BlockFunc(block, transactions, pool)
 		if err != nil {
-			return numTx, fmt.Errorf("%s: block %v: %v", pool.Name, block, err)
+			return numTx, gas, fmt.Errorf("%s: block %v: %v", pool.Name, block, err)
 		}
 	}
 	if pool.TaskFunc == nil {
-		return int64(len(transactions)), nil
+		return int64(len(transactions)), 0, nil
 	}
 
 	// Fix the order in which transactions are processed in a block
@@ -118,31 +118,33 @@ func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, err error
 
 		err = pool.TaskFunc(block, tx, substate, pool)
 		if err != nil {
-			return numTx, fmt.Errorf("%s: %v_%v: %v", pool.Name, block, tx, err)
+			return numTx, gas, fmt.Errorf("%s: %v_%v: %v", pool.Name, block, tx, err)
 		}
 
 		numTx++
+		gas += int64(substate.Result.GasUsed)
 	}
 
-	return numTx, nil
+	return numTx, gas, nil
 }
 
 // Execute function spawns worker goroutines and schedule tasks.
 func (pool *SubstateTaskPool) Execute() error {
 	start := time.Now()
 
-	var totalNumBlock, totalNumTx int64
+	var totalNumBlock, totalNumTx, totalGas atomic.Int64
 	defer func() {
 		duration := time.Since(start) + 1*time.Nanosecond
 		sec := duration.Seconds()
 
-		nb, nt := atomic.LoadInt64(&totalNumBlock), atomic.LoadInt64(&totalNumTx)
+		nb, nt, ng := totalNumBlock.Load(), totalNumTx.Load(), totalGas.Load()
 		blkPerSec := float64(nb) / sec
 		txPerSec := float64(nt) / sec
+		gasPerSec := float64(ng) / sec
 		fmt.Printf("%s: block range = %v %v\n", pool.Name, pool.First, pool.Last)
 		fmt.Printf("%s: total #block = %v\n", pool.Name, nb)
 		fmt.Printf("%s: total #tx    = %v\n", pool.Name, nt)
-		fmt.Printf("%s: %.2f blk/s, %.2f tx/s\n", pool.Name, blkPerSec, txPerSec)
+		fmt.Printf("%s: %.2f blk/s, %.2f tx/s, %.2f Mgas/s\n", pool.Name, blkPerSec, txPerSec, gasPerSec/1e6)
 		fmt.Printf("%s done in %v\n", pool.Name, duration.Round(1*time.Millisecond))
 	}()
 
@@ -182,9 +184,10 @@ func (pool *SubstateTaskPool) Execute() error {
 				select {
 
 				case block := <-workChan:
-					nt, err := pool.ExecuteBlock(block)
-					atomic.AddInt64(&totalNumTx, nt)
-					atomic.AddInt64(&totalNumBlock, 1)
+					nt, ng, err := pool.ExecuteBlock(block)
+					totalGas.Add(ng)
+					totalNumTx.Add(nt)
+					totalNumBlock.Add(1)
 					if err != nil {
 						doneChan <- err
 					} else {
@@ -219,7 +222,7 @@ func (pool *SubstateTaskPool) Execute() error {
 
 	// Count finished blocks in order and report execution speed
 	var lastSec float64
-	var lastNumBlock, lastNumTx int64
+	var lastNumBlock, lastNumTx, lastGas int64
 	waitMap := make(map[uint64]struct{})
 	for block := pool.First; block <= pool.Last; {
 
@@ -239,13 +242,14 @@ func (pool *SubstateTaskPool) Execute() error {
 			(block%100 == 0 && sec > lastSec+20) ||
 			(block%10 == 0 && sec > lastSec+40) ||
 			(sec > lastSec+60) {
-			nb, nt := atomic.LoadInt64(&totalNumBlock), atomic.LoadInt64(&totalNumTx)
+			nb, nt, ng := totalNumBlock.Load(), totalNumTx.Load(), totalGas.Load()
 			blkPerSec := float64(nb-lastNumBlock) / (sec - lastSec)
 			txPerSec := float64(nt-lastNumTx) / (sec - lastSec)
+			gasPerSec := float64(ng-lastGas) / (sec - lastSec)
 			fmt.Printf("%s: elapsed time: %v, number = %v\n", pool.Name, duration.Round(1*time.Millisecond), block)
-			fmt.Printf("%s: %.2f blk/s, %.2f tx/s\n", pool.Name, blkPerSec, txPerSec)
+			fmt.Printf("%s: %.2f blk/s, %.2f tx/s, %.2f Mgas/s\n", pool.Name, blkPerSec, txPerSec, gasPerSec/1e6)
 
-			lastSec, lastNumBlock, lastNumTx = sec, nb, nt
+			lastSec, lastNumBlock, lastNumTx, lastGas = sec, nb, nt, ng
 		}
 
 		data := <-doneChan
