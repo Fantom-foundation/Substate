@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/urfave/cli/v2"
 )
 
@@ -34,6 +35,11 @@ func OpenSubstateDBReadOnly() {
 	if err != nil {
 		panic(fmt.Errorf("error opening substate leveldb %s: %v", substateDir, err))
 	}
+	staticSubstateDB = NewSubstateDB(backend)
+}
+
+func SetSubstateDbBackend(backend ethdb.Database) {
+	fmt.Println("record-replay: SetSubstateDB")
 	staticSubstateDB = NewSubstateDB(backend)
 }
 

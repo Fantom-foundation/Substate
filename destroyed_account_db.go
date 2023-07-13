@@ -82,7 +82,7 @@ func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]co
 	defer iter.Release()
 	isDestroyed := make(map[common.Address]bool)
 	for iter.Next() {
-		block, _, err := decodeDestroyedAccountKey(iter.Key())
+		block, _, err := DecodeDestroyedAccountKey(iter.Key())
 		if err != nil {
 			return nil, err
 		}
@@ -123,7 +123,7 @@ func encodeDestroyedAccountKey(block uint64, tx int) []byte {
 	return key
 }
 
-func decodeDestroyedAccountKey(data []byte) (uint64, int, error) {
+func DecodeDestroyedAccountKey(data []byte) (uint64, int, error) {
 	if len(data) != len(DestroyedAccountPrefix)+12 {
 		return 0, 0, fmt.Errorf("invalid length of destroyed account key, expected %d, got %d", len(DestroyedAccountPrefix)+12, len(data))
 	}
