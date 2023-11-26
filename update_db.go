@@ -99,6 +99,20 @@ func (db *UpdateDB) GetLastKey() uint64 {
 	return block
 }
 
+func (db *UpdateDB) GetFirstKey() (uint64, error) {
+	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), nil)
+	defer iter.Release()
+
+	for iter.Next() {
+		firstBlock, err := DecodeUpdateSetKey(iter.Key())
+		if err != nil {
+			return 0, fmt.Errorf("cannot decode updateset key; %v", err)
+		}
+		return firstBlock, nil
+	}
+	return 0, fmt.Errorf("no updateset found")
+}
+
 func (db *UpdateDB) HasCode(codeHash common.Hash) bool {
 	if codeHash == EmptyCodeHash {
 		return false
