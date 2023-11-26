@@ -130,6 +130,7 @@ func decodeAddressList(data []byte) (SuicidedAccountLists, error) {
 	return list, err
 }
 
+// GetFirstKey returns the first block number in the database.
 func (db *DestroyedAccountDB) GetFirstKey() (uint64, error) {
 	iter := db.backend.NewIterator([]byte(DestroyedAccountPrefix), nil)
 	defer iter.Release()
@@ -144,6 +145,8 @@ func (db *DestroyedAccountDB) GetFirstKey() (uint64, error) {
 	return 0, fmt.Errorf("no updateset found")
 }
 
+// GetLastKey returns the last block number in the database.
+// if not found then returns 0
 func (db *DestroyedAccountDB) GetLastKey() (uint64, error) {
 	var block uint64
 	var err error

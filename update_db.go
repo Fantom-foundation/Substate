@@ -85,6 +85,7 @@ func (db *UpdateDB) Close() error {
 	return db.backend.Close()
 }
 
+// GetFirstKey returns the first block number in the update-set DB
 func (db *UpdateDB) GetFirstKey() (uint64, error) {
 	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), nil)
 	defer iter.Release()
@@ -99,6 +100,8 @@ func (db *UpdateDB) GetFirstKey() (uint64, error) {
 	return 0, fmt.Errorf("no updateset found")
 }
 
+// GetLastKey returns the last block number in the update-set DB
+// if not found then returns 0
 func (db *UpdateDB) GetLastKey() (uint64, error) {
 	var block uint64
 	var err error
