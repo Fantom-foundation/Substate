@@ -129,3 +129,31 @@ func decodeAddressList(data []byte) (SuicidedAccountLists, error) {
 	err := rlp.DecodeBytes(data, &list)
 	return list, err
 }
+
+func (db *DestroyedAccountDB) GetFirstKey() (uint64, error) {
+	iter := db.backend.NewIterator([]byte(DestroyedAccountPrefix), nil)
+	defer iter.Release()
+
+	for iter.Next() {
+		firstBlock, _, err := DecodeDestroyedAccountKey(iter.Key())
+		if err != nil {
+			return 0, fmt.Errorf("cannot decode updateset key; %v", err)
+		}
+		return firstBlock, nil
+	}
+	return 0, fmt.Errorf("no updateset found")
+}
+
+func (db *DestroyedAccountDB) GetLastKey() (uint64, error) {
+	var block uint64
+	var err error
+	iter := db.backend.NewIterator([]byte(DestroyedAccountPrefix), nil)
+	for iter.Next() {
+		block, _, err = DecodeDestroyedAccountKey(iter.Key())
+		if err != nil {
+			return 0, fmt.Errorf("cannot decode updateset key; %v", err)
+		}
+	}
+	iter.Release()
+	return block, nil
+}

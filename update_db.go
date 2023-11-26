@@ -85,20 +85,6 @@ func (db *UpdateDB) Close() error {
 	return db.backend.Close()
 }
 
-func (db *UpdateDB) GetLastKey() uint64 {
-	var block uint64
-	var err error
-	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), nil)
-	for iter.Next() {
-		block, err = DecodeUpdateSetKey(iter.Key())
-		if err != nil {
-			panic(fmt.Errorf("error iterating updateDB: %v", err))
-		}
-	}
-	iter.Release()
-	return block
-}
-
 func (db *UpdateDB) GetFirstKey() (uint64, error) {
 	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), nil)
 	defer iter.Release()
@@ -111,6 +97,20 @@ func (db *UpdateDB) GetFirstKey() (uint64, error) {
 		return firstBlock, nil
 	}
 	return 0, fmt.Errorf("no updateset found")
+}
+
+func (db *UpdateDB) GetLastKey() (uint64, error) {
+	var block uint64
+	var err error
+	iter := db.backend.NewIterator([]byte(SubstateAllocPrefix), nil)
+	for iter.Next() {
+		block, err = DecodeUpdateSetKey(iter.Key())
+		if err != nil {
+			return 0, fmt.Errorf("error iterating updateDB: %v", err)
+		}
+	}
+	iter.Release()
+	return block, nil
 }
 
 func (db *UpdateDB) HasCode(codeHash common.Hash) bool {
