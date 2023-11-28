@@ -58,7 +58,7 @@ func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]comm
 	if err != nil {
 		return nil, nil, err
 	}
-	list, err := decodeAddressList(data)
+	list, err := DecodeAddressList(data)
 	return list.DestroyedAccounts, list.ResurrectedAccounts, err
 }
 
@@ -78,7 +78,7 @@ func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]co
 		if block > to {
 			break
 		}
-		list, err := decodeAddressList(iter.Value())
+		list, err := DecodeAddressList(iter.Value())
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +124,7 @@ func DecodeDestroyedAccountKey(data []byte) (uint64, int, error) {
 	return block, int(tx), nil
 }
 
-func decodeAddressList(data []byte) (SuicidedAccountLists, error) {
+func DecodeAddressList(data []byte) (SuicidedAccountLists, error) {
 	list := SuicidedAccountLists{}
 	err := rlp.DecodeBytes(data, &list)
 	return list, err
