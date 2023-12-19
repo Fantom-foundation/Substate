@@ -9,7 +9,17 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+// todo use this substate once ready
+type substate struct {
+	InputAlloc  Alloc
+	OutputAlloc Alloc
+	Env         *Env
+	Message     *Message
+	Result      *Result
+}
+
 // SubstateAccount is modification of GenesisAccount in core/genesis.go
+// Deprecated: Use Account
 type SubstateAccount struct {
 	Nonce   uint64
 	Balance *big.Int
@@ -35,10 +45,10 @@ func (x *SubstateAccount) Equal(y *SubstateAccount) bool {
 		return false
 	}
 
-	equal := (x.Nonce == y.Nonce &&
+	equal := x.Nonce == y.Nonce &&
 		x.Balance.Cmp(y.Balance) == 0 &&
 		bytes.Equal(x.Code, y.Code) &&
-		len(x.Storage) == len(y.Storage))
+		len(x.Storage) == len(y.Storage)
 	if !equal {
 		return false
 	}
@@ -67,10 +77,13 @@ func (sa *SubstateAccount) CodeHash() common.Hash {
 	return crypto.Keccak256Hash(sa.Code)
 }
 
+// Deprecated: Use Alloc
 type SubstateAlloc map[common.Address]*SubstateAccount
 
+type Alloc map[common.Address]*Account
+
 // EstinateIncrementalSize returns estimated substate size increase after merge
-func (x SubstateAlloc) EstimateIncrementalSize (y SubstateAlloc) uint64 {
+func (x SubstateAlloc) EstimateIncrementalSize(y SubstateAlloc) uint64 {
 	var (
 		size          uint64 = 0
 		sizeOfAddress uint64 = 20
@@ -173,6 +186,7 @@ func (x SubstateAlloc) Equal(y SubstateAlloc) bool {
 	return true
 }
 
+// Deprecated: Use Env instead
 type SubstateEnv struct {
 	Coinbase    common.Address
 	Difficulty  *big.Int
@@ -185,6 +199,7 @@ type SubstateEnv struct {
 	BaseFee *big.Int // nil if EIP-1559 is not activated
 }
 
+// Deprecated: Use NewEnv instead
 func NewSubstateEnv(b *types.Block, blockHashes map[uint64]common.Hash) *SubstateEnv {
 	var env = &SubstateEnv{}
 
@@ -233,6 +248,7 @@ func (x *SubstateEnv) Equal(y *SubstateEnv) bool {
 	return true
 }
 
+// Deprecated: Use Message instead
 type SubstateMessage struct {
 	Nonce      uint64
 	CheckNonce bool // inversion of IsFake
@@ -255,6 +271,7 @@ type SubstateMessage struct {
 	GasTipCap *big.Int // GasPrice if EIP-1559 is not activated
 }
 
+// Deprecated: Use NewMessage instead
 func NewSubstateMessage(msg *types.Message) *SubstateMessage {
 	var smsg = &SubstateMessage{}
 
@@ -334,6 +351,7 @@ func (msg *SubstateMessage) AsMessage() types.Message {
 }
 
 // modification of types.Receipt
+// Deprecated: Use Result instead
 type SubstateResult struct {
 	Status uint64
 	Bloom  types.Bloom
@@ -343,6 +361,7 @@ type SubstateResult struct {
 	GasUsed         uint64
 }
 
+// Deprecated: Use NewResult instead
 func NewSubstateResult(receipt *types.Receipt) *SubstateResult {
 	var sr = &SubstateResult{}
 
