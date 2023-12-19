@@ -36,7 +36,7 @@ func NewSubstateAccountRLP(sa *SubstateAccount) *SubstateAccountRLP {
 	return &saRLP
 }
 
-func (sa *SubstateAccount) SetRLP(saRLP *SubstateAccountRLP, db *SubstateDB) {
+func (sa *SubstateAccount) SetRLP(saRLP *SubstateAccountRLP, db *DB) {
 	sa.Balance = saRLP.Balance
 	sa.Nonce = saRLP.Nonce
 	sa.Code = db.GetCode(saRLP.CodeHash)
@@ -71,7 +71,7 @@ func NewSubstateAllocRLP(alloc SubstateAlloc) SubstateAllocRLP {
 	return allocRLP
 }
 
-func (alloc *SubstateAlloc) SetRLP(allocRLP SubstateAllocRLP, db *SubstateDB) {
+func (alloc *SubstateAlloc) SetRLP(allocRLP SubstateAllocRLP, db *DB) {
 	*alloc = make(SubstateAlloc)
 	for i, addr := range allocRLP.Addresses {
 		var sa SubstateAccount
@@ -147,7 +147,7 @@ func NewSubstateEnvRLP(env *SubstateEnv) *SubstateEnvRLP {
 	return &envRLP
 }
 
-func (env *SubstateEnv) SetRLP(envRLP *SubstateEnvRLP, db *SubstateDB) {
+func (env *SubstateEnv) SetRLP(envRLP *SubstateEnvRLP, db *DB) {
 	env.Coinbase = envRLP.Coinbase
 	env.Difficulty = envRLP.Difficulty
 	env.GasLimit = envRLP.GasLimit
@@ -286,7 +286,7 @@ func NewSubstateMessageRLP(msg *SubstateMessage) *SubstateMessageRLP {
 	return &msgRLP
 }
 
-func (msg *SubstateMessage) SetRLP(msgRLP *SubstateMessageRLP, db *SubstateDB) {
+func (msg *SubstateMessage) SetRLP(msgRLP *SubstateMessageRLP, db *DB) {
 	msg.Nonce = msgRLP.Nonce
 	msg.CheckNonce = msgRLP.CheckNonce
 	msg.GasPrice = msgRLP.GasPrice
@@ -329,7 +329,7 @@ func NewSubstateResultRLP(result *SubstateResult) *SubstateResultRLP {
 	return &resultRLP
 }
 
-func (result *SubstateResult) SetRLP(resultRLP *SubstateResultRLP, db *SubstateDB) {
+func (result *SubstateResult) SetRLP(resultRLP *SubstateResultRLP, db *DB) {
 	result.Status = resultRLP.Status
 	result.Bloom = resultRLP.Bloom
 	result.Logs = resultRLP.Logs
@@ -394,7 +394,7 @@ func NewSubstateRLP(substate *Substate) *SubstateRLP {
 	return &substateRLP
 }
 
-func (substate *Substate) SetRLP(substateRLP *SubstateRLP, db *SubstateDB) {
+func (substate *Substate) SetRLP(substateRLP *SubstateRLP, db *DB) {
 	substate.InputAlloc = make(SubstateAlloc)
 	substate.OutputAlloc = make(SubstateAlloc)
 	substate.Env = &SubstateEnv{}

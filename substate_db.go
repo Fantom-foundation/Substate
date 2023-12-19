@@ -80,19 +80,24 @@ type BackendDatabase interface {
 	io.Closer
 }
 
-type SubstateDB struct {
+type DB struct {
 	backend BackendDatabase
 }
 
-func NewSubstateDB(backend BackendDatabase) *SubstateDB {
-	return &SubstateDB{backend: backend}
+// Deprecated: This function will be private in the future. Please use NewDb, MakeDb or NewInMemoryDb instead.
+func NewSubstateDB(backend BackendDatabase) *DB {
+	return &DB{backend: backend}
 }
 
-func (db *SubstateDB) Compact(start []byte, limit []byte) error {
+func newSubstateDB(backend BackendDatabase) *DB {
+	return &DB{backend: backend}
+}
+
+func (db *DB) Compact(start []byte, limit []byte) error {
 	return db.backend.Compact(start, limit)
 }
 
-func (db *SubstateDB) Close() error {
+func (db *DB) Close() error {
 	return db.backend.Close()
 }
 
@@ -102,7 +107,7 @@ func CodeHash(code []byte) common.Hash {
 
 var EmptyCodeHash = CodeHash(nil)
 
-func (db *SubstateDB) HasCode(codeHash common.Hash) bool {
+func (db *DB) HasCode(codeHash common.Hash) bool {
 	if codeHash == EmptyCodeHash {
 		return false
 	}
@@ -114,7 +119,7 @@ func (db *SubstateDB) HasCode(codeHash common.Hash) bool {
 	return has
 }
 
-func (db *SubstateDB) GetCode(codeHash common.Hash) []byte {
+func (db *DB) GetCode(codeHash common.Hash) []byte {
 	if codeHash == EmptyCodeHash {
 		return nil
 	}
@@ -126,7 +131,7 @@ func (db *SubstateDB) GetCode(codeHash common.Hash) []byte {
 	return code
 }
 
-func (db *SubstateDB) PutCode(code []byte) {
+func (db *DB) PutCode(code []byte) {
 	if len(code) == 0 {
 		return
 	}
@@ -138,13 +143,13 @@ func (db *SubstateDB) PutCode(code []byte) {
 	}
 }
 
-func (db *SubstateDB) HasSubstate(block uint64, tx int) bool {
+func (db *DB) HasSubstate(block uint64, tx int) bool {
 	key := Stage1SubstateKey(block, tx)
 	has, _ := db.backend.Has(key)
 	return has
 }
 
-func (db *SubstateDB) GetSubstate(block uint64, tx int) *Substate {
+func (db *DB) GetSubstate(block uint64, tx int) *Substate {
 	var err error
 
 	key := Stage1SubstateKey(block, tx)
@@ -182,7 +187,7 @@ func (db *SubstateDB) GetSubstate(block uint64, tx int) *Substate {
 	return &substate
 }
 
-func (db *SubstateDB) GetBlockSubstates(block uint64) map[int]*Substate {
+func (db *DB) GetBlockSubstates(block uint64) map[int]*Substate {
 	var err error
 
 	txSubstate := make(map[int]*Substate)
@@ -240,7 +245,7 @@ func (db *SubstateDB) GetBlockSubstates(block uint64) map[int]*Substate {
 	return txSubstate
 }
 
-func (db *SubstateDB) PutSubstate(block uint64, tx int, substate *Substate) {
+func (db *DB) PutSubstate(block uint64, tx int, substate *Substate) {
 	var err error
 
 	// put deployed/creation code
@@ -273,7 +278,7 @@ func (db *SubstateDB) PutSubstate(block uint64, tx int, substate *Substate) {
 	}
 }
 
-func (db *SubstateDB) DeleteSubstate(block uint64, tx int) {
+func (db *DB) DeleteSubstate(block uint64, tx int) {
 	key := Stage1SubstateKey(block, tx)
 	err := db.backend.Delete(key)
 	if err != nil {
@@ -292,7 +297,7 @@ type rawEntry struct {
 	value []byte
 }
 
-func parseTransaction(db *SubstateDB, data rawEntry) *Transaction {
+func parseTransaction(db *DB, data rawEntry) *Transaction {
 	key := data.key
 	value := data.value
 
@@ -334,7 +339,7 @@ func parseTransaction(db *SubstateDB, data rawEntry) *Transaction {
 	}
 }
 
-func (db *SubstateDB) GetFirstSubstate() *Substate {
+func (db *DB) GetFirstSubstate() *Substate {
 	iter := NewSubstateIterator(0, 1)
 
 	defer iter.Release()
@@ -348,7 +353,7 @@ func (db *SubstateDB) GetFirstSubstate() *Substate {
 }
 
 // GetLastSubstate returns substate of the highest transaction index in the last block
-func (db *SubstateDB) GetLastSubstate() (*Substate, error) {
+func (db *DB) GetLastSubstate() (*Substate, error) {
 	block, err := db.GetLastBlock()
 	if err != nil {
 		return nil, err
@@ -367,7 +372,7 @@ func (db *SubstateDB) GetLastSubstate() (*Substate, error) {
 }
 
 // GetLastSubstate searches for last substate
-func (db *SubstateDB) GetLastBlock() (uint64, error) {
+func (db *DB) GetLastBlock() (uint64, error) {
 	zeroBytes, err := db.getLongestEncodedKeyZeroPrefixLength()
 	if err != nil {
 		return 0, err
@@ -404,7 +409,7 @@ func (db *SubstateDB) GetLastBlock() (uint64, error) {
 	}
 }
 
-func (db *SubstateDB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, error) {
+func (db *DB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, error) {
 	var min uint16 = 0
 	var max uint16 = 255
 
@@ -439,7 +444,7 @@ func (db *SubstateDB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, 
 }
 
 // getLongestEncodedValue returns longest index of biggest block number to be search for in its search
-func (db *SubstateDB) getLongestEncodedKeyZeroPrefixLength() (byte, error) {
+func (db *DB) getLongestEncodedKeyZeroPrefixLength() (byte, error) {
 	var i byte
 	for i = 0; i < 8; i++ {
 		startingIndex := make([]byte, 8)
@@ -452,14 +457,14 @@ func (db *SubstateDB) getLongestEncodedKeyZeroPrefixLength() (byte, error) {
 	return 0, fmt.Errorf("unable to find prefix of substate with biggest block")
 }
 
-func (db *SubstateDB) HasKeyValuesFor(prefix []byte, start []byte) bool {
+func (db *DB) HasKeyValuesFor(prefix []byte, start []byte) bool {
 	iter := db.backend.NewIterator(prefix, start)
 	defer iter.Release()
 	return iter.Next()
 }
 
 type SubstateIterator struct {
-	db   *SubstateDB
+	db   *DB
 	iter ethdb.Iterator
 	cur  *Transaction
 
