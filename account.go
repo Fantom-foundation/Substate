@@ -19,6 +19,7 @@ func NewAccount(nonce uint64, balance *big.Int, code []byte) *Account {
 	return &Account{
 		Nonce:   nonce,
 		Balance: balance,
+		Storage: make(map[common.Hash]common.Hash),
 		Code:    code,
 	}
 }
