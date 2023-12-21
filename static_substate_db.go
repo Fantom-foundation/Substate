@@ -9,40 +9,50 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const substateNamespace = "substatedir"
+
 var (
 	SubstateDbFlag = cli.StringFlag{
 		Name:  "substate-db",
 		Usage: "Data directory for substate recorder/replayer",
 	}
 	substateDir      = SubstateDbFlag.Value
-	staticSubstateDB *SubstateDB
+	staticSubstateDB *DB
 	RecordReplay     bool = false
 )
 
+// Deprecated: Please use NewDb instead. This function
+// relies on a global variable which will be removed in the future.
 func OpenSubstateDB() {
 	fmt.Println("record-replay: OpenSubstateDB")
-	backend, err := rawdb.NewLevelDBDatabase(substateDir, 1024, 100, "substatedir", false)
+	backend, err := rawdb.NewLevelDBDatabase(substateDir, 1024, 100, substateNamespace, false)
 	if err != nil {
 		panic(fmt.Errorf("error opening substate leveldb %s: %v", substateDir, err))
 	}
 	fmt.Println("record-replay: opened successfully")
-	staticSubstateDB = NewSubstateDB(backend)
+	staticSubstateDB = newSubstateDB(backend)
 }
 
+// Deprecated: Please use NewDb instead. This function
+// relies on a global variable which will be removed in the future.
 func OpenSubstateDBReadOnly() {
 	fmt.Println("record-replay: OpenSubstateDB")
-	backend, err := rawdb.NewLevelDBDatabase(substateDir, 1024, 100, "substatedir", true)
+	backend, err := rawdb.NewLevelDBDatabase(substateDir, 1024, 100, substateNamespace, true)
 	if err != nil {
 		panic(fmt.Errorf("error opening substate leveldb %s: %v", substateDir, err))
 	}
-	staticSubstateDB = NewSubstateDB(backend)
+	staticSubstateDB = newSubstateDB(backend)
 }
 
+// Deprecated: Please use MakeDb instead. This function
+// relies on a global variable which will be removed in the future.
 func SetSubstateDbBackend(backend ethdb.Database) {
 	fmt.Println("record-replay: SetSubstateDB")
-	staticSubstateDB = NewSubstateDB(backend)
+	staticSubstateDB = newSubstateDB(backend)
 }
 
+// Deprecated: Please use NewDb or MakeDb to create new DB and call the method Close() from
+// returned object. This function relies on a global variable which will be removed in the future.
 func CloseSubstateDB() {
 	defer fmt.Println("record-replay: CloseSubstateDB")
 
@@ -52,6 +62,8 @@ func CloseSubstateDB() {
 	}
 }
 
+// Deprecated: Please use NewDb or MakeDb to create new DB and call the method Compact() from
+// returned object. This function relies on a global variable which will be removed in the future.
 func CompactSubstateDB() {
 	fmt.Println("record-replay: CompactSubstateDB")
 
@@ -62,20 +74,26 @@ func CompactSubstateDB() {
 	}
 }
 
+// Deprecated: Please use NewInMemoryDb instead. This function
+// relies on a global variable which will be removed in the future.
 func OpenFakeSubstateDB() {
 	backend := rawdb.NewMemoryDatabase()
-	staticSubstateDB = NewSubstateDB(backend)
+	staticSubstateDB = newSubstateDB(backend)
 }
 
+// Deprecated: Please use NewInMemoryDb to create new in-memory DB and call the method Close() from
+// returned object. This function relies on a global variable which will be removed in the future.
 func CloseFakeSubstateDB() {
 	staticSubstateDB.Close()
 }
 
+// Deprecated: This function relies on a global variable which will be removed in the future.
 func SetSubstateDbFlags(ctx *cli.Context) {
 	substateDir = ctx.String(SubstateDbFlag.Name)
 	fmt.Printf("record-replay: --substatedir=%s\n", substateDir)
 }
 
+// Deprecated: This function relies on a global variable which will be removed in the future.
 func SetSubstateDb(dir string) {
 	substateDir = dir
 }
