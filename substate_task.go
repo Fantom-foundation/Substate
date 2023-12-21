@@ -49,7 +49,7 @@ type SubstateTaskPool struct {
 
 	Ctx *cli.Context // CLI context required to read additional flags
 
-	DB *SubstateDB
+	DB *DB
 }
 
 func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context) *SubstateTaskPool {
