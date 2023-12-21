@@ -10,6 +10,7 @@ import (
 )
 
 // SubstateAccount is modification of GenesisAccount in core/genesis.go
+// Deprecated: This type is getting deleted, use Account instead
 type SubstateAccount struct {
 	Nonce   uint64
 	Balance *big.Int
@@ -17,6 +18,7 @@ type SubstateAccount struct {
 	Code    []byte
 }
 
+// Deprecated: This type is getting deleted, use NewAccount instead
 func NewSubstateAccount(nonce uint64, balance *big.Int, code []byte) *SubstateAccount {
 	return &SubstateAccount{
 		Nonce:   nonce,
@@ -26,6 +28,8 @@ func NewSubstateAccount(nonce uint64, balance *big.Int, code []byte) *SubstateAc
 	}
 }
 
+// Deprecated: Use NewAccount
+// This type is getting deleted, please check Account
 func (x *SubstateAccount) Equal(y *SubstateAccount) bool {
 	if x == y {
 		return true
@@ -53,6 +57,8 @@ func (x *SubstateAccount) Equal(y *SubstateAccount) bool {
 	return true
 }
 
+// Deprecated: Use NewAccount
+// This type is getting deleted, please check Account
 func (sa *SubstateAccount) Copy() *SubstateAccount {
 	saCopy := NewSubstateAccount(sa.Nonce, sa.Balance, sa.Code)
 
@@ -70,7 +76,7 @@ func (sa *SubstateAccount) CodeHash() common.Hash {
 type SubstateAlloc map[common.Address]*SubstateAccount
 
 // EstinateIncrementalSize returns estimated substate size increase after merge
-func (x SubstateAlloc) EstimateIncrementalSize (y SubstateAlloc) uint64 {
+func (x SubstateAlloc) EstimateIncrementalSize(y SubstateAlloc) uint64 {
 	var (
 		size          uint64 = 0
 		sizeOfAddress uint64 = 20
