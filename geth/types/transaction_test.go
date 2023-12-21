@@ -29,7 +29,7 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
-	"github.com/Fantom-foundation/Substate/rlp"
+	rlp2 "github.com/Fantom-foundation/Substate/geth/rlp"
 )
 
 // The values in those tests are from the Transaction Tests
@@ -75,7 +75,7 @@ var (
 func TestDecodeEmptyTypedTx(t *testing.T) {
 	input := []byte{0x80}
 	var tx Transaction
-	err := rlp.DecodeBytes(input, &tx)
+	err := rlp2.DecodeBytes(input, &tx)
 	if err != errEmptyTypedTx {
 		t.Fatal("wrong error:", err)
 	}
@@ -92,7 +92,7 @@ func TestTransactionSigHash(t *testing.T) {
 }
 
 func TestTransactionEncode(t *testing.T) {
-	txb, err := rlp.EncodeToBytes(rightvrsTx)
+	txb, err := rlp2.EncodeToBytes(rightvrsTx)
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestEIP2930Signer(t *testing.T) {
 func TestEIP2718TransactionEncode(t *testing.T) {
 	// RLP representation
 	{
-		have, err := rlp.EncodeToBytes(signedEip2718Tx)
+		have, err := rlp2.EncodeToBytes(signedEip2718Tx)
 		if err != nil {
 			t.Fatalf("encode error: %v", err)
 		}
@@ -216,7 +216,7 @@ func TestEIP2718TransactionEncode(t *testing.T) {
 
 func decodeTx(data []byte) (*Transaction, error) {
 	var tx Transaction
-	t, err := &tx, rlp.Decode(bytes.NewReader(data), &tx)
+	t, err := &tx, rlp2.Decode(bytes.NewReader(data), &tx)
 	return t, err
 }
 

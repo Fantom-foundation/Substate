@@ -22,7 +22,7 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
-	"github.com/Fantom-foundation/Substate/rlp"
+	rlp2 "github.com/Fantom-foundation/Substate/geth/rlp"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -41,7 +41,7 @@ func rlpHash(x interface{}) (h common.Hash) {
 	sha := hasherPool.Get().(crypto.KeccakState)
 	defer hasherPool.Put(sha)
 	sha.Reset()
-	rlp.Encode(sha, x)
+	rlp2.Encode(sha, x)
 	sha.Read(h[:])
 	return h
 }
@@ -53,7 +53,7 @@ func prefixedRlpHash(prefix byte, x interface{}) (h common.Hash) {
 	defer hasherPool.Put(sha)
 	sha.Reset()
 	sha.Write([]byte{prefix})
-	rlp.Encode(sha, x)
+	rlp2.Encode(sha, x)
 	sha.Read(h[:])
 	return h
 }
@@ -95,17 +95,17 @@ func DeriveSha(list DerivableList, hasher TrieHasher) common.Hash {
 	// order is correct.
 	var indexBuf []byte
 	for i := 1; i < list.Len() && i <= 0x7f; i++ {
-		indexBuf = rlp.AppendUint64(indexBuf[:0], uint64(i))
+		indexBuf = rlp2.AppendUint64(indexBuf[:0], uint64(i))
 		value := encodeForDerive(list, i, valueBuf)
 		hasher.Update(indexBuf, value)
 	}
 	if list.Len() > 0 {
-		indexBuf = rlp.AppendUint64(indexBuf[:0], 0)
+		indexBuf = rlp2.AppendUint64(indexBuf[:0], 0)
 		value := encodeForDerive(list, 0, valueBuf)
 		hasher.Update(indexBuf, value)
 	}
 	for i := 0x80; i < list.Len(); i++ {
-		indexBuf = rlp.AppendUint64(indexBuf[:0], uint64(i))
+		indexBuf = rlp2.AppendUint64(indexBuf[:0], uint64(i))
 		value := encodeForDerive(list, i, valueBuf)
 		hasher.Update(indexBuf, value)
 	}

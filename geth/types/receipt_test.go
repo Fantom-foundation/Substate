@@ -26,13 +26,13 @@ import (
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
 	"github.com/Fantom-foundation/Substate/geth/params"
-	"github.com/Fantom-foundation/Substate/rlp"
+	rlp2 "github.com/Fantom-foundation/Substate/geth/rlp"
 )
 
 func TestDecodeEmptyTypedReceipt(t *testing.T) {
 	input := []byte{0x80}
 	var r Receipt
-	err := rlp.DecodeBytes(input, &r)
+	err := rlp2.DecodeBytes(input, &r)
 	if err != errEmptyTypedReceipt {
 		t.Fatal("wrong error:", err)
 	}
@@ -86,7 +86,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 				t.Fatalf("Error encoding receipt: %v", err)
 			}
 			var dec ReceiptForStorage
-			if err := rlp.DecodeBytes(enc, &dec); err != nil {
+			if err := rlp2.DecodeBytes(enc, &dec); err != nil {
 				t.Fatalf("Error decoding RLP receipt: %v", err)
 			}
 			// Check whether all consensus fields are correct.
@@ -126,7 +126,7 @@ func encodeAsStoredReceiptRLP(want *Receipt) ([]byte, error) {
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
 	}
-	return rlp.EncodeToBytes(stored)
+	return rlp2.EncodeToBytes(stored)
 }
 
 func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
@@ -141,7 +141,7 @@ func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
 	}
-	return rlp.EncodeToBytes(stored)
+	return rlp2.EncodeToBytes(stored)
 }
 
 func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
@@ -157,7 +157,7 @@ func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
 	}
-	return rlp.EncodeToBytes(stored)
+	return rlp2.EncodeToBytes(stored)
 }
 
 // Tests that receipt data can be correctly derived from the contextual infos
@@ -301,13 +301,13 @@ func TestTypedReceiptEncodingDecoding(t *testing.T) {
 	}
 	{
 		var bundle []*Receipt
-		rlp.DecodeBytes(payload, &bundle)
+		rlp2.DecodeBytes(payload, &bundle)
 		check(bundle)
 	}
 	{
 		var bundle []*Receipt
 		r := bytes.NewReader(payload)
-		s := rlp.NewStream(r, uint64(len(payload)))
+		s := rlp2.NewStream(r, uint64(len(payload)))
 		if err := s.Decode(&bundle); err != nil {
 			t.Fatal(err)
 		}

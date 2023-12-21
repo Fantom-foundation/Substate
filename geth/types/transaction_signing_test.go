@@ -22,7 +22,7 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
-	"github.com/Fantom-foundation/Substate/rlp"
+	"github.com/Fantom-foundation/Substate/geth/rlp"
 )
 
 func TestEIP155Signing(t *testing.T) {

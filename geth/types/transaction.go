@@ -28,7 +28,7 @@ import (
 	common2 "github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/common/math"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
-	"github.com/Fantom-foundation/Substate/rlp"
+	rlp2 "github.com/Fantom-foundation/Substate/geth/rlp"
 )
 
 var (
@@ -90,7 +90,7 @@ type TxData interface {
 // EncodeRLP implements rlp.Encoder
 func (tx *Transaction) EncodeRLP(w io.Writer) error {
 	if tx.Type() == LegacyTxType {
-		return rlp.Encode(w, tx.inner)
+		return rlp2.Encode(w, tx.inner)
 	}
 	// It's an EIP-2718 typed TX envelope.
 	buf := encodeBufferPool.Get().(*bytes.Buffer)
@@ -99,13 +99,13 @@ func (tx *Transaction) EncodeRLP(w io.Writer) error {
 	if err := tx.encodeTyped(buf); err != nil {
 		return err
 	}
-	return rlp.Encode(w, buf.Bytes())
+	return rlp2.Encode(w, buf.Bytes())
 }
 
 // encodeTyped writes the canonical encoding of a typed transaction to w.
 func (tx *Transaction) encodeTyped(w *bytes.Buffer) error {
 	w.WriteByte(tx.Type())
-	return rlp.Encode(w, tx.inner)
+	return rlp2.Encode(w, tx.inner)
 }
 
 // MarshalBinary returns the canonical encoding of the transaction.
@@ -113,7 +113,7 @@ func (tx *Transaction) encodeTyped(w *bytes.Buffer) error {
 // transactions, it returns the type and payload.
 func (tx *Transaction) MarshalBinary() ([]byte, error) {
 	if tx.Type() == LegacyTxType {
-		return rlp.EncodeToBytes(tx.inner)
+		return rlp2.EncodeToBytes(tx.inner)
 	}
 	var buf bytes.Buffer
 	err := tx.encodeTyped(&buf)
@@ -121,20 +121,20 @@ func (tx *Transaction) MarshalBinary() ([]byte, error) {
 }
 
 // DecodeRLP implements rlp.Decoder
-func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
+func (tx *Transaction) DecodeRLP(s *rlp2.Stream) error {
 	kind, size, err := s.Kind()
 	switch {
 	case err != nil:
 		return err
-	case kind == rlp.List:
+	case kind == rlp2.List:
 		// It's a legacy transaction.
 		var inner LegacyTx
 		err := s.Decode(&inner)
 		if err == nil {
-			tx.setDecoded(&inner, int(rlp.ListSize(size)))
+			tx.setDecoded(&inner, int(rlp2.ListSize(size)))
 		}
 		return err
-	case kind == rlp.String:
+	case kind == rlp2.String:
 		// It's an EIP-2718 typed TX envelope.
 		var b []byte
 		if b, err = s.Bytes(); err != nil {
@@ -146,7 +146,7 @@ func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
 		}
 		return err
 	default:
-		return rlp.ErrExpectedList
+		return rlp2.ErrExpectedList
 	}
 }
 
@@ -156,7 +156,7 @@ func (tx *Transaction) UnmarshalBinary(b []byte) error {
 	if len(b) > 0 && b[0] > 0x7f {
 		// It's a legacy transaction.
 		var data LegacyTx
-		err := rlp.DecodeBytes(b, &data)
+		err := rlp2.DecodeBytes(b, &data)
 		if err != nil {
 			return err
 		}
@@ -180,11 +180,11 @@ func (tx *Transaction) decodeTyped(b []byte) (TxData, error) {
 	switch b[0] {
 	case AccessListTxType:
 		var inner AccessListTx
-		err := rlp.DecodeBytes(b[1:], &inner)
+		err := rlp2.DecodeBytes(b[1:], &inner)
 		return &inner, err
 	case DynamicFeeTxType:
 		var inner DynamicFeeTx
-		err := rlp.DecodeBytes(b[1:], &inner)
+		err := rlp2.DecodeBytes(b[1:], &inner)
 		return &inner, err
 	default:
 		return nil, ErrTxTypeNotSupported
@@ -391,7 +391,7 @@ func (tx *Transaction) Size() common2.StorageSize {
 		return size.(common2.StorageSize)
 	}
 	c := writeCounter(0)
-	rlp.Encode(&c, &tx.inner)
+	rlp2.Encode(&c, &tx.inner)
 	tx.size.Store(common2.StorageSize(c))
 	return common2.StorageSize(c)
 }
@@ -420,7 +420,7 @@ func (s Transactions) Len() int { return len(s) }
 func (s Transactions) EncodeIndex(i int, w *bytes.Buffer) {
 	tx := s[i]
 	if tx.Type() == LegacyTxType {
-		rlp.Encode(w, tx.inner)
+		rlp2.Encode(w, tx.inner)
 	} else {
 		tx.encodeTyped(w)
 	}

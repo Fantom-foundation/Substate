@@ -28,7 +28,7 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/common/hexutil"
-	"github.com/Fantom-foundation/Substate/rlp"
+	rlp2 "github.com/Fantom-foundation/Substate/geth/rlp"
 )
 
 var (
@@ -269,20 +269,20 @@ func CopyHeader(h *Header) *Header {
 }
 
 // DecodeRLP decodes the Ethereum
-func (b *Block) DecodeRLP(s *rlp.Stream) error {
+func (b *Block) DecodeRLP(s *rlp2.Stream) error {
 	var eb extblock
 	_, size, _ := s.Kind()
 	if err := s.Decode(&eb); err != nil {
 		return err
 	}
 	b.header, b.uncles, b.transactions = eb.Header, eb.Uncles, eb.Txs
-	b.size.Store(common.StorageSize(rlp.ListSize(size)))
+	b.size.Store(common.StorageSize(rlp2.ListSize(size)))
 	return nil
 }
 
 // EncodeRLP serializes b into the Ethereum RLP block format.
 func (b *Block) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, extblock{
+	return rlp2.Encode(w, extblock{
 		Header: b.header,
 		Txs:    b.transactions,
 		Uncles: b.uncles,
@@ -340,7 +340,7 @@ func (b *Block) Size() common.StorageSize {
 		return size.(common.StorageSize)
 	}
 	c := writeCounter(0)
-	rlp.Encode(&c, b)
+	rlp2.Encode(&c, b)
 	b.size.Store(common.StorageSize(c))
 	return common.StorageSize(c)
 }

@@ -21,7 +21,7 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/common/hexutil"
-	"github.com/Fantom-foundation/Substate/rlp"
+	rlp2 "github.com/Fantom-foundation/Substate/geth/rlp"
 )
 
 //go:generate gencodec -type Log -field-override logMarshaling -out gen_log_json.go
@@ -85,11 +85,11 @@ type legacyRlpStorageLog struct {
 
 // EncodeRLP implements rlp.Encoder.
 func (l *Log) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, rlpLog{Address: l.Address, Topics: l.Topics, Data: l.Data})
+	return rlp2.Encode(w, rlpLog{Address: l.Address, Topics: l.Topics, Data: l.Data})
 }
 
 // DecodeRLP implements rlp.Decoder.
-func (l *Log) DecodeRLP(s *rlp.Stream) error {
+func (l *Log) DecodeRLP(s *rlp2.Stream) error {
 	var dec rlpLog
 	err := s.Decode(&dec)
 	if err == nil {
@@ -104,7 +104,7 @@ type LogForStorage Log
 
 // EncodeRLP implements rlp.Encoder.
 func (l *LogForStorage) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, rlpStorageLog{
+	return rlp2.Encode(w, rlpStorageLog{
 		Address: l.Address,
 		Topics:  l.Topics,
 		Data:    l.Data,
@@ -114,13 +114,13 @@ func (l *LogForStorage) EncodeRLP(w io.Writer) error {
 // DecodeRLP implements rlp.Decoder.
 //
 // Note some redundant fields(e.g. block number, tx hash etc) will be assembled later.
-func (l *LogForStorage) DecodeRLP(s *rlp.Stream) error {
+func (l *LogForStorage) DecodeRLP(s *rlp2.Stream) error {
 	blob, err := s.Raw()
 	if err != nil {
 		return err
 	}
 	var dec rlpStorageLog
-	err = rlp.DecodeBytes(blob, &dec)
+	err = rlp2.DecodeBytes(blob, &dec)
 	if err == nil {
 		*l = LogForStorage{
 			Address: dec.Address,
@@ -130,7 +130,7 @@ func (l *LogForStorage) DecodeRLP(s *rlp.Stream) error {
 	} else {
 		// Try to decode log with previous definition.
 		var dec legacyRlpStorageLog
-		err = rlp.DecodeBytes(blob, &dec)
+		err = rlp2.DecodeBytes(blob, &dec)
 		if err == nil {
 			*l = LogForStorage{
 				Address: dec.Address,

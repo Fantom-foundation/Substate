@@ -32,7 +32,7 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/common/math"
-	"github.com/Fantom-foundation/Substate/rlp"
+	"github.com/Fantom-foundation/Substate/geth/rlp"
 	"golang.org/x/crypto/sha3"
 )
 
