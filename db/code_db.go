@@ -21,11 +21,14 @@ type CodeDB interface {
 
 	// PutCode creates hash for given code and inserts it into the DB.
 	PutCode([]byte) error
+
+	// DeleteCode deletes the code for given hash.
+	DeleteCode(common.Hash) error
 }
 
 // NewDefaultCodeDB creates new instance of CodeDB with default options.
-func NewDefaultCodeDB(path string) (SubstateDB, error) {
-	return newSubstateDB(path, nil, nil, nil)
+func NewDefaultCodeDB(path string) (CodeDB, error) {
+	return newCodeDB(path, nil, nil, nil)
 }
 
 // NewCodeDB creates new instance of CodeDB with customizable options.
@@ -65,8 +68,7 @@ func (db *codeDB) HasCode(codeHash common.Hash) (bool, error) {
 
 // GetCode gets the code for the given hash.
 func (db *codeDB) GetCode(codeHash common.Hash) ([]byte, error) {
-	emptyHash := common.Hash{}
-	if codeHash == emptyHash {
+	if codeHash == common.EmptyHash {
 		return nil, ErrorEmptyHash
 	}
 
@@ -84,9 +86,23 @@ func (db *codeDB) PutCode(code []byte) error {
 	key := Stage1CodeKey(codeHash)
 	err := db.Put(key, code)
 	if err != nil {
-		panic(fmt.Errorf("record-replay: error putting code %s: %v", codeHash.Hex(), err))
+		return fmt.Errorf("cannot put code %v; %v", codeHash.Hex(), err)
 	}
 
+	return nil
+}
+
+// DeleteCode deletes the code for the given hash.
+func (db *codeDB) DeleteCode(codeHash common.Hash) error {
+	if codeHash == common.EmptyHash {
+		return ErrorEmptyHash
+	}
+
+	key := Stage1CodeKey(codeHash)
+	err := db.Delete(key)
+	if err != nil {
+		return fmt.Errorf("cannot get code %s: %v", codeHash.Hex(), err)
+	}
 	return nil
 }
 

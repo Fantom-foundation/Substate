@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -60,8 +61,8 @@ type BaseDB interface {
 }
 
 // NewDefaultBaseDB creates new instance of BaseDB with default options.
-func NewDefaultBaseDB(path string) (SubstateDB, error) {
-	return newSubstateDB(path, nil, nil, nil)
+func NewDefaultBaseDB(path string) (BaseDB, error) {
+	return newBaseDB(path, nil, nil, nil)
 }
 
 // NewBaseDB creates new instance of BaseDB with customizable options.
@@ -106,7 +107,13 @@ func (db *baseDB) Has(key []byte) (bool, error) {
 }
 
 func (db *baseDB) Get(key []byte) ([]byte, error) {
-	return db.backend.Get(key, db.ro)
+	b, err := db.backend.Get(key, db.ro)
+	if err != nil {
+		if errors.Is(err, leveldb.ErrNotFound) {
+			return nil, nil
+		}
+	}
+	return b, nil
 }
 
 func (db *baseDB) NewBatch() Batch {
