@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"math/big"
 
-	"github.com/Fantom-foundation/Substate/common"
+	"github.com/Fantom-foundation/Substate/geth/common"
 )
 
 // Account holds any information about account used in a transaction.
