@@ -10,7 +10,7 @@ import (
 )
 
 // SubstateAccount is modification of GenesisAccount in core/genesis.go
-// Deprecated: This type is getting deleted, use Account instead
+// Deprecated: This type is getting deleted, use new_substate.Account instead
 type SubstateAccount struct {
 	Nonce   uint64
 	Balance *big.Int

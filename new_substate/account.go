@@ -1,10 +1,11 @@
-package substate
+package new_substate
 
 import (
 	"bytes"
 	"math/big"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/geth/crypto"
 )
 
 // Account holds any information about account used in a transaction.
@@ -66,6 +67,6 @@ func (a *Account) Copy() *Account {
 }
 
 // CodeHash returns hashed code
-//func (a *Account) CodeHash() common.Hash { todo uncomment when eth is copied
-//	return crypto.Keccak256Hash(a.Code)
-//}
+func (a *Account) CodeHash() common.Hash {
+	return crypto.Keccak256Hash(a.Code)
+}
