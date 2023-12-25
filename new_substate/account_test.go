@@ -1,4 +1,4 @@
-package substate
+package new_substate
 
 import (
 	"math/big"

@@ -49,6 +49,7 @@ type RLPEnv struct {
 	Number      uint64
 	Timestamp   uint64
 	BlockHashes [][2]common.Hash
+	BaseFee     *common.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
 }
 
 type RLPMessage struct {

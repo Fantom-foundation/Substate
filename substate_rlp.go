@@ -272,7 +272,7 @@ func NewSubstateMessageRLP(msg *SubstateMessage) *SubstateMessageRLP {
 	msgRLP.InitCodeHash = nil
 
 	if msgRLP.To == nil {
-		// put contract creation init code into codeDB
+		// put contract creation init code into DB
 		dataHash := msg.DataHash()
 		msgRLP.Data = nil
 		msgRLP.InitCodeHash = &dataHash
