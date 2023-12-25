@@ -4,8 +4,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	substate "github.com/Fantom-foundation/Substate"
-	"github.com/Fantom-foundation/Substate/geth/rlp"
+	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
+	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
@@ -17,10 +18,10 @@ type SubstateDB interface {
 	HasSubstate(block uint64, tx int) (bool, error)
 
 	// GetSubstate gets the Substate for given block and tx number.
-	GetSubstate(block uint64, tx int) (*substate.Substate, error)
+	GetSubstate(block uint64, tx int) (*new_substate.Substate, error)
 
 	// PutSubstate inserts given substate to DB including the block and tx number.
-	PutSubstate(block uint64, tx int, substate *substate.Substate) error
+	PutSubstate(block uint64, tx int, substate *new_substate.Substate) error
 
 	// DeleteSubstate deletes Substate for given block and tx number.
 	DeleteSubstate(block uint64, tx int) error
@@ -54,22 +55,21 @@ func (db *substateDB) HasSubstate(block uint64, tx int) (bool, error) {
 }
 
 // GetSubstate returns substate for given block and tx number if exists within DB.
-// Todo: Use new substate once merged
-func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, error) {
+func (db *substateDB) GetSubstate(block uint64, tx int) (*new_substate.Substate, error) {
 	val, err := db.Get(Stage1SubstateKey(block, tx))
 	if err != nil {
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %v", block, tx, err)
 	}
 
-	rlpSubstate, err := substate.ToRLP(val, block)
+	rlpSubstate, err := rlp.Decode(val, block)
 	if err != nil {
 		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %v", block, tx, err)
 	}
 
-	return rlpSubstate.ToSubstate()
+	return rlpSubstate.ToSubstate(db.GetCode)
 }
 
-func (db *substateDB) PutSubstate(block uint64, tx int, ss *substate.Substate) error {
+func (db *substateDB) PutSubstate(block uint64, tx int, ss *new_substate.Substate) error {
 	for i, account := range ss.InputAlloc {
 		err := db.PutCode(account.Code)
 		if err != nil {
@@ -93,8 +93,8 @@ func (db *substateDB) PutSubstate(block uint64, tx int, ss *substate.Substate) e
 
 	key := Stage1SubstateKey(block, tx)
 
-	substateRLP := substate.NewRLP(ss)
-	value, err := rlp.EncodeToBytes(substateRLP)
+	substateRLP := rlp.NewRLP(ss)
+	value, err := gethrlp.EncodeToBytes(substateRLP)
 	if err != nil {
 		return fmt.Errorf("cannot encode substate-rlp block %v, tx %v; %v", block, tx, err)
 	}
