@@ -48,6 +48,7 @@ type Env struct {
 	BaseFee     *common.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
 }
 
+// ToSubstate transforms e from Env to new_substate.Env.
 func (e Env) ToSubstate() *new_substate.Env {
 	se := &new_substate.Env{
 		Coinbase:    e.Coinbase,
@@ -59,6 +60,9 @@ func (e Env) ToSubstate() *new_substate.Env {
 		BaseFee:     e.BaseFee.Big(),
 	}
 
+	// iterate through BlockHashes
+	// first hash is the block number
+	// second hash is the block hash itself
 	for _, hashes := range e.BlockHashes {
 		number := hashes[0].Big().Uint64()
 		hash := hashes[1]

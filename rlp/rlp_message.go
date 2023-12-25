@@ -53,6 +53,7 @@ type Message struct {
 	GasTipCap *big.Int // missing in substate DB from Geth <= v1.10.3
 }
 
+// ToSubstate transforms m from Message to new_substate.Message.
 func (m Message) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error)) (*new_substate.Message, error) {
 	sm := &new_substate.Message{
 		Nonce:      m.Nonce,
@@ -68,6 +69,7 @@ func (m Message) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, erro
 		GasTipCap:  m.GasTipCap,
 	}
 
+	// if receiver is nil, we have to extract the data from the DB using getHashFunc
 	if sm.To == nil {
 		var err error
 		m.Data, err = getHashFunc(*m.InitCodeHash)

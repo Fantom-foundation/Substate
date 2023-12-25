@@ -25,6 +25,7 @@ type Result struct {
 	GasUsed         uint64
 }
 
+// ToSubstate transforms r from Result to new_substate.Result.
 func (r Result) ToSubstate() *new_substate.Result {
 	return &new_substate.Result{
 		Status:          r.Status,

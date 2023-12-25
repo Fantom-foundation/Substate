@@ -59,6 +59,7 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 	return nil, err
 }
 
+// ToSubstate transforms every attribute of r from RLP to new_substate.Substate.
 func (r RLP) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error)) (*new_substate.Substate, error) {
 	msg, err := r.Message.ToSubstate(getHashFunc)
 	if err != nil {

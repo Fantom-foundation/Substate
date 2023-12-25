@@ -24,8 +24,14 @@ type Alloc struct {
 	Accounts  []*Account
 }
 
+// ToSubstate transforms a from Alloc to new_substate.Alloc.
 func (a Alloc) ToSubstate() new_substate.Alloc {
 	sa := make(new_substate.Alloc)
+
+	// iterate through addresses and assign it correctly to new_substate.Alloc
+	// positions in Alloc match map assignment in new_substate.Alloc
+	// that means that Address at first position matches Account at first position,
+	// Address at second position matches Account at second position, and so on
 	for i, addr := range a.Addresses {
 		acc := a.Accounts[i]
 		sa[addr] = new_substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash.Bytes())
