@@ -2,7 +2,9 @@ package new_substate
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
@@ -31,7 +33,19 @@ type Message struct {
 	GasTipCap *big.Int // GasPrice if EIP-1559 is not activated
 }
 
-func NewMessage(nonce uint64, checkNonce bool, gasPrice *big.Int, gas uint64, from common.Address, to *common.Address, value *big.Int, data []byte, dataHash *common.Hash, accessList types.AccessList, gasFeeCap *big.Int, gasTipCap *big.Int) *Message {
+func NewMessage(
+	nonce uint64,
+	checkNonce bool,
+	gasPrice *big.Int,
+	gas uint64,
+	from common.Address,
+	to *common.Address,
+	value *big.Int,
+	data []byte,
+	dataHash *common.Hash,
+	accessList types.AccessList,
+	gasFeeCap *big.Int,
+	gasTipCap *big.Int) *Message {
 	return &Message{
 		Nonce:      nonce,
 		CheckNonce: checkNonce,
@@ -108,4 +122,27 @@ func (m *Message) DataHash() common.Hash {
 		m.dataHash = &dataHash
 	}
 	return *m.dataHash
+}
+
+func (m *Message) String() string {
+	var builder strings.Builder
+
+	builder.WriteString(fmt.Sprintf("Nonce: %v", m.Nonce))
+	builder.WriteString(fmt.Sprintf("CheckNonce: %v", m.CheckNonce))
+	builder.WriteString(fmt.Sprintf("From: %v", m.From.Hex()))
+	builder.WriteString(fmt.Sprintf("To: %v", m.To.Hex()))
+	builder.WriteString(fmt.Sprintf("Value: %v", m.Value.String()))
+	builder.WriteString(fmt.Sprintf("Data: %v", string(m.Data)))
+	builder.WriteString(fmt.Sprintf("Data Hash: %v", m.dataHash.Hex()))
+	builder.WriteString(fmt.Sprintf("Gas Fee Cap: %v", m.GasFeeCap.String()))
+	builder.WriteString(fmt.Sprintf("Gas Tip Cap: %v", m.GasTipCap.String()))
+
+	for _, tuple := range m.AccessList {
+		builder.WriteString(fmt.Sprintf("Address: %v", tuple.Address.Hex()))
+		for i, key := range tuple.StorageKeys {
+			builder.WriteString(fmt.Sprintf("Storage Key %v: %v", i, key.Hex()))
+		}
+	}
+
+	return builder.String()
 }

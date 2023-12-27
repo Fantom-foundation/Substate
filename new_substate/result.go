@@ -2,6 +2,8 @@ package new_substate
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/types"
@@ -65,4 +67,19 @@ func (r *Result) Equal(y *Result) bool {
 	}
 
 	return true
+}
+
+func (r *Result) String() string {
+	var builder strings.Builder
+
+	builder.WriteString(fmt.Sprintf("Status: %v", r.Status))
+	builder.WriteString(fmt.Sprintf("Bloom: %v", r.Bloom.Big().String()))
+	builder.WriteString(fmt.Sprintf("Contract Address: %v", r.ContractAddress.Hex()))
+	builder.WriteString(fmt.Sprintf("Gas Used: %v", r.GasUsed))
+
+	for _, log := range r.Logs {
+		builder.WriteString(fmt.Sprintf("%v", *log))
+	}
+
+	return builder.String()
 }
