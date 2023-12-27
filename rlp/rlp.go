@@ -34,7 +34,9 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 
 	if IsLondonFork(block) {
 		err = rlp.DecodeBytes(val, &substateRLP)
-		if err == nil {
+		if err != nil {
+			return nil, err
+		} else {
 			return &substateRLP, nil
 		}
 	}
@@ -42,7 +44,9 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 	if IsBerlinFork(block) && !done {
 		var berlin berlinRLP
 		err = rlp.DecodeBytes(val, &berlin)
-		if err == nil {
+		if err != nil {
+			return nil, err
+		} else {
 			return berlin.toLondon(), nil
 		}
 	}
@@ -50,7 +54,9 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 	if !done {
 		var legacy legacyRLP
 		err = rlp.DecodeBytes(val, &legacy)
-		if err == nil {
+		if err != nil {
+			return nil, err
+		} else {
 			return legacy.toLondon(), nil
 		}
 

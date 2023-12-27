@@ -3,27 +3,30 @@ package db
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/Fantom-foundation/Substate/geth/crypto"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 var testCode = []byte{1}
 
 func TestCodeDB_PutCode(t *testing.T) {
 	dbPath := t.TempDir() + "test-db"
-	_, err := createDbAndPutCode(dbPath)
+
+	db, err := createDbAndPutCode(dbPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	stat, err := os.Stat(dbPath)
+	s := new(leveldb.DBStats)
+	err = db.backend.Stats(s)
 	if err != nil {
-		t.Fatalf("cannot get file stats; %v", err)
+		t.Fatalf("cannot get db stats; %v", err)
 	}
 
-	if stat.Size() == 0 {
+	// 54 is the base write when creating levelDB
+	if s.IOWrite <= 54 {
 		t.Fatal("db file should have something inside")
 	}
 
