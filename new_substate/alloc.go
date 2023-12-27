@@ -2,7 +2,9 @@ package new_substate
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 )
@@ -127,4 +129,13 @@ func (a Alloc) Equal(y Alloc) bool {
 	}
 
 	return true
+}
+
+func (a Alloc) String() string {
+	var builder strings.Builder
+
+	for addr, acc := range a {
+		builder.WriteString(fmt.Sprintf("%v: %v", addr.Hex(), acc.String()))
+	}
+	return builder.String()
 }

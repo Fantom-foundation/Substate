@@ -2,7 +2,9 @@ package new_substate
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
@@ -69,4 +71,16 @@ func (a *Account) Copy() *Account {
 // CodeHash returns hashed code
 func (a *Account) CodeHash() common.Hash {
 	return crypto.Keccak256Hash(a.Code)
+}
+
+func (a *Account) String() string {
+	var builder strings.Builder
+
+	builder.WriteString(fmt.Sprintf("Nonce: %v\nBalance: %v\nCode: %v\nStorage:", a.Nonce, a.Balance.String(), string(a.Code)))
+
+	for key, val := range a.Storage {
+		builder.WriteString(fmt.Sprintf("%v: %v\n", key.Hex(), val.Hex()))
+	}
+
+	return builder.String()
 }

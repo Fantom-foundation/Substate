@@ -1,7 +1,9 @@
 package new_substate
 
 import (
+	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/types"
@@ -21,7 +23,7 @@ type Env struct {
 
 func NewEnv(b *types.Block, blockHashes map[uint64]common.Hash) *Env {
 	return &Env{
-		//Coinbase:    b.Coinbase(), // todo uncomment when all things are imported from eth
+		Coinbase:    b.Coinbase(),
 		Difficulty:  new(big.Int).Set(b.Difficulty()),
 		GasLimit:    b.GasLimit(),
 		Number:      b.NumberU64(),
@@ -61,4 +63,23 @@ func (e *Env) Equal(y *Env) bool {
 	}
 
 	return true
+}
+
+func (e *Env) String() string {
+	var builder strings.Builder
+
+	builder.WriteString(fmt.Sprintf("Coinbase: %v\n", e.Coinbase.Hex()))
+	builder.WriteString(fmt.Sprintf("Difficulty: %v\n", e.Difficulty.String()))
+	builder.WriteString(fmt.Sprintf("Gas Limit: %v\n", e.GasLimit))
+	builder.WriteString(fmt.Sprintf("Number: %v\n", e.Number))
+	builder.WriteString(fmt.Sprintf("Timestamp: %v\n", e.Timestamp))
+	builder.WriteString(fmt.Sprintf("Base Fee: %v\n", e.BaseFee.String()))
+	builder.WriteString("Block Hashes: \n")
+
+	for number, hash := range e.BlockHashes {
+		builder.WriteString(fmt.Sprintf("%v: %v\n", number, hash.Hex()))
+	}
+
+	return builder.String()
+
 }
