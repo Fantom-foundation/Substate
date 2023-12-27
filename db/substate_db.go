@@ -61,6 +61,11 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*new_substate.Substate,
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %v", block, tx, err)
 	}
 
+	// not in db
+	if val == nil {
+		return nil, nil
+	}
+
 	rlpSubstate, err := rlp.Decode(val, block)
 	if err != nil {
 		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %v", block, tx, err)
