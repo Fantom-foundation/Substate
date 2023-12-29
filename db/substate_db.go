@@ -25,6 +25,8 @@ type SubstateDB interface {
 
 	// DeleteSubstate deletes Substate for given block and tx number.
 	DeleteSubstate(block uint64, tx int) error
+
+	NewSubstateIterator(start int, numWorkers int) SubstateIterator
 }
 
 // NewDefaultSubstateDB creates new instance of SubstateDB with default options.
@@ -109,6 +111,97 @@ func (db *substateDB) PutSubstate(block uint64, tx int, ss *new_substate.Substat
 
 func (db *substateDB) DeleteSubstate(block uint64, tx int) error {
 	return db.Delete(Stage1SubstateKey(block, tx))
+}
+
+// NewSubstateIterator returns iterator which iterates over Substates.
+func (db *substateDB) NewSubstateIterator(start int, numWorkers int) SubstateIterator {
+	num := make([]byte, 4)
+	binary.BigEndian.PutUint32(num, uint32(start))
+	iter := newSubstateIterator(db, num)
+
+	// Create channels
+	errCh := make(chan error)
+	rawDataChs := make([]chan rawEntry, numWorkers)
+	resultChs := make([]chan *Transaction, numWorkers)
+
+	for i := 0; i < numWorkers; i++ {
+		rawDataChs[i] = make(chan rawEntry, 10)
+		resultChs[i] = make(chan *Transaction, 10)
+	}
+
+	// Start iter => raw data stage
+	iter.wg.Add(1)
+	go func() {
+		defer func() {
+			for _, c := range rawDataChs {
+				close(c)
+			}
+			iter.wg.Done()
+		}()
+		step := 0
+		for {
+			if !iter.iter.Next() {
+				return
+			}
+
+			key := make([]byte, len(iter.iter.Key()))
+			copy(key, iter.iter.Key())
+			value := make([]byte, len(iter.iter.Value()))
+			copy(value, iter.iter.Value())
+
+			res := rawEntry{key, value}
+
+			select {
+			case e := <-errCh:
+				iter.err = e
+				return
+			case rawDataChs[step] <- res: // fall-through
+			}
+			step = (step + 1) % numWorkers
+		}
+	}()
+
+	// Start raw data => parsed transaction stage (parallel)
+	for i := 0; i < numWorkers; i++ {
+		iter.wg.Add(1)
+		id := i
+
+		go func() {
+			defer func() {
+				close(resultChs[id])
+				iter.wg.Done()
+			}()
+			for raw := range rawDataChs[id] {
+				transaction, err := iter.toTransaction(raw)
+				if err != nil {
+					errCh <- err
+					return
+				}
+				resultChs[id] <- transaction
+			}
+		}()
+	}
+
+	// Start the go routine moving transactions from parsers to sink in order
+	iter.wg.Add(1)
+	go func() {
+		defer func() {
+			close(iter.resultCh)
+			iter.wg.Done()
+		}()
+		step := 0
+		for openProducers := numWorkers; openProducers > 0; {
+			next := <-resultChs[step%numWorkers]
+			if next != nil {
+				iter.resultCh <- next
+			} else {
+				openProducers--
+			}
+			step++
+		}
+	}()
+
+	return iter
 }
 
 // BlockToBytes returns binary BigEndian representation of given block number.
