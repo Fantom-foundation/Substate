@@ -94,7 +94,7 @@ func TestSubstateDB_DeleteSubstate(t *testing.T) {
 
 	err = db.DeleteSubstate(37_534_834, 1)
 	if err != nil {
-		t.Fatalf("get substate returned error; %v", err)
+		t.Fatalf("delete substate returned error; %v", err)
 	}
 
 	ss, err := db.GetSubstate(37_534_834, 1)

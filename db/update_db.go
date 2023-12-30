@@ -9,6 +9,7 @@ import (
 	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
 	"github.com/Fantom-foundation/Substate/new_substate"
 	"github.com/Fantom-foundation/Substate/rlp"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
@@ -71,6 +72,25 @@ func (up UpdateSetRLP) toSubstateAlloc(db *updateDB) (new_substate.Alloc, error)
 	return alloc, nil
 }
 
+// NewDefaultUpdateDB creates new instance of UpdateDB with default options.
+func NewDefaultUpdateDB(path string) (UpdateDB, error) {
+	return newUpdateDB(path, nil, nil, nil)
+}
+
+// NewUpdateDB creates new instance of UpdateDB with customizable options.
+// Note: Any of three options is nillable. If that's the case a default value for the option is set.
+func NewUpdateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (UpdateDB, error) {
+	return newUpdateDB(path, o, wo, ro)
+}
+
+func newUpdateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*updateDB, error) {
+	base, err := newCodeDB(path, o, wo, ro)
+	if err != nil {
+		return nil, err
+	}
+	return &updateDB{base}, nil
+}
+
 type updateDB struct {
 	*codeDB
 }
@@ -120,6 +140,10 @@ func (db *updateDB) GetUpdateSet(block uint64) (new_substate.Alloc, error) {
 	value, err := db.Get(key)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get updateset block: %v, key %v; %v", block, key, err)
+	}
+
+	if value == nil {
+		return nil, nil
 	}
 
 	// decode value
