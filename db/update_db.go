@@ -7,8 +7,7 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
-	"github.com/Fantom-foundation/Substate/new_substate"
-	"github.com/Fantom-foundation/Substate/rlp"
+	"github.com/Fantom-foundation/Substate/update_set"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -17,59 +16,27 @@ const (
 	SubstateAllocPrefix = "2s" // SubstateAllocPrefix + block (64-bit) + tx (64-bit) -> substateRLP
 )
 
+// UpdateDB represents a CodeDB with in which the UpdateSet is inserted.
 type UpdateDB interface {
 	CodeDB
 
+	// GetFirstKey returns block number of first UpdateSet. It returns an error if no UpdateSet is found.
 	GetFirstKey() (uint64, error)
 
+	// GetLastKey returns block number of last UpdateSet. It returns an error if no UpdateSet is found.
 	GetLastKey() (uint64, error)
 
+	// HasUpdateSet returns true if there is an UpdateSet on given block.
 	HasUpdateSet(block uint64) (bool, error)
 
-	GetUpdateSet(block uint64) (new_substate.Alloc, error)
+	// GetUpdateSet returns UpdateSet for given block. If there is not an UpdateSet for the block, nil is returned.
+	GetUpdateSet(block uint64) (*update_set.UpdateSet, error)
 
-	PutUpdateSet(block uint64, updateSet new_substate.Alloc, deletedAccounts []common.Address) error
+	// PutUpdateSet inserts the UpdateSet with deleted accounts into the DB assigned to given block.
+	PutUpdateSet(updateSet *update_set.UpdateSet, deletedAccounts []common.Address) error
 
+	// DeleteUpdateSet deletes UpdateSet for given block. It returns an error if there is no UpdateSet on given block.
 	DeleteUpdateSet(block uint64) error
-}
-
-type UpdateSetRLP struct {
-	Alloc           rlp.Alloc
-	DeletedAccounts []common.Address
-}
-
-func NewUpdateSetRLP(updateSet new_substate.Alloc, deletedAccounts []common.Address) UpdateSetRLP {
-	return UpdateSetRLP{
-		Alloc:           rlp.NewAlloc(updateSet),
-		DeletedAccounts: deletedAccounts,
-	}
-}
-
-func (up UpdateSetRLP) toSubstateAlloc(db *updateDB) (new_substate.Alloc, error) {
-	alloc := make(new_substate.Alloc)
-
-	for i, addr := range up.Alloc.Addresses {
-		allocAcc := up.Alloc.Accounts[i]
-
-		code, err := db.GetCode(allocAcc.CodeHash)
-		if err != nil {
-			return nil, err
-		}
-
-		acc := new_substate.Account{
-			Nonce:   allocAcc.Nonce,
-			Balance: allocAcc.Balance,
-			Storage: make(map[common.Hash]common.Hash),
-			Code:    code,
-		}
-
-		for j := range allocAcc.Storage {
-			acc.Storage[up.Alloc.Accounts[j].Storage[j][0]] = up.Alloc.Accounts[j].Storage[j][1]
-		}
-		alloc[addr] = &acc
-	}
-
-	return alloc, nil
 }
 
 // NewDefaultUpdateDB creates new instance of UpdateDB with default options.
@@ -95,7 +62,6 @@ type updateDB struct {
 	*codeDB
 }
 
-// GetFirstKey returns block number of first UpdateSet. It returns an error if no UpdateSet is found.
 func (db *updateDB) GetFirstKey() (uint64, error) {
 	r := util.BytesPrefix([]byte(SubstateAllocPrefix))
 
@@ -135,7 +101,7 @@ func (db *updateDB) HasUpdateSet(block uint64) (bool, error) {
 	return db.Has(key)
 }
 
-func (db *updateDB) GetUpdateSet(block uint64) (new_substate.Alloc, error) {
+func (db *updateDB) GetUpdateSet(block uint64) (*update_set.UpdateSet, error) {
 	key := SubstateAllocKey(block)
 	value, err := db.Get(key)
 	if err != nil {
@@ -147,25 +113,25 @@ func (db *updateDB) GetUpdateSet(block uint64) (new_substate.Alloc, error) {
 	}
 
 	// decode value
-	var updateSetRLP UpdateSetRLP
+	var updateSetRLP update_set.UpdateSetRLP
 	if err = gethrlp.DecodeBytes(value, &updateSetRLP); err != nil {
 		return nil, fmt.Errorf("cannot decode update-set rlp block: %v, key %v; %v", block, key, err)
 	}
 
-	return updateSetRLP.toSubstateAlloc(db)
+	return updateSetRLP.ToSubstateAlloc(db.GetCode, block)
 }
 
-func (db *updateDB) PutUpdateSet(block uint64, updateSet new_substate.Alloc, deletedAccounts []common.Address) error {
+func (db *updateDB) PutUpdateSet(updateSet *update_set.UpdateSet, deletedAccounts []common.Address) error {
 	// put deployed/creation code
-	for _, account := range updateSet {
+	for _, account := range updateSet.Alloc {
 		err := db.PutCode(account.Code)
 		if err != nil {
 			return err
 		}
 	}
 
-	key := SubstateAllocKey(block)
-	updateSetRLP := NewUpdateSetRLP(updateSet, deletedAccounts)
+	key := SubstateAllocKey(updateSet.Block)
+	updateSetRLP := update_set.NewUpdateSetRLP(updateSet, deletedAccounts)
 
 	value, err := gethrlp.EncodeToBytes(updateSetRLP)
 	if err != nil {

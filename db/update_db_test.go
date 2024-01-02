@@ -7,18 +7,22 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/update_set"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-var testUpdateSet = new_substate.Alloc{
-	common.Address{1}: &new_substate.Account{
-		Nonce:   1,
-		Balance: new(big.Int).SetUint64(1),
+var testUpdateSet = &update_set.UpdateSet{
+	Alloc: new_substate.Alloc{
+		common.Address{1}: &new_substate.Account{
+			Nonce:   1,
+			Balance: new(big.Int).SetUint64(1),
+		},
+		common.Address{2}: &new_substate.Account{
+			Nonce:   2,
+			Balance: new(big.Int).SetUint64(2),
+		},
 	},
-	common.Address{2}: &new_substate.Account{
-		Nonce:   2,
-		Balance: new(big.Int).SetUint64(2),
-	},
+	Block: 1,
 }
 
 var testDeletedAccounts = []common.Address{common.Address{3}, common.Address{4}}
@@ -49,7 +53,7 @@ func TestUpdateDB_HasUpdateSet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	has, err := db.HasUpdateSet(1)
+	has, err := db.HasUpdateSet(testUpdateSet.Block)
 	if err != nil {
 		t.Fatalf("has update-set returned error; %v", err)
 	}
@@ -66,7 +70,7 @@ func TestUpdateDB_GetUpdateSet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	us, err := db.GetUpdateSet(1)
+	us, err := db.GetUpdateSet(testUpdateSet.Block)
 	if err != nil {
 		t.Fatalf("get update-set returned error; %v", err)
 	}
@@ -88,12 +92,12 @@ func TestUpdateDB_DeleteUpdateSet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = db.DeleteUpdateSet(1)
+	err = db.DeleteUpdateSet(testUpdateSet.Block)
 	if err != nil {
 		t.Fatalf("delete update-set returned error; %v", err)
 	}
 
-	us, err := db.GetUpdateSet(1)
+	us, err := db.GetUpdateSet(testUpdateSet.Block)
 	if err != nil {
 		t.Fatalf("get update=set returned error; %v", err)
 	}
@@ -115,7 +119,7 @@ func TestUpdateDB_GetFirstKey(t *testing.T) {
 		t.Fatalf("cannot get first key; %v", err)
 	}
 
-	var want uint64 = 1
+	var want = testUpdateSet.Block
 
 	if want != got {
 		t.Fatalf("incorrect first key\nwant: %v\ngot: %v", want, got)
@@ -134,7 +138,7 @@ func TestUpdateDB_GetLastKey(t *testing.T) {
 		t.Fatalf("cannot get last key; %v", err)
 	}
 
-	var want uint64 = 1
+	var want = testUpdateSet.Block
 
 	if want != got {
 		t.Fatalf("incorrect last key\nwant: %v\ngot: %v", want, got)
@@ -147,7 +151,7 @@ func createDbAndPutUpdateSet(dbPath string) (*updateDB, error) {
 		return nil, fmt.Errorf("cannot open db; %v", err)
 	}
 
-	err = db.PutUpdateSet(1, testUpdateSet, testDeletedAccounts)
+	err = db.PutUpdateSet(testUpdateSet, testDeletedAccounts)
 	if err != nil {
 		return nil, err
 	}
