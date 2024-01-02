@@ -1,86 +1,26 @@
 package db
 
 import (
-	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/Fantom-foundation/Substate/new_substate"
 	"github.com/Fantom-foundation/Substate/rlp"
-	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
-
-// SubstateIterator iterates over a database's key/value pairs in ascending key order.
-//
-// When it encounters an error any seek will return false and will yield no key/
-// value pairs. The error can be queried by calling the Error method. Calling
-// Release is still necessary.
-//
-// An iterator must be released after use, but it is not necessary to read an
-// iterator until exhaustion. An iterator is not safe for concurrent use, but it
-// is safe to use multiple iterators concurrently.
-type SubstateIterator interface {
-	// Next moves the iterator to the next key/value pair. It returns whether the
-	// iterator is exhausted.
-	Next() bool
-
-	// Error returns any accumulated error. Exhausting all the key/value pairs
-	// is not considered to be an error.
-	Error() error
-
-	// Value returns the value of the current Transaction, or nil if done. The
-	// caller should not modify the contents of the returned slice, and its contents
-	// may change on the next call to Next.
-	Value() *Transaction
-
-	// Release releases associated resources. Release should always succeed and can
-	// be called multiple times without causing error.
-	Release()
-}
 
 func newSubstateIterator(db *substateDB, start []byte) *substateIterator {
 	r := util.BytesPrefix([]byte(Stage1SubstatePrefix))
 	r.Start = append(r.Start, start...)
 
 	return &substateIterator{
+		iterator: newIterator[*Transaction](db.backend.NewIterator(r, db.ro)),
 		db:       db,
-		iter:     db.backend.NewIterator(r, db.ro),
-		resultCh: make(chan *Transaction, 10),
-		wg:       new(sync.WaitGroup),
 	}
 }
 
 type substateIterator struct {
-	err      error
-	db       *substateDB
-	iter     iterator.Iterator
-	resultCh chan *Transaction
-	wg       *sync.WaitGroup
-	cur      *Transaction
-}
-
-// Next returns false if iterator is at its end. Otherwise, it returns true.
-// Note: False does not stop the iterator. Release() should be called.
-func (i *substateIterator) Next() bool {
-	i.cur = <-i.resultCh
-	return i.cur != nil
-}
-
-// Error returns iterators error if any.
-func (i *substateIterator) Error() error {
-	return errors.Join(i.err, i.iter.Error())
-}
-
-// Value returns current value hold by the iterator.
-func (i *substateIterator) Value() *Transaction {
-	return i.cur
-}
-
-// Release the iterator and wait until all threads are closed gracefully.
-func (i *substateIterator) Release() {
-	i.iter.Release()
-	i.wg.Wait()
+	iterator[*Transaction]
+	db *substateDB
 }
 
 type Transaction struct {
@@ -118,4 +58,88 @@ func (i *substateIterator) toTransaction(data rawEntry) (*Transaction, error) {
 		Transaction: tx,
 		Substate:    ss,
 	}, nil
+}
+
+func (i *substateIterator) start(numWorkers int) {
+	// Create channels
+	errCh := make(chan error)
+	rawDataChs := make([]chan rawEntry, numWorkers)
+	resultChs := make([]chan *Transaction, numWorkers)
+
+	for i := 0; i < numWorkers; i++ {
+		rawDataChs[i] = make(chan rawEntry, 10)
+		resultChs[i] = make(chan *Transaction, 10)
+	}
+
+	// Start i => raw data stage
+	i.wg.Add(1)
+	go func() {
+		defer func() {
+			for _, c := range rawDataChs {
+				close(c)
+			}
+			i.wg.Done()
+		}()
+		step := 0
+		for {
+			if !i.iter.Next() {
+				return
+			}
+
+			key := make([]byte, len(i.iter.Key()))
+			copy(key, i.iter.Key())
+			value := make([]byte, len(i.iter.Value()))
+			copy(value, i.iter.Value())
+
+			res := rawEntry{key, value}
+
+			select {
+			case e := <-errCh:
+				i.err = e
+				return
+			case rawDataChs[step] <- res: // fall-through
+			}
+			step = (step + 1) % numWorkers
+		}
+	}()
+
+	// Start raw data => parsed transaction stage (parallel)
+	for w := 0; w < numWorkers; w++ {
+		i.wg.Add(1)
+		id := w
+
+		go func() {
+			defer func() {
+				close(resultChs[id])
+				i.wg.Done()
+			}()
+			for raw := range rawDataChs[id] {
+				transaction, err := i.toTransaction(raw)
+				if err != nil {
+					errCh <- err
+					return
+				}
+				resultChs[id] <- transaction
+			}
+		}()
+	}
+
+	// Start the go routine moving transactions from parsers to sink in order
+	i.wg.Add(1)
+	go func() {
+		defer func() {
+			close(i.resultCh)
+			i.wg.Done()
+		}()
+		step := 0
+		for openProducers := numWorkers; openProducers > 0; {
+			next := <-resultChs[step%numWorkers]
+			if next != nil {
+				i.resultCh <- next
+			} else {
+				openProducers--
+			}
+			step++
+		}
+	}()
 }
