@@ -20,13 +20,13 @@ type SubstateDB interface {
 	// GetSubstate gets the Substate for given block and tx number.
 	GetSubstate(block uint64, tx int) (*new_substate.Substate, error)
 
-	// PutSubstate inserts given substate to DB including the block and tx number.
-	PutSubstate(block uint64, tx int, substate *new_substate.Substate) error
+	// PutSubstate inserts given substate to DB.
+	PutSubstate(substate *new_substate.Substate) error
 
 	// DeleteSubstate deletes Substate for given block and tx number.
 	DeleteSubstate(block uint64, tx int) error
 
-	NewSubstateIterator(start int, numWorkers int) Iterator[*Transaction]
+	NewSubstateIterator(start int, numWorkers int) Iterator[*new_substate.Substate]
 }
 
 // NewDefaultSubstateDB creates new instance of SubstateDB with default options.
@@ -73,37 +73,37 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*new_substate.Substate,
 		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %v", block, tx, err)
 	}
 
-	return rlpSubstate.ToSubstate(db.GetCode)
+	return rlpSubstate.ToSubstate(db.GetCode, block, tx)
 }
 
-func (db *substateDB) PutSubstate(block uint64, tx int, ss *new_substate.Substate) error {
+func (db *substateDB) PutSubstate(ss *new_substate.Substate) error {
 	for i, account := range ss.InputAlloc {
 		err := db.PutCode(account.Code)
 		if err != nil {
-			return fmt.Errorf("cannot put input-alloc code from substate-account %v block %v, %v tx into db; %v", i, block, tx, err)
+			return fmt.Errorf("cannot put input-alloc code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
 		}
 	}
 
 	for i, account := range ss.OutputAlloc {
 		err := db.PutCode(account.Code)
 		if err != nil {
-			return fmt.Errorf("cannot put ouput-alloc code from substate-account %v block %v, %v tx into db; %v", i, block, tx, err)
+			return fmt.Errorf("cannot put ouput-alloc code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
 		}
 	}
 
 	if msg := ss.Message; msg.To == nil {
 		err := db.PutCode(msg.Data)
 		if err != nil {
-			return fmt.Errorf("cannot put input data from substate block %v, %v tx into db; %v", block, tx, err)
+			return fmt.Errorf("cannot put input data from substate block %v, %v tx into db; %v", ss.Block, ss.Transaction, err)
 		}
 	}
 
-	key := Stage1SubstateKey(block, tx)
+	key := Stage1SubstateKey(ss.Block, ss.Transaction)
 
 	substateRLP := rlp.NewRLP(ss)
 	value, err := gethrlp.EncodeToBytes(substateRLP)
 	if err != nil {
-		return fmt.Errorf("cannot encode substate-rlp block %v, tx %v; %v", block, tx, err)
+		return fmt.Errorf("cannot encode substate-rlp block %v, tx %v; %v", ss.Block, ss.Transaction, err)
 	}
 
 	return db.Put(key, value)
@@ -114,7 +114,7 @@ func (db *substateDB) DeleteSubstate(block uint64, tx int) error {
 }
 
 // NewSubstateIterator returns iterator which iterates over Substates.
-func (db *substateDB) NewSubstateIterator(start int, numWorkers int) Iterator[*Transaction] {
+func (db *substateDB) NewSubstateIterator(start int, numWorkers int) Iterator[*new_substate.Substate] {
 	num := make([]byte, 4)
 	binary.BigEndian.PutUint32(num, uint32(start))
 	iter := newSubstateIterator(db, num)
