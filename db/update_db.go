@@ -37,6 +37,8 @@ type UpdateDB interface {
 
 	// DeleteUpdateSet deletes UpdateSet for given block. It returns an error if there is no UpdateSet on given block.
 	DeleteUpdateSet(block uint64) error
+
+	NewUpdateSetIterator(start, end uint64) Iterator[*update_set.UpdateSet]
 }
 
 // NewDefaultUpdateDB creates new instance of UpdateDB with default options.
@@ -144,6 +146,14 @@ func (db *updateDB) PutUpdateSet(updateSet *update_set.UpdateSet, deletedAccount
 func (db *updateDB) DeleteUpdateSet(block uint64) error {
 	key := SubstateAllocKey(block)
 	return db.Delete(key)
+}
+
+func (db *updateDB) NewUpdateSetIterator(start, end uint64) Iterator[*update_set.UpdateSet] {
+	iter := newUpdateSetIterator(db, start, end)
+
+	iter.start(0)
+
+	return iter
 }
 
 func DecodeUpdateSetKey(key []byte) (block uint64, err error) {
