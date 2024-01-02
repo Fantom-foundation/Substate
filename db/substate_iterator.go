@@ -23,18 +23,14 @@ type substateIterator struct {
 	db *substateDB
 }
 
+// todo move block and tx to substate?
 type Transaction struct {
 	Block       uint64
 	Transaction int
 	Substate    *new_substate.Substate
 }
 
-type rawEntry struct {
-	key   []byte
-	value []byte
-}
-
-func (i *substateIterator) toTransaction(data rawEntry) (*Transaction, error) {
+func (i *substateIterator) decode(data rawEntry) (*Transaction, error) {
 	key := data.key
 	value := data.value
 
@@ -114,7 +110,7 @@ func (i *substateIterator) start(numWorkers int) {
 				i.wg.Done()
 			}()
 			for raw := range rawDataChs[id] {
-				transaction, err := i.toTransaction(raw)
+				transaction, err := i.decode(raw)
 				if err != nil {
 					errCh <- err
 					return

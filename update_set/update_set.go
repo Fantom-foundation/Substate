@@ -15,8 +15,9 @@ func NewUpdateSet(alloc new_substate.Alloc, block uint64) *UpdateSet {
 
 // UpdateSet represents the new_substate.Account allocation for the block.
 type UpdateSet struct {
-	Alloc new_substate.Alloc
-	Block uint64
+	Alloc           new_substate.Alloc
+	Block           uint64
+	DeletedAccounts []common.Address
 }
 
 func (s UpdateSet) ToAlloc() rlp.Alloc {

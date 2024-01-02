@@ -36,6 +36,14 @@ type Iterator[T comparable] interface {
 	// Release releases associated resources. Release should always succeed and can
 	// be called multiple times without causing error.
 	Release()
+
+	// decode data returned from DB to given type T.
+	decode(data rawEntry) (T, error)
+}
+
+type rawEntry struct {
+	key   []byte
+	value []byte
 }
 
 type iterator[T comparable] struct {
