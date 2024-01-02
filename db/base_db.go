@@ -59,6 +59,15 @@ type BaseDB interface {
 	// is treated as a key after all keys in the data store. If both is nil then it
 	// will compact entire data store.
 	Compact(start []byte, limit []byte) error
+
+	// Close closes the DB. This will also release any outstanding snapshot,
+	// abort any in-flight compaction and discard open transaction.
+	//
+	// Note:
+	// It is not safe to close a DB until all outstanding iterators are released.
+	// It is valid to call Close multiple times.
+	// Other methods should not be called after the DB has been closed.
+	Close() error
 }
 
 // NewDefaultBaseDB creates new instance of BaseDB with default options.
