@@ -6,13 +6,15 @@ import (
 	"strings"
 )
 
-func NewSubstate(input Alloc, output Alloc, env *Env, message *Message, result *Result) *Substate {
+func NewSubstate(input Alloc, output Alloc, env *Env, message *Message, result *Result, block uint64, transaction int) *Substate {
 	return &Substate{
 		InputAlloc:  input,
 		OutputAlloc: output,
 		Env:         env,
 		Message:     message,
 		Result:      result,
+		Block:       block,
+		Transaction: transaction,
 	}
 }
 
@@ -22,6 +24,8 @@ type Substate struct {
 	Env         *Env
 	Message     *Message
 	Result      *Result
+	Block       uint64
+	Transaction int
 }
 
 // Equal returns true if s is y or if values of s are equal to values of y.

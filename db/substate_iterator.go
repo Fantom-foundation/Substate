@@ -13,24 +13,17 @@ func newSubstateIterator(db *substateDB, start []byte) *substateIterator {
 	r.Start = append(r.Start, start...)
 
 	return &substateIterator{
-		iterator: newIterator[*Transaction](db.backend.NewIterator(r, db.ro)),
+		iterator: newIterator[*new_substate.Substate](db.backend.NewIterator(r, db.ro)),
 		db:       db,
 	}
 }
 
 type substateIterator struct {
-	iterator[*Transaction]
+	iterator[*new_substate.Substate]
 	db *substateDB
 }
 
-// todo move block and tx to substate?
-type Transaction struct {
-	Block       uint64
-	Transaction int
-	Substate    *new_substate.Substate
-}
-
-func (i *substateIterator) decode(data rawEntry) (*Transaction, error) {
+func (i *substateIterator) decode(data rawEntry) (*new_substate.Substate, error) {
 	key := data.key
 	value := data.value
 
@@ -44,27 +37,18 @@ func (i *substateIterator) decode(data rawEntry) (*Transaction, error) {
 		return nil, err
 	}
 
-	ss, err := rlpSubstate.ToSubstate(i.db.GetCode)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Transaction{
-		Block:       block,
-		Transaction: tx,
-		Substate:    ss,
-	}, nil
+	return rlpSubstate.ToSubstate(i.db.GetCode, block, tx)
 }
 
 func (i *substateIterator) start(numWorkers int) {
 	// Create channels
 	errCh := make(chan error)
 	rawDataChs := make([]chan rawEntry, numWorkers)
-	resultChs := make([]chan *Transaction, numWorkers)
+	resultChs := make([]chan *new_substate.Substate, numWorkers)
 
 	for i := 0; i < numWorkers; i++ {
 		rawDataChs[i] = make(chan rawEntry, 10)
-		resultChs[i] = make(chan *Transaction, 10)
+		resultChs[i] = make(chan *new_substate.Substate, 10)
 	}
 
 	// Start i => raw data stage

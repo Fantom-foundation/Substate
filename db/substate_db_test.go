@@ -23,8 +23,10 @@ var testSubstate = &new_substate.Substate{
 		BlockHashes: make(map[uint64]common.Hash),
 		BaseFee:     new(big.Int).SetUint64(1),
 	},
-	Message: new_substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, common.Address{1}, new(common.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
-	Result:  new_substate.NewResult(1, types.Bloom{}, []*types.Log{}, common.Address{1}, 1),
+	Message:     new_substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, common.Address{1}, new(common.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
+	Result:      new_substate.NewResult(1, types.Bloom{}, []*types.Log{}, common.Address{1}, 1),
+	Block:       37_534_834,
+	Transaction: 1,
 }
 
 func TestSubstateDB_PutSubstate(t *testing.T) {
@@ -123,7 +125,7 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 	testSubstate.OutputAlloc[common.Address{2}] = new_substate.NewAccount(2, new(big.Int).SetUint64(2), h2.Bytes())
 	testSubstate.Env.BlockHashes[1] = common.BytesToHash([]byte{1})
 
-	err = db.PutSubstate(37_534_834, 1, testSubstate)
+	err = db.PutSubstate(testSubstate)
 	if err != nil {
 		return nil, err
 	}
