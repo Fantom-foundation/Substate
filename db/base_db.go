@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/iterator"
+	ldbiterator "github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -40,13 +40,13 @@ type BaseDB interface {
 	// until a final write is called.
 	NewBatch() Batch
 
-	// NewIterator creates a binary-alphabetical iterator over a subset
+	// newIterator creates a binary-alphabetical iterator over a subset
 	// of database content with a particular key prefix, starting at a particular
 	// initial key (or after, if it does not exist).
 	//
 	// Note: This method assumes that the prefix is NOT part of the start, so there's
 	// no need for the caller to prepend the prefix to the start
-	NewIterator(prefix []byte, start []byte) iterator.Iterator
+	NewIterator(prefix []byte, start []byte) ldbiterator.Iterator
 
 	// Stat returns a particular internal stat of the database.
 	Stat(property string) (string, error)
@@ -130,9 +130,9 @@ func (db *baseDB) NewBatch() Batch {
 	return newBatch(db.backend)
 }
 
-// NewIterator returns iterator which iterates over values depending on the prefix.
+// newIterator returns iterator which iterates over values depending on the prefix.
 // Note: If prefix is nil, everything is iterated.
-func (db *baseDB) NewIterator(prefix []byte, start []byte) iterator.Iterator {
+func (db *baseDB) NewIterator(prefix []byte, start []byte) ldbiterator.Iterator {
 	r := util.BytesPrefix(prefix)
 	r.Start = append(r.Start, start...)
 	return db.backend.NewIterator(r, db.ro)
