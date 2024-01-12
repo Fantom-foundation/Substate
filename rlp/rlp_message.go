@@ -5,10 +5,10 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/types"
-	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/substate"
 )
 
-func NewMessage(message *new_substate.Message) *Message {
+func NewMessage(message *substate.Message) *Message {
 	m := &Message{
 		Nonce:        message.Nonce,
 		CheckNonce:   message.CheckNonce,
@@ -53,9 +53,9 @@ type Message struct {
 	GasTipCap *big.Int // missing in substate DB from Geth <= v1.10.3
 }
 
-// ToSubstate transforms m from Message to new_substate.Message.
-func (m Message) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error)) (*new_substate.Message, error) {
-	sm := &new_substate.Message{
+// ToSubstate transforms m from Message to substate.Message.
+func (m Message) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error)) (*substate.Message, error) {
+	sm := &substate.Message{
 		Nonce:      m.Nonce,
 		CheckNonce: m.CheckNonce,
 		GasPrice:   m.GasPrice,

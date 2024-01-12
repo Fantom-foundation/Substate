@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
-	"github.com/Fantom-foundation/Substate/new_substate"
 	"github.com/Fantom-foundation/Substate/rlp"
+	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
+
+const Stage1SubstatePrefix = "1s" // Stage1SubstatePrefix + block (64-bit) + tx (64-bit) -> substateRLP
 
 // SubstateDB is a wrapper around CodeDB. It extends it with Has/Get/Put/DeleteSubstate functions.
 type SubstateDB interface {
@@ -18,15 +20,15 @@ type SubstateDB interface {
 	HasSubstate(block uint64, tx int) (bool, error)
 
 	// GetSubstate gets the Substate for given block and tx number.
-	GetSubstate(block uint64, tx int) (*new_substate.Substate, error)
+	GetSubstate(block uint64, tx int) (*substate.Substate, error)
 
 	// PutSubstate inserts given substate to DB.
-	PutSubstate(substate *new_substate.Substate) error
+	PutSubstate(substate *substate.Substate) error
 
 	// DeleteSubstate deletes Substate for given block and tx number.
 	DeleteSubstate(block uint64, tx int) error
 
-	NewSubstateIterator(start int, numWorkers int) Iterator[*new_substate.Substate]
+	NewSubstateIterator(start int, numWorkers int) Iterator[*substate.Substate]
 }
 
 // NewDefaultSubstateDB creates new instance of SubstateDB with default options.
@@ -57,7 +59,7 @@ func (db *substateDB) HasSubstate(block uint64, tx int) (bool, error) {
 }
 
 // GetSubstate returns substate for given block and tx number if exists within DB.
-func (db *substateDB) GetSubstate(block uint64, tx int) (*new_substate.Substate, error) {
+func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, error) {
 	val, err := db.Get(Stage1SubstateKey(block, tx))
 	if err != nil {
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %v", block, tx, err)
@@ -76,7 +78,7 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*new_substate.Substate,
 	return rlpSubstate.ToSubstate(db.GetCode, block, tx)
 }
 
-func (db *substateDB) PutSubstate(ss *new_substate.Substate) error {
+func (db *substateDB) PutSubstate(ss *substate.Substate) error {
 	for i, account := range ss.InputAlloc {
 		err := db.PutCode(account.Code)
 		if err != nil {
@@ -114,7 +116,7 @@ func (db *substateDB) DeleteSubstate(block uint64, tx int) error {
 }
 
 // NewSubstateIterator returns iterator which iterates over Substates.
-func (db *substateDB) NewSubstateIterator(start int, numWorkers int) Iterator[*new_substate.Substate] {
+func (db *substateDB) NewSubstateIterator(start int, numWorkers int) Iterator[*substate.Substate] {
 	num := make([]byte, 4)
 	binary.BigEndian.PutUint32(num, uint32(start))
 	iter := newSubstateIterator(db, num)

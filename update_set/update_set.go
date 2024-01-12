@@ -2,20 +2,20 @@ package update_set
 
 import (
 	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/new_substate"
 	"github.com/Fantom-foundation/Substate/rlp"
+	"github.com/Fantom-foundation/Substate/substate"
 )
 
-func NewUpdateSet(alloc new_substate.Alloc, block uint64) *UpdateSet {
+func NewUpdateSet(alloc substate.Alloc, block uint64) *UpdateSet {
 	return &UpdateSet{
 		Alloc: alloc,
 		Block: block,
 	}
 }
 
-// UpdateSet represents the new_substate.Account allocation for the block.
+// UpdateSet represents the substate.Account allocation for the block.
 type UpdateSet struct {
-	Alloc           new_substate.Alloc
+	Alloc           substate.Alloc
 	Block           uint64
 	DeletedAccounts []common.Address
 }
@@ -48,7 +48,7 @@ type UpdateSetRLP struct {
 }
 
 func (up UpdateSetRLP) ToSubstateAlloc(getCodeFunc func(codeHash common.Hash) ([]byte, error), block uint64) (*UpdateSet, error) {
-	alloc := make(new_substate.Alloc)
+	alloc := make(substate.Alloc)
 
 	for i, addr := range up.Alloc.Addresses {
 		allocAcc := up.Alloc.Accounts[i]
@@ -58,7 +58,7 @@ func (up UpdateSetRLP) ToSubstateAlloc(getCodeFunc func(codeHash common.Hash) ([
 			return nil, err
 		}
 
-		acc := new_substate.Account{
+		acc := substate.Account{
 			Nonce:   allocAcc.Nonce,
 			Balance: allocAcc.Balance,
 			Storage: make(map[common.Hash]common.Hash),

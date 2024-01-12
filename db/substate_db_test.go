@@ -7,14 +7,14 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/types"
-	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-var testSubstate = &new_substate.Substate{
-	InputAlloc:  new_substate.NewAlloc(),
-	OutputAlloc: new_substate.NewAlloc(),
-	Env: &new_substate.Env{
+var testSubstate = &substate.Substate{
+	InputAlloc:  substate.NewAlloc(),
+	OutputAlloc: substate.NewAlloc(),
+	Env: &substate.Env{
 		Coinbase:    common.Address{1},
 		Difficulty:  new(big.Int).SetUint64(1),
 		GasLimit:    1,
@@ -23,8 +23,8 @@ var testSubstate = &new_substate.Substate{
 		BlockHashes: make(map[uint64]common.Hash),
 		BaseFee:     new(big.Int).SetUint64(1),
 	},
-	Message:     new_substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, common.Address{1}, new(common.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
-	Result:      new_substate.NewResult(1, types.Bloom{}, []*types.Log{}, common.Address{1}, 1),
+	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, common.Address{1}, new(common.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
+	Result:      substate.NewResult(1, types.Bloom{}, []*types.Log{}, common.Address{1}, 1),
 	Block:       37_534_834,
 	Transaction: 1,
 }
@@ -121,8 +121,8 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 	h2 := common.Hash{}
 	h2.SetBytes(nil)
 
-	testSubstate.InputAlloc[common.Address{1}] = new_substate.NewAccount(1, new(big.Int).SetUint64(1), h1.Bytes())
-	testSubstate.OutputAlloc[common.Address{2}] = new_substate.NewAccount(2, new(big.Int).SetUint64(2), h2.Bytes())
+	testSubstate.InputAlloc[common.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1.Bytes())
+	testSubstate.OutputAlloc[common.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2.Bytes())
 	testSubstate.Env.BlockHashes[1] = common.BytesToHash([]byte{1})
 
 	err = db.PutSubstate(testSubstate)

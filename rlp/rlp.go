@@ -3,10 +3,10 @@ package rlp
 import (
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/rlp"
-	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/substate"
 )
 
-func NewRLP(substate *new_substate.Substate) *RLP {
+func NewRLP(substate *substate.Substate) *RLP {
 	return &RLP{
 		InputAlloc:  NewAlloc(substate.InputAlloc),
 		OutputAlloc: NewAlloc(substate.OutputAlloc),
@@ -65,14 +65,14 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 	return nil, err
 }
 
-// ToSubstate transforms every attribute of r from RLP to new_substate.Substate.
-func (r RLP) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error), block uint64, tx int) (*new_substate.Substate, error) {
+// ToSubstate transforms every attribute of r from RLP to substate.Substate.
+func (r RLP) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
 	msg, err := r.Message.ToSubstate(getHashFunc)
 	if err != nil {
 		return nil, err
 	}
 
-	return &new_substate.Substate{
+	return &substate.Substate{
 		InputAlloc:  r.InputAlloc.ToSubstate(),
 		OutputAlloc: r.OutputAlloc.ToSubstate(),
 		Env:         r.Env.ToSubstate(),

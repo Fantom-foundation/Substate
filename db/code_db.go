@@ -9,6 +9,8 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
+const Stage1CodePrefix = "1c" // Stage1CodePrefix + codeHash (256-bit) -> code
+
 // CodeDB is a wrappe around BaseDB. It extends it with Has/Get/PutCode functions.
 type CodeDB interface {
 	BaseDB

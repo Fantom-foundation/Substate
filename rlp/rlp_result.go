@@ -3,10 +3,10 @@ package rlp
 import (
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/types"
-	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/substate"
 )
 
-func NewResult(result *new_substate.Result) *Result {
+func NewResult(result *substate.Result) *Result {
 	return &Result{
 		Status:          result.Status,
 		Bloom:           result.Bloom,
@@ -25,9 +25,9 @@ type Result struct {
 	GasUsed         uint64
 }
 
-// ToSubstate transforms r from Result to new_substate.Result.
-func (r Result) ToSubstate() *new_substate.Result {
-	return &new_substate.Result{
+// ToSubstate transforms r from Result to substate.Result.
+func (r Result) ToSubstate() *substate.Result {
+	return &substate.Result{
 		Status:          r.Status,
 		Bloom:           r.Bloom,
 		Logs:            r.Logs,

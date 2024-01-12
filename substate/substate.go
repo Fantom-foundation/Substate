@@ -1,4 +1,4 @@
-package new_substate
+package substate
 
 import (
 	"errors"

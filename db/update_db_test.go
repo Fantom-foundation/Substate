@@ -6,18 +6,18 @@ import (
 	"testing"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/update_set"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
 var testUpdateSet = &update_set.UpdateSet{
-	Alloc: new_substate.Alloc{
-		common.Address{1}: &new_substate.Account{
+	Alloc: substate.Alloc{
+		common.Address{1}: &substate.Account{
 			Nonce:   1,
 			Balance: new(big.Int).SetUint64(1),
 		},
-		common.Address{2}: &new_substate.Account{
+		common.Address{2}: &substate.Account{
 			Nonce:   2,
 			Balance: new(big.Int).SetUint64(2),
 		},
