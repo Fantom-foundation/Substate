@@ -3,6 +3,7 @@ package new_substate
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 )
@@ -166,4 +167,75 @@ func TestAlloc_Copy(t *testing.T) {
 	if !acc.Equal(cpy) {
 		t.Fatalf("accounts values must be equal\ngot: %v\nwant: %v", cpy, acc)
 	}
+}
+
+func TestAllocIterator_Next(t *testing.T) {
+	addr := common.Address{1}
+
+	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
+
+	alloc := make(Alloc)
+	alloc[addr] = acc
+
+	iter := alloc.GetAllocIterator()
+
+	if !iter.Next() {
+		t.Fatal("next must return true")
+	}
+}
+
+func TestAllocIterator_Value(t *testing.T) {
+	addr := common.Address{1}
+
+	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
+
+	alloc := make(Alloc)
+	alloc[addr] = acc
+
+	iter := alloc.GetAllocIterator()
+
+	if !iter.Next() {
+		t.Fatal("next must return true")
+	}
+
+	pair := iter.Value()
+
+	var emptyPair AddrAccPair
+	if pair == emptyPair {
+		t.Fatal("iterator returned nil")
+	}
+
+	if pair.Addr != addr {
+		t.Fatalf("iterator returned pair with different address\ngot: %v\n want: %v", pair.Addr, addr)
+	}
+
+	if !pair.Acc.Equal(acc) {
+		t.Fatalf("iterator returned pair with different account\ngot: %v\n want: %v", pair.Acc.String(), acc.String())
+	}
+}
+
+func TestAllocIterator_Release(t *testing.T) {
+	addr := common.Address{1}
+
+	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
+
+	alloc := make(Alloc)
+	alloc[addr] = acc
+
+	iter := alloc.GetAllocIterator()
+
+	// make sure Release is not blocking.
+	done := make(chan bool)
+	go func() {
+		iter.Release()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return
+	case <-time.After(time.Second):
+		t.Fatal("Release blocked unexpectedly")
+	}
+
 }

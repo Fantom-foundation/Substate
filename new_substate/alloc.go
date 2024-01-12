@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"sync"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
+	iter "github.com/Fantom-foundation/Substate/iterator"
 )
 
 const (
@@ -138,4 +140,67 @@ func (a Alloc) String() string {
 		builder.WriteString(fmt.Sprintf("%v: %v", addr.Hex(), acc.String()))
 	}
 	return builder.String()
+}
+
+func (a Alloc) GetAllocIterator() iter.Iterator[AddrAccPair] {
+	i := &allocIterator{
+		resultCh: make(chan AddrAccPair, 100),
+		wg:       new(sync.WaitGroup),
+		cur:      AddrAccPair{},
+		alloc:    a,
+		closeCh:  make(chan bool, 1),
+	}
+
+	i.wg.Add(1)
+	go func() {
+		defer func() {
+			close(i.resultCh)
+			i.wg.Done()
+		}()
+		for addr, acc := range i.alloc {
+			select {
+			case <-i.closeCh:
+				return
+			case i.resultCh <- AddrAccPair{Addr: addr, Acc: acc}:
+			}
+		}
+	}()
+
+	return i
+}
+
+type AddrAccPair struct {
+	Addr common.Address
+	Acc  *Account
+}
+
+type allocIterator struct {
+	err      error
+	resultCh chan AddrAccPair
+	wg       *sync.WaitGroup
+	cur      AddrAccPair
+	alloc    Alloc
+	closeCh  chan bool
+}
+
+func (i *allocIterator) Next() bool {
+	var ok bool
+	i.cur, ok = <-i.resultCh
+	if !ok {
+		return false
+	}
+	return i.cur != AddrAccPair{}
+}
+
+func (i *allocIterator) Error() error {
+	return i.err
+}
+
+func (i *allocIterator) Value() AddrAccPair {
+	return i.cur
+}
+
+func (i *allocIterator) Release() {
+	close(i.closeCh)
+	i.wg.Wait()
 }

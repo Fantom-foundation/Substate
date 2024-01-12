@@ -151,7 +151,7 @@ func (db *updateDB) DeleteUpdateSet(block uint64) error {
 func (db *updateDB) NewUpdateSetIterator(start, end uint64) Iterator[*update_set.UpdateSet] {
 	iter := newUpdateSetIterator(db, start, end)
 
-	iter.start(0)
+	iter.start()
 
 	return iter
 }

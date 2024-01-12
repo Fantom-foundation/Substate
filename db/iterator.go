@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sync"
 
+	iter "github.com/Fantom-foundation/Substate/iterator"
 	ldbiterator "github.com/syndtr/goleveldb/leveldb/iterator"
 )
 
@@ -17,25 +18,7 @@ import (
 // iterator until exhaustion. An iterator is not safe for concurrent use, but it
 // is safe to use multiple iterators concurrently.
 type Iterator[T comparable] interface {
-	// Next moves the iterator to the next key/value pair. It returns whether the
-	// iterator is exhausted.
-	Next() bool
-
-	// Error returns any accumulated error. Exhausting all the key/value pairs
-	// is not considered to be an error.
-	Error() error
-
-	// Start starts the iteration process.
-	start(numWorkers int)
-
-	// Value returns the current value of type T, or nil if done. The
-	// caller should not modify the contents of the returned slice, and its contents
-	// may change on the next call to Next.
-	Value() T
-
-	// Release releases associated resources. Release should always succeed and can
-	// be called multiple times without causing error.
-	Release()
+	iter.Iterator[T]
 
 	// decode data returned from DB to given type T.
 	decode(data rawEntry) (T, error)

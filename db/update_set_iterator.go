@@ -57,7 +57,7 @@ func (i *updateSetIterator) decode(data rawEntry) (*update_set.UpdateSet, error)
 	}, nil
 }
 
-func (i *updateSetIterator) start(_ int) {
+func (i *updateSetIterator) start() {
 	i.wg.Add(1)
 
 	go func() {
