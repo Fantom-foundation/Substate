@@ -4,10 +4,10 @@ import (
 	"math/big"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/substate"
 )
 
-func NewEnv(env *new_substate.Env) *Env {
+func NewEnv(env *substate.Env) *Env {
 	e := &Env{
 		Coinbase:    env.Coinbase,
 		Difficulty:  env.Difficulty,
@@ -48,9 +48,9 @@ type Env struct {
 	BaseFee     *common.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
 }
 
-// ToSubstate transforms e from Env to new_substate.Env.
-func (e Env) ToSubstate() *new_substate.Env {
-	se := &new_substate.Env{
+// ToSubstate transforms e from Env to substate.Env.
+func (e Env) ToSubstate() *substate.Env {
+	se := &substate.Env{
 		Coinbase:    e.Coinbase,
 		Difficulty:  e.Difficulty,
 		GasLimit:    e.GasLimit,

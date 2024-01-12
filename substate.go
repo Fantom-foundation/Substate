@@ -10,7 +10,7 @@ import (
 )
 
 // SubstateAccount is modification of GenesisAccount in core/genesis.go
-// Deprecated: This type is getting deleted, use new_substate.Account instead
+// Deprecated: This type is getting deleted, use substate.Account instead
 type SubstateAccount struct {
 	Nonce   uint64
 	Balance *big.Int
@@ -18,7 +18,7 @@ type SubstateAccount struct {
 	Code    []byte
 }
 
-// Deprecated: This type is getting deleted, use NewAccount instead
+// Deprecated: This type is getting deleted, use substate.NewAccount instead
 func NewSubstateAccount(nonce uint64, balance *big.Int, code []byte) *SubstateAccount {
 	return &SubstateAccount{
 		Nonce:   nonce,
@@ -73,6 +73,7 @@ func (sa *SubstateAccount) CodeHash() common.Hash {
 	return crypto.Keccak256Hash(sa.Code)
 }
 
+// Deprecated: Use substate.Alloc
 type SubstateAlloc map[common.Address]*SubstateAccount
 
 // EstinateIncrementalSize returns estimated substate size increase after merge

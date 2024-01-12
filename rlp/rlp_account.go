@@ -5,10 +5,10 @@ import (
 	"sort"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/new_substate"
+	"github.com/Fantom-foundation/Substate/substate"
 )
 
-func NewRLPAccount(acc *new_substate.Account) *Account {
+func NewRLPAccount(acc *substate.Account) *Account {
 	a := &Account{
 		Nonce:    acc.Nonce,
 		Balance:  new(big.Int).Set(acc.Balance),

@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 
-	"github.com/Fantom-foundation/Substate/new_substate"
 	"github.com/Fantom-foundation/Substate/rlp"
+	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
@@ -13,17 +13,17 @@ func newSubstateIterator(db *substateDB, start []byte) *substateIterator {
 	r.Start = append(r.Start, start...)
 
 	return &substateIterator{
-		iterator: newIterator[*new_substate.Substate](db.backend.NewIterator(r, db.ro)),
+		iterator: newIterator[*substate.Substate](db.backend.NewIterator(r, db.ro)),
 		db:       db,
 	}
 }
 
 type substateIterator struct {
-	iterator[*new_substate.Substate]
+	iterator[*substate.Substate]
 	db *substateDB
 }
 
-func (i *substateIterator) decode(data rawEntry) (*new_substate.Substate, error) {
+func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 	key := data.key
 	value := data.value
 
@@ -44,11 +44,11 @@ func (i *substateIterator) start(numWorkers int) {
 	// Create channels
 	errCh := make(chan error)
 	rawDataChs := make([]chan rawEntry, numWorkers)
-	resultChs := make([]chan *new_substate.Substate, numWorkers)
+	resultChs := make([]chan *substate.Substate, numWorkers)
 
 	for i := 0; i < numWorkers; i++ {
 		rawDataChs[i] = make(chan rawEntry, 10)
-		resultChs[i] = make(chan *new_substate.Substate, 10)
+		resultChs[i] = make(chan *substate.Substate, 10)
 	}
 
 	// Start i => raw data stage
