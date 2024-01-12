@@ -14,19 +14,10 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Set up bazelisk
-        uses: bazelbuild/setup-bazelisk@v2
-
       - name: Set up cmake
         uses: jwlawson/actions-setup-cmake@v1.13
         with:
          cmake-version: '3.19.x'
-
-      - name: Mount bazel cache
-        uses: actions/cache@v3
-        with:
-         path: "~/.cache/bazel"
-         key: bazel
 
       - name: Check import formatting
         run: diff -u <(echo -n) <(find . \( -path "./carmen" -o -path "./tosca" \) -prune -o  -name '*.go' -exec goimports -l {} \;)
@@ -35,4 +26,4 @@ jobs:
         run: diff -u <(echo -n)  <(find . \( -path "./carmen" -o -path "./tosca" \) -prune -o  -name '*.go' -exec gofmt -d -s {} \;)
 
       - name: Test
-        run: go test -v ./...
+        run: go test -v ./db ./substate

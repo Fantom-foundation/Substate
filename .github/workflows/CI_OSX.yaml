@@ -8,27 +8,16 @@ jobs:
 
   build:
     runs-on: macos-latest
-    env:
-      TEST_TMPDIR: "/Users/runner/.cache/bazel"
     steps:
-      - name: Set up Go 1.19
+      - name: Set up Go 1.21
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: 1.21
 
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v1.13
         with:
          cmake-version: '3.16.x'
-
-      - name: Setup bazelisk
-        uses: bazelbuild/setup-bazelisk@v2
-
-      - name: Mount bazel cache
-        uses: actions/cache@v3
-        with:
-         path: "/Users/runner/.cache/bazel"
-         key: bazel-osx
 
       - name: Test
         run: go test -v ./db ./substate
