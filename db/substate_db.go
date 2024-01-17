@@ -7,6 +7,7 @@ import (
 	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
@@ -40,6 +41,14 @@ func NewDefaultSubstateDB(path string) (SubstateDB, error) {
 // Note: Any of three options is nillable. If that's the case a default value for the option is set.
 func NewSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (SubstateDB, error) {
 	return newSubstateDB(path, o, wo, ro)
+}
+
+func MakeDefaultSubstateDb(db *leveldb.DB) SubstateDB {
+	return &substateDB{&codeDB{&baseDB{backend: db}}}
+}
+
+func MakeSubstateDb(db *leveldb.DB, wo *opt.WriteOptions, ro *opt.ReadOptions) SubstateDB {
+	return &substateDB{&codeDB{&baseDB{backend: db, wo: wo, ro: ro}}}
 }
 
 func newSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*substateDB, error) {

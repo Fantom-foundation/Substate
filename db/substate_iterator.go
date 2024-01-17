@@ -42,7 +42,7 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 
 func (i *substateIterator) start(numWorkers int) {
 	// Create channels
-	errCh := make(chan error)
+	errCh := make(chan error, numWorkers)
 	rawDataChs := make([]chan rawEntry, numWorkers)
 	resultChs := make([]chan *substate.Substate, numWorkers)
 
@@ -61,11 +61,7 @@ func (i *substateIterator) start(numWorkers int) {
 			i.wg.Done()
 		}()
 		step := 0
-		for {
-			if !i.iter.Next() {
-				return
-			}
-
+		for i.iter.Next() {
 			key := make([]byte, len(i.iter.Key()))
 			copy(key, i.iter.Key())
 			value := make([]byte, len(i.iter.Value()))

@@ -82,8 +82,8 @@ func (i *iterator[T]) Value() T {
 
 // Release the iterator and wait until all threads are closed gracefully.
 func (i *iterator[T]) Release() {
-	i.iter.Release()
 	i.wg.Wait()
+	i.iter.Release()
 }
 
 func isNil[T comparable](arg T) bool {
