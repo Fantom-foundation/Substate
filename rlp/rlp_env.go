@@ -3,8 +3,8 @@ package rlp
 import (
 	"math/big"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func NewEnv(env *substate.Env) *Env {

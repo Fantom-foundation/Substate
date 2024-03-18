@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 const (

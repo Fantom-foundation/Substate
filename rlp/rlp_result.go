@@ -1,9 +1,9 @@
 package rlp
 
 import (
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
 	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func NewResult(result *substate.Result) *Result {

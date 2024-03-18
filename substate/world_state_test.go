@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func TestWorldState_Add(t *testing.T) {

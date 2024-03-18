@@ -28,7 +28,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/Fantom-foundation/Substate/geth/common/hexutil"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -245,7 +245,7 @@ func (a Address) String() string {
 func (a *Address) checksumHex() []byte {
 	buf := a.hex()
 
-	// compute checksum
+	//compute checksum
 	sha := sha3.NewLegacyKeccak256()
 	sha.Write(buf[2:])
 	hash := sha.Sum(nil)

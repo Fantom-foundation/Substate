@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func TestAccount_EqualNonce(t *testing.T) {

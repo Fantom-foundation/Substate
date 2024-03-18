@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/Fantom-foundation/Substate/geth/rlp"
+	"github.com/Fantom-foundation/Substate/types/rlp"
 	"github.com/Fantom-foundation/Substate/updateset"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )

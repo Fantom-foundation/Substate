@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 // Result is the transaction result - hence receipt

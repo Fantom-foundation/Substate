@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
+	"github.com/Fantom-foundation/Substate/types/common"
+	trlp "github.com/Fantom-foundation/Substate/types/rlp"
 	"github.com/Fantom-foundation/Substate/updateset"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -116,7 +116,7 @@ func (db *updateDB) GetUpdateSet(block uint64) (*updateset.UpdateSet, error) {
 
 	// decode value
 	var updateSetRLP updateset.UpdateSetRLP
-	if err = gethrlp.DecodeBytes(value, &updateSetRLP); err != nil {
+	if err = trlp.DecodeBytes(value, &updateSetRLP); err != nil {
 		return nil, fmt.Errorf("cannot decode update-set rlp block: %v, key %v; %v", block, key, err)
 	}
 
@@ -135,7 +135,7 @@ func (db *updateDB) PutUpdateSet(updateSet *updateset.UpdateSet, deletedAccounts
 	key := UpdateDBKey(updateSet.Block)
 	updateSetRLP := updateset.NewUpdateSetRLP(updateSet, deletedAccounts)
 
-	value, err := gethrlp.EncodeToBytes(updateSetRLP)
+	value, err := trlp.EncodeToBytes(updateSetRLP)
 	if err != nil {
 		return fmt.Errorf("cannot encode update-set; %v", err)
 	}

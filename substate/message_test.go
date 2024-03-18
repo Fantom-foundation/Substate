@@ -4,9 +4,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/crypto"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/common"
+	"github.com/Fantom-foundation/Substate/types/crypto"
 )
 
 func TestMessage_EqualNonce(t *testing.T) {

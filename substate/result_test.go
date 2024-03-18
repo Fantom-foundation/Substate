@@ -3,8 +3,8 @@ package substate
 import (
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func TestAccount_EqualStatus(t *testing.T) {

@@ -1,9 +1,9 @@
 package updateset
 
 import (
-	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func NewUpdateSet(alloc substate.WorldState, block uint64) *UpdateSet {

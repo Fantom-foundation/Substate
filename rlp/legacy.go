@@ -3,8 +3,8 @@ package rlp
 import (
 	"math/big"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 const (
