@@ -1,6 +1,6 @@
 module github.com/Fantom-foundation/Substate
 
-go 1.21
+go 1.20
 
 require (
 	github.com/btcsuite/btcd v0.20.1-beta

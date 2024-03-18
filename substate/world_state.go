@@ -15,48 +15,48 @@ const (
 	sizeOfNonce   uint64 = 8
 )
 
-func NewAlloc() Alloc {
+func NewWorldState() WorldState {
 	return make(map[common.Address]*Account)
 }
 
-type Alloc map[common.Address]*Account
+type WorldState map[common.Address]*Account
 
 // Add assigns new Account to an Address
-func (a Alloc) Add(addr common.Address, nonce uint64, balance *big.Int, code []byte) Alloc {
-	a[addr] = NewAccount(nonce, balance, code)
-	return a
+func (ws WorldState) Add(addr common.Address, nonce uint64, balance *big.Int, code []byte) WorldState {
+	ws[addr] = NewAccount(nonce, balance, code)
+	return ws
 }
 
-// Merge y into a. If values differs, values from y are saved.
-func (a Alloc) Merge(y Alloc) {
+// Merge y into ws. If values differs, values from y are saved.
+func (ws WorldState) Merge(y WorldState) {
 	for yAddr, yAcc := range y {
-		if acc, found := a[yAddr]; found {
+		if acc, found := ws[yAddr]; found {
 			if acc.Equal(yAcc) {
 				continue
 			}
 
-			// overwrite yAcc details in a by y
-			a[yAddr].Nonce = yAcc.Nonce
-			a[yAddr].Balance = new(big.Int).Set(yAcc.Balance)
-			a[yAddr].Code = make([]byte, len(yAcc.Code))
-			copy(a[yAddr].Code, yAcc.Code)
+			// overwrite yAcc details in ws by y
+			ws[yAddr].Nonce = yAcc.Nonce
+			ws[yAddr].Balance = new(big.Int).Set(yAcc.Balance)
+			ws[yAddr].Code = make([]byte, len(yAcc.Code))
+			copy(ws[yAddr].Code, yAcc.Code)
 		} else {
 			// create new yAcc details in a
-			a[yAddr] = NewAccount(yAcc.Nonce, yAcc.Balance, yAcc.Code)
+			ws[yAddr] = NewAccount(yAcc.Nonce, yAcc.Balance, yAcc.Code)
 		}
 		// update storage by y
 		for key, value := range yAcc.Storage {
-			a[yAddr].Storage[key] = value
+			ws[yAddr].Storage[key] = value
 		}
 	}
 }
 
 // EstimateIncrementalSize returns estimated substate size increase after merge
-func (a Alloc) EstimateIncrementalSize(y Alloc) uint64 {
+func (ws WorldState) EstimateIncrementalSize(y WorldState) uint64 {
 	var size uint64 = 0
 
 	for yAddr, yAcc := range y {
-		if acc, found := a[yAddr]; found {
+		if acc, found := ws[yAddr]; found {
 			// skip if no diff
 			if acc.Equal(yAcc) {
 				continue
@@ -64,7 +64,7 @@ func (a Alloc) EstimateIncrementalSize(y Alloc) uint64 {
 			// update storage by y
 			for key, _ := range yAcc.Storage {
 				// only add new storage keys
-				if _, found := a[yAddr].Storage[key]; !found {
+				if _, found := ws[yAddr].Storage[key]; !found {
 					size += sizeOfHash // add sizeof(common.Hash)
 				}
 			}
@@ -79,11 +79,11 @@ func (a Alloc) EstimateIncrementalSize(y Alloc) uint64 {
 	return size
 }
 
-// Diff returns the difference set between two substate alloc (z = a\y).
+// Diff returns the difference set between two substate world state (z = ws\y).
 // Note: Zero value and non-existing value are considered equal.
-func (a Alloc) Diff(y Alloc) Alloc {
-	z := make(Alloc)
-	for addr, acc := range a {
+func (ws WorldState) Diff(y WorldState) WorldState {
+	z := make(WorldState)
+	for addr, acc := range ws {
 		if yAcc, found := y[addr]; !found {
 			z[addr] = acc.Copy()
 		} else {
@@ -116,12 +116,12 @@ func (a Alloc) Diff(y Alloc) Alloc {
 
 // Equal returns true if a is y or if values of a are equal to values of y.
 // Otherwise, a and y are not equal hence false is returned.
-func (a Alloc) Equal(y Alloc) bool {
-	if len(a) != len(y) {
+func (ws WorldState) Equal(y WorldState) bool {
+	if len(ws) != len(y) {
 		return false
 	}
 
-	for key, val := range a {
+	for key, val := range ws {
 		yVal, exist := y[key]
 		if !(exist && val.Equal(yVal)) {
 			return false
@@ -131,10 +131,10 @@ func (a Alloc) Equal(y Alloc) bool {
 	return true
 }
 
-func (a Alloc) String() string {
+func (ws WorldState) String() string {
 	var builder strings.Builder
 
-	for addr, acc := range a {
+	for addr, acc := range ws {
 		builder.WriteString(fmt.Sprintf("%v: %v", addr.Hex(), acc.String()))
 	}
 	return builder.String()

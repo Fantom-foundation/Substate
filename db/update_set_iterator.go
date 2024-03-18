@@ -3,9 +3,9 @@ package db
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/Fantom-foundation/Substate/updateset"
 
 	"github.com/Fantom-foundation/Substate/geth/rlp"
-	"github.com/Fantom-foundation/Substate/update_set"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
@@ -13,23 +13,23 @@ func newUpdateSetIterator(db *updateDB, start, end uint64) *updateSetIterator {
 	num := make([]byte, 4)
 	binary.BigEndian.PutUint32(num, uint32(start))
 
-	r := util.BytesPrefix([]byte(SubstateAllocPrefix))
+	r := util.BytesPrefix([]byte(UpdateDBPrefix))
 	r.Start = append(r.Start, num...)
 
 	return &updateSetIterator{
-		iterator: newIterator[*update_set.UpdateSet](db.backend.NewIterator(r, db.ro)),
+		iterator: newIterator[*updateset.UpdateSet](db.backend.NewIterator(r, db.ro)),
 		db:       db,
 		endBlock: end,
 	}
 }
 
 type updateSetIterator struct {
-	iterator[*update_set.UpdateSet]
+	iterator[*updateset.UpdateSet]
 	db       *updateDB
 	endBlock uint64
 }
 
-func (i *updateSetIterator) decode(data rawEntry) (*update_set.UpdateSet, error) {
+func (i *updateSetIterator) decode(data rawEntry) (*updateset.UpdateSet, error) {
 	key := data.key
 	value := data.value
 
@@ -38,21 +38,21 @@ func (i *updateSetIterator) decode(data rawEntry) (*update_set.UpdateSet, error)
 		panic(fmt.Errorf("substate: invalid update-set key found: %v - issue: %v", key, err))
 	}
 
-	var updateSetRLP update_set.UpdateSetRLP
+	var updateSetRLP updateset.UpdateSetRLP
 	err = rlp.DecodeBytes(value, &updateSetRLP)
 	if err != nil {
 		return nil, err
 	}
 
-	updateSet, err := updateSetRLP.ToSubstateAlloc(i.db.GetCode, block)
+	updateSet, err := updateSetRLP.ToWorldState(i.db.GetCode, block)
 	if err != nil {
 		return nil, err
 
 	}
 
-	return &update_set.UpdateSet{
+	return &updateset.UpdateSet{
 		Block:           block,
-		Alloc:           updateSet.Alloc,
+		WorldState:      updateSet.WorldState,
 		DeletedAccounts: updateSetRLP.DeletedAccounts,
 	}, nil
 }

@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-func NewSubstate(input Alloc, output Alloc, env *Env, message *Message, result *Result, block uint64, transaction int) *Substate {
+func NewSubstate(preState WorldState, postState WorldState, env *Env, message *Message, result *Result, block uint64, transaction int) *Substate {
 	return &Substate{
-		InputAlloc:  input,
-		OutputAlloc: output,
+		PreState:    preState,
+		PostState:   postState,
 		Env:         env,
 		Message:     message,
 		Result:      result,
@@ -19,8 +19,8 @@ func NewSubstate(input Alloc, output Alloc, env *Env, message *Message, result *
 }
 
 type Substate struct {
-	InputAlloc  Alloc
-	OutputAlloc Alloc
+	PreState    WorldState
+	PostState   WorldState
 	Env         *Env
 	Message     *Message
 	Result      *Result
@@ -39,18 +39,18 @@ func (s *Substate) Equal(y *Substate) (err error) {
 		return errors.New("one of the substates is nil")
 	}
 
-	input := s.InputAlloc.Equal(y.InputAlloc)
-	output := s.OutputAlloc.Equal(y.OutputAlloc)
+	preState := s.PreState.Equal(y.PreState)
+	postState := s.PostState.Equal(y.PostState)
 	env := s.Env.Equal(y.Env)
 	msg := s.Message.Equal(y.Message)
 	res := s.Result.Equal(y.Result)
 
-	if !input {
-		err = errors.Join(err, fmt.Errorf("input alloc is different\nwant: %v\n got: %v", s.InputAlloc.String(), y.InputAlloc.String()))
+	if !preState {
+		err = errors.Join(err, fmt.Errorf("preState is different\nwant: %v\n got: %v", s.PreState.String(), y.PreState.String()))
 	}
 
-	if !output {
-		err = errors.Join(err, fmt.Errorf("output alloc is different\nwant: %v\n got: %v", s.OutputAlloc.String(), y.OutputAlloc.String()))
+	if !postState {
+		err = errors.Join(err, fmt.Errorf("postState is different\nwant: %v\n got: %v", s.PostState.String(), y.PostState.String()))
 	}
 
 	if !env {
@@ -71,11 +71,11 @@ func (s *Substate) Equal(y *Substate) (err error) {
 func (s *Substate) String() string {
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("Input Alloc: %v", s.InputAlloc.String()))
-	builder.WriteString(fmt.Sprintf("Output Alloc: %v", s.OutputAlloc.String()))
-	builder.WriteString(fmt.Sprintf("Env Alloc: %v", s.Env.String()))
-	builder.WriteString(fmt.Sprintf("Message Alloc: %v", s.Message.String()))
-	builder.WriteString(fmt.Sprintf("Result Alloc: %v", s.Result.String()))
+	builder.WriteString(fmt.Sprintf("PreState: %v", s.PreState.String()))
+	builder.WriteString(fmt.Sprintf("PostState: %v", s.PostState.String()))
+	builder.WriteString(fmt.Sprintf("Env World State: %v", s.Env.String()))
+	builder.WriteString(fmt.Sprintf("Message World State: %v", s.Message.String()))
+	builder.WriteString(fmt.Sprintf("Result World State: %v", s.Result.String()))
 
 	return builder.String()
 }

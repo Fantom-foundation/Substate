@@ -24,20 +24,20 @@ func IsBerlinFork(block uint64) bool {
 
 // legacyRLP represents legacy RLP structure between before Berlin fork thus before berlinBlock
 type legacyRLP struct {
-	InputAlloc  Alloc
-	OutputAlloc Alloc
-	Env         *legacyEnv
-	Message     *legacyMessage
-	Result      *Result
+	PreState  WorldState
+	PostState WorldState
+	Env       *legacyEnv
+	Message   *legacyMessage
+	Result    *Result
 }
 
 func (r legacyRLP) toLondon() *RLP {
 	return &RLP{
-		InputAlloc:  r.InputAlloc,
-		OutputAlloc: r.OutputAlloc,
-		Env:         r.Env.toLondon(),
-		Message:     r.Message.toLondon(),
-		Result:      r.Result,
+		PreState:  r.PreState,
+		PostState: r.PostState,
+		Env:       r.Env.toLondon(),
+		Message:   r.Message.toLondon(),
+		Result:    r.Result,
 	}
 }
 
@@ -96,20 +96,20 @@ func (e legacyEnv) toLondon() *Env {
 
 // berlinRLP represents legacy RLP structure between Berlin and London fork starting at berlinBlock ending at londonBlock
 type berlinRLP struct {
-	InputAlloc  Alloc
-	OutputAlloc Alloc
-	Env         *legacyEnv
-	Message     *berlinMessage
-	Result      *Result
+	PreState  WorldState
+	PostState WorldState
+	Env       *legacyEnv
+	Message   *berlinMessage
+	Result    *Result
 }
 
 func (r berlinRLP) toLondon() *RLP {
 	return &RLP{
-		InputAlloc:  r.InputAlloc,
-		OutputAlloc: r.OutputAlloc,
-		Env:         r.Env.toLondon(),
-		Message:     r.Message.toLondon(),
-		Result:      r.Result,
+		PreState:  r.PreState,
+		PostState: r.PostState,
+		Env:       r.Env.toLondon(),
+		Message:   r.Message.toLondon(),
+		Result:    r.Result,
 	}
 
 }

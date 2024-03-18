@@ -9,7 +9,7 @@ import (
 )
 
 func newSubstateIterator(db *substateDB, start []byte) *substateIterator {
-	r := util.BytesPrefix([]byte(Stage1SubstatePrefix))
+	r := util.BytesPrefix([]byte(SubstateDBPrefix))
 	r.Start = append(r.Start, start...)
 
 	return &substateIterator{
@@ -27,7 +27,7 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 	key := data.key
 	value := data.value
 
-	block, tx, err := DecodeStage1SubstateKey(data.key)
+	block, tx, err := DecodeSubstateDBKey(data.key)
 	if err != nil {
 		return nil, fmt.Errorf("invalid substate key: %v; %v", key, err)
 	}

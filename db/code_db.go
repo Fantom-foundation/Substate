@@ -9,7 +9,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
-const Stage1CodePrefix = "1c" // Stage1CodePrefix + codeHash (256-bit) -> code
+const CodeDBPrefix = "1c" // CodeDBPrefix + codeHash (256-bit) -> code
 
 // CodeDB is a wrappe around BaseDB. It extends it with Has/Get/PutCode functions.
 type CodeDB interface {
@@ -60,7 +60,7 @@ func (db *codeDB) HasCode(codeHash common.Hash) (bool, error) {
 		return false, ErrorEmptyHash
 	}
 
-	key := Stage1CodeKey(codeHash)
+	key := CodeDBKey(codeHash)
 	has, err := db.Has(key)
 	if err != nil {
 		return false, err
@@ -74,7 +74,7 @@ func (db *codeDB) GetCode(codeHash common.Hash) ([]byte, error) {
 		return nil, ErrorEmptyHash
 	}
 
-	key := Stage1CodeKey(codeHash)
+	key := CodeDBKey(codeHash)
 	code, err := db.Get(key)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get code %s: %v", codeHash.Hex(), err)
@@ -85,7 +85,7 @@ func (db *codeDB) GetCode(codeHash common.Hash) ([]byte, error) {
 // PutCode creates hash for given code and inserts it into the baseDB.
 func (db *codeDB) PutCode(code []byte) error {
 	codeHash := crypto.Keccak256Hash(code)
-	key := Stage1CodeKey(codeHash)
+	key := CodeDBKey(codeHash)
 	err := db.Put(key, code)
 	if err != nil {
 		return fmt.Errorf("cannot put code %v; %v", codeHash.Hex(), err)
@@ -100,7 +100,7 @@ func (db *codeDB) DeleteCode(codeHash common.Hash) error {
 		return ErrorEmptyHash
 	}
 
-	key := Stage1CodeKey(codeHash)
+	key := CodeDBKey(codeHash)
 	err := db.Delete(key)
 	if err != nil {
 		return fmt.Errorf("cannot get code %s: %v", codeHash.Hex(), err)
@@ -108,22 +108,22 @@ func (db *codeDB) DeleteCode(codeHash common.Hash) error {
 	return nil
 }
 
-// Stage1CodeKey returns Stage1CodePrefix with appended
+// CodeDBKey returns CodeDBPrefix with appended
 // codeHash creating key used in baseDB for Codes.
-func Stage1CodeKey(codeHash common.Hash) []byte {
-	prefix := []byte(Stage1CodePrefix)
+func CodeDBKey(codeHash common.Hash) []byte {
+	prefix := []byte(CodeDBPrefix)
 	return append(prefix, codeHash.Bytes()...)
 }
 
-// DecodeStage1CodeKey decodes key created by Stage1CodeKey back to hash.
-func DecodeStage1CodeKey(key []byte) (codeHash common.Hash, err error) {
-	prefix := Stage1CodePrefix
+// DecodeCodeDBKey decodes key created by CodeDBKey back to hash.
+func DecodeCodeDBKey(key []byte) (codeHash common.Hash, err error) {
+	prefix := CodeDBPrefix
 	if len(key) != len(prefix)+32 {
-		err = fmt.Errorf("invalid length of stage1 code key: %v", len(key))
+		err = fmt.Errorf("invalid length of code db key: %v", len(key))
 		return
 	}
 	if p := string(key[:2]); p != prefix {
-		err = fmt.Errorf("invalid prefix of stage1 code key: %#x", p)
+		err = fmt.Errorf("invalid prefix of code db key: %#x", p)
 		return
 	}
 	codeHash = common.BytesToHash(key[len(prefix):])
