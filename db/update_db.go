@@ -4,10 +4,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/Fantom-foundation/Substate/updateset"
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
+	"github.com/Fantom-foundation/Substate/updateset"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
