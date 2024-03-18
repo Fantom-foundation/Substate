@@ -36,9 +36,9 @@ func TestAccount_EqualBalance(t *testing.T) {
 }
 
 func TestAccount_EqualStorage(t *testing.T) {
-	hashOne := common.BigToHash(new(big.Int).SetUint64(1))
-	hashTwo := common.BigToHash(new(big.Int).SetUint64(2))
-	hashThree := common.BigToHash(new(big.Int).SetUint64(3))
+	hashOne := common.HashFromString("one")
+	hashTwo := common.HashFromString("two")
+	hashThree := common.HashFromString("three")
 
 	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
 	acc.Storage = make(map[common.Hash]common.Hash)
@@ -88,8 +88,8 @@ func TestAccount_EqualCode(t *testing.T) {
 }
 
 func TestAccount_Copy(t *testing.T) {
-	hashOne := common.BigToHash(new(big.Int).SetUint64(1))
-	hashTwo := common.BigToHash(new(big.Int).SetUint64(2))
+	hashOne := common.HashFromString("one")
+	hashTwo := common.HashFromString("two")
 	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
 	acc.Storage = make(map[common.Hash]common.Hash)
 	acc.Storage[hashOne] = hashTwo
