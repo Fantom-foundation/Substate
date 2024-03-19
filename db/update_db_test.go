@@ -7,12 +7,12 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/substate"
-	"github.com/Fantom-foundation/Substate/update_set"
+	"github.com/Fantom-foundation/Substate/updateset"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-var testUpdateSet = &update_set.UpdateSet{
-	Alloc: substate.Alloc{
+var testUpdateSet = &updateset.UpdateSet{
+	WorldState: substate.WorldState{
 		common.Address{1}: &substate.Account{
 			Nonce:   1,
 			Balance: new(big.Int).SetUint64(1),

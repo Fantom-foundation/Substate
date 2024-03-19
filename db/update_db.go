@@ -7,13 +7,13 @@ import (
 
 	"github.com/Fantom-foundation/Substate/geth/common"
 	gethrlp "github.com/Fantom-foundation/Substate/geth/rlp"
-	"github.com/Fantom-foundation/Substate/update_set"
+	"github.com/Fantom-foundation/Substate/updateset"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 const (
-	SubstateAllocPrefix = "2s" // SubstateAllocPrefix + block (64-bit) + tx (64-bit) -> substateRLP
+	UpdateDBPrefix = "2s" // UpdateDBPrefix + block (64-bit) + tx (64-bit) -> substateRLP
 )
 
 // UpdateDB represents a CodeDB with in which the UpdateSet is inserted.
@@ -30,15 +30,15 @@ type UpdateDB interface {
 	HasUpdateSet(block uint64) (bool, error)
 
 	// GetUpdateSet returns UpdateSet for given block. If there is not an UpdateSet for the block, nil is returned.
-	GetUpdateSet(block uint64) (*update_set.UpdateSet, error)
+	GetUpdateSet(block uint64) (*updateset.UpdateSet, error)
 
 	// PutUpdateSet inserts the UpdateSet with deleted accounts into the DB assigned to given block.
-	PutUpdateSet(updateSet *update_set.UpdateSet, deletedAccounts []common.Address) error
+	PutUpdateSet(updateSet *updateset.UpdateSet, deletedAccounts []common.Address) error
 
 	// DeleteUpdateSet deletes UpdateSet for given block. It returns an error if there is no UpdateSet on given block.
 	DeleteUpdateSet(block uint64) error
 
-	NewUpdateSetIterator(start, end uint64) Iterator[*update_set.UpdateSet]
+	NewUpdateSetIterator(start, end uint64) Iterator[*updateset.UpdateSet]
 }
 
 // NewDefaultUpdateDB creates new instance of UpdateDB with default options.
@@ -65,7 +65,7 @@ type updateDB struct {
 }
 
 func (db *updateDB) GetFirstKey() (uint64, error) {
-	r := util.BytesPrefix([]byte(SubstateAllocPrefix))
+	r := util.BytesPrefix([]byte(UpdateDBPrefix))
 
 	iter := db.backend.NewIterator(r, db.ro)
 	defer iter.Release()
@@ -81,7 +81,7 @@ func (db *updateDB) GetFirstKey() (uint64, error) {
 }
 
 func (db *updateDB) GetLastKey() (uint64, error) {
-	r := util.BytesPrefix([]byte(SubstateAllocPrefix))
+	r := util.BytesPrefix([]byte(UpdateDBPrefix))
 
 	iter := db.backend.NewIterator(r, nil)
 	defer iter.Release()
@@ -99,12 +99,12 @@ func (db *updateDB) GetLastKey() (uint64, error) {
 }
 
 func (db *updateDB) HasUpdateSet(block uint64) (bool, error) {
-	key := SubstateAllocKey(block)
+	key := UpdateDBKey(block)
 	return db.Has(key)
 }
 
-func (db *updateDB) GetUpdateSet(block uint64) (*update_set.UpdateSet, error) {
-	key := SubstateAllocKey(block)
+func (db *updateDB) GetUpdateSet(block uint64) (*updateset.UpdateSet, error) {
+	key := UpdateDBKey(block)
 	value, err := db.Get(key)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get updateset block: %v, key %v; %v", block, key, err)
@@ -115,25 +115,25 @@ func (db *updateDB) GetUpdateSet(block uint64) (*update_set.UpdateSet, error) {
 	}
 
 	// decode value
-	var updateSetRLP update_set.UpdateSetRLP
+	var updateSetRLP updateset.UpdateSetRLP
 	if err = gethrlp.DecodeBytes(value, &updateSetRLP); err != nil {
 		return nil, fmt.Errorf("cannot decode update-set rlp block: %v, key %v; %v", block, key, err)
 	}
 
-	return updateSetRLP.ToSubstateAlloc(db.GetCode, block)
+	return updateSetRLP.ToWorldState(db.GetCode, block)
 }
 
-func (db *updateDB) PutUpdateSet(updateSet *update_set.UpdateSet, deletedAccounts []common.Address) error {
+func (db *updateDB) PutUpdateSet(updateSet *updateset.UpdateSet, deletedAccounts []common.Address) error {
 	// put deployed/creation code
-	for _, account := range updateSet.Alloc {
+	for _, account := range updateSet.WorldState {
 		err := db.PutCode(account.Code)
 		if err != nil {
 			return err
 		}
 	}
 
-	key := SubstateAllocKey(updateSet.Block)
-	updateSetRLP := update_set.NewUpdateSetRLP(updateSet, deletedAccounts)
+	key := UpdateDBKey(updateSet.Block)
+	updateSetRLP := updateset.NewUpdateSetRLP(updateSet, deletedAccounts)
 
 	value, err := gethrlp.EncodeToBytes(updateSetRLP)
 	if err != nil {
@@ -144,11 +144,11 @@ func (db *updateDB) PutUpdateSet(updateSet *update_set.UpdateSet, deletedAccount
 }
 
 func (db *updateDB) DeleteUpdateSet(block uint64) error {
-	key := SubstateAllocKey(block)
+	key := UpdateDBKey(block)
 	return db.Delete(key)
 }
 
-func (db *updateDB) NewUpdateSetIterator(start, end uint64) Iterator[*update_set.UpdateSet] {
+func (db *updateDB) NewUpdateSetIterator(start, end uint64) Iterator[*updateset.UpdateSet] {
 	iter := newUpdateSetIterator(db, start, end)
 
 	iter.start(0)
@@ -157,7 +157,7 @@ func (db *updateDB) NewUpdateSetIterator(start, end uint64) Iterator[*update_set
 }
 
 func DecodeUpdateSetKey(key []byte) (block uint64, err error) {
-	prefix := SubstateAllocPrefix
+	prefix := UpdateDBPrefix
 	if len(key) != len(prefix)+8 {
 		err = fmt.Errorf("invalid length of updateset key: %v", len(key))
 		return
@@ -171,8 +171,8 @@ func DecodeUpdateSetKey(key []byte) (block uint64, err error) {
 	return
 }
 
-func SubstateAllocKey(block uint64) []byte {
-	prefix := []byte(SubstateAllocPrefix)
+func UpdateDBKey(block uint64) []byte {
+	prefix := []byte(UpdateDBPrefix)
 	blockTx := make([]byte, 8)
 	binary.BigEndian.PutUint64(blockTx[0:8], block)
 	return append(prefix, blockTx...)

@@ -48,8 +48,8 @@ func (a *Account) Equal(y *Account) bool {
 	}
 
 	for aKey, aVal := range a.Storage {
-		yValue, exist := y.Storage[aKey]
-		if !(exist && aVal == yValue) {
+		yValue, exists := y.Storage[aKey]
+		if !(exists && aVal == yValue) {
 			return false
 		}
 	}
@@ -59,13 +59,13 @@ func (a *Account) Equal(y *Account) bool {
 
 // Copy returns a hard copy of a
 func (a *Account) Copy() *Account {
-	cpy := NewAccount(a.Nonce, a.Balance, a.Code)
+	accCopy := NewAccount(a.Nonce, a.Balance, a.Code)
 
 	for key, value := range a.Storage {
-		cpy.Storage[key] = value
+		accCopy.Storage[key] = value
 	}
 
-	return cpy
+	return accCopy
 }
 
 // CodeHash returns hashed code

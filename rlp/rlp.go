@@ -8,20 +8,20 @@ import (
 
 func NewRLP(substate *substate.Substate) *RLP {
 	return &RLP{
-		InputAlloc:  NewAlloc(substate.InputAlloc),
-		OutputAlloc: NewAlloc(substate.OutputAlloc),
-		Env:         NewEnv(substate.Env),
-		Message:     NewMessage(substate.Message),
-		Result:      NewResult(substate.Result),
+		PreState:  NewWorldState(substate.PreState),
+		PostState: NewWorldState(substate.PostState),
+		Env:       NewEnv(substate.Env),
+		Message:   NewMessage(substate.Message),
+		Result:    NewResult(substate.Result),
 	}
 }
 
 type RLP struct {
-	InputAlloc  Alloc
-	OutputAlloc Alloc
-	Env         *Env
-	Message     *Message
-	Result      *Result
+	PreState  WorldState
+	PostState WorldState
+	Env       *Env
+	Message   *Message
+	Result    *Result
 }
 
 // Decode decodes val into RLP and returns it.
@@ -59,8 +59,8 @@ func (r RLP) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error), 
 	}
 
 	return &substate.Substate{
-		InputAlloc:  r.InputAlloc.ToSubstate(),
-		OutputAlloc: r.OutputAlloc.ToSubstate(),
+		PreState:    r.PreState.ToSubstate(),
+		PostState:   r.PostState.ToSubstate(),
 		Env:         r.Env.ToSubstate(),
 		Message:     msg,
 		Result:      r.Result.ToSubstate(),

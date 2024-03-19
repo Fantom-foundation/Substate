@@ -90,7 +90,7 @@ func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]co
 		}
 	}
 
-	accountList := []common.Address{}
+	var accountList []common.Address
 	for addr, isDeleted := range isDestroyed {
 		if isDeleted {
 			accountList = append(accountList, addr)

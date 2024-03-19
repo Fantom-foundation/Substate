@@ -73,7 +73,7 @@ func (sa *SubstateAccount) CodeHash() common.Hash {
 	return crypto.Keccak256Hash(sa.Code)
 }
 
-// Deprecated: Use substate.Alloc
+// Deprecated: Use substate.WorldState
 type SubstateAlloc map[common.Address]*SubstateAccount
 
 // EstinateIncrementalSize returns estimated substate size increase after merge

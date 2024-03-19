@@ -11,7 +11,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
-const Stage1SubstatePrefix = "1s" // Stage1SubstatePrefix + block (64-bit) + tx (64-bit) -> substateRLP
+const SubstateDBPrefix = "1s" // SubstateDBPrefix + block (64-bit) + tx (64-bit) -> substateRLP
 
 // SubstateDB is a wrapper around CodeDB. It extends it with Has/Get/Put/DeleteSubstate functions.
 type SubstateDB interface {
@@ -64,12 +64,12 @@ type substateDB struct {
 }
 
 func (db *substateDB) HasSubstate(block uint64, tx int) (bool, error) {
-	return db.Has(Stage1SubstateKey(block, tx))
+	return db.Has(SubstateDBKey(block, tx))
 }
 
 // GetSubstate returns substate for given block and tx number if exists within DB.
 func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, error) {
-	val, err := db.Get(Stage1SubstateKey(block, tx))
+	val, err := db.Get(SubstateDBKey(block, tx))
 	if err != nil {
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %v", block, tx, err)
 	}
@@ -88,17 +88,17 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 }
 
 func (db *substateDB) PutSubstate(ss *substate.Substate) error {
-	for i, account := range ss.InputAlloc {
+	for i, account := range ss.PreState {
 		err := db.PutCode(account.Code)
 		if err != nil {
-			return fmt.Errorf("cannot put input-alloc code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
+			return fmt.Errorf("cannot put preState code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
 		}
 	}
 
-	for i, account := range ss.OutputAlloc {
+	for i, account := range ss.PostState {
 		err := db.PutCode(account.Code)
 		if err != nil {
-			return fmt.Errorf("cannot put ouput-alloc code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
+			return fmt.Errorf("cannot put postState code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (db *substateDB) PutSubstate(ss *substate.Substate) error {
 		}
 	}
 
-	key := Stage1SubstateKey(ss.Block, ss.Transaction)
+	key := SubstateDBKey(ss.Block, ss.Transaction)
 
 	substateRLP := rlp.NewRLP(ss)
 	value, err := gethrlp.EncodeToBytes(substateRLP)
@@ -121,7 +121,7 @@ func (db *substateDB) PutSubstate(ss *substate.Substate) error {
 }
 
 func (db *substateDB) DeleteSubstate(block uint64, tx int) error {
-	return db.Delete(Stage1SubstateKey(block, tx))
+	return db.Delete(SubstateDBKey(block, tx))
 }
 
 // NewSubstateIterator returns iterator which iterates over Substates.
@@ -142,10 +142,10 @@ func BlockToBytes(block uint64) []byte {
 	return blockBytes
 }
 
-// Stage1SubstateKey returns Stage1SubstatePrefix with appended
+// SubstateDBKey returns SubstateDBPrefix with appended
 // block number creating key used in baseDB for Substates.
-func Stage1SubstateKey(block uint64, tx int) []byte {
-	prefix := []byte(Stage1SubstatePrefix)
+func SubstateDBKey(block uint64, tx int) []byte {
+	prefix := []byte(SubstateDBPrefix)
 
 	blockTx := make([]byte, 16)
 	binary.BigEndian.PutUint64(blockTx[0:8], block)
@@ -154,21 +154,21 @@ func Stage1SubstateKey(block uint64, tx int) []byte {
 	return append(prefix, blockTx...)
 }
 
-// Stage1SubstateBlockPrefix returns Stage1SubstatePrefix with appended
+// SubstateDBBlockPrefix returns SubstateDBPrefix with appended
 // block number creating prefix used in baseDB for Substates.
-func Stage1SubstateBlockPrefix(block uint64) []byte {
-	return append([]byte(Stage1SubstatePrefix), BlockToBytes(block)...)
+func SubstateDBBlockPrefix(block uint64) []byte {
+	return append([]byte(SubstateDBPrefix), BlockToBytes(block)...)
 }
 
-// DecodeStage1SubstateKey decodes key created by Stage1SubstateBlockPrefix back to block and tx number.
-func DecodeStage1SubstateKey(key []byte) (block uint64, tx int, err error) {
-	prefix := Stage1SubstatePrefix
+// DecodeSubstateDBKey decodes key created by SubstateDBBlockPrefix back to block and tx number.
+func DecodeSubstateDBKey(key []byte) (block uint64, tx int, err error) {
+	prefix := SubstateDBPrefix
 	if len(key) != len(prefix)+8+8 {
-		err = fmt.Errorf("invalid length of stage1 substate key: %v", len(key))
+		err = fmt.Errorf("invalid length of substate db key: %v", len(key))
 		return
 	}
 	if p := string(key[:len(prefix)]); p != prefix {
-		err = fmt.Errorf("invalid prefix of stage1 substate key: %#x", p)
+		err = fmt.Errorf("invalid prefix of substate db key: %#x", p)
 		return
 	}
 	blockTx := key[len(prefix):]
