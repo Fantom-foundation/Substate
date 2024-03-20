@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/Fantom-foundation/Substate/types"
-	"github.com/Fantom-foundation/Substate/types/common"
-	"github.com/Fantom-foundation/Substate/types/crypto"
+	"github.com/Fantom-foundation/Substate/types/hash"
 )
 
 func TestMessage_EqualNonce(t *testing.T) {
@@ -52,8 +51,8 @@ func TestMessage_EqualGasPrice(t *testing.T) {
 }
 
 func TestMessage_EqualFrom(t *testing.T) {
-	msg := &Message{From: common.Address{0}}
-	comparedMsg := &Message{From: common.Address{1}}
+	msg := &Message{From: types.Address{0}}
+	comparedMsg := &Message{From: types.Address{1}}
 
 	if msg.Equal(comparedMsg) {
 		t.Fatal("messages From are different but equal returned true")
@@ -66,8 +65,8 @@ func TestMessage_EqualFrom(t *testing.T) {
 }
 
 func TestMessage_EqualTo(t *testing.T) {
-	msg := &Message{To: &common.Address{0}}
-	comparedMsg := &Message{To: &common.Address{1}}
+	msg := &Message{To: &types.Address{0}}
+	comparedMsg := &Message{To: &types.Address{1}}
 
 	if msg.Equal(comparedMsg) {
 		t.Fatal("messages To are different but equal returned true")
@@ -94,10 +93,10 @@ func TestMessage_EqualValue(t *testing.T) {
 }
 
 func TestMessage_Equal_DataHashDoesNotAffectResult(t *testing.T) {
-	msg := &Message{dataHash: new(common.Hash)}
-	*msg.dataHash = common.BytesToHash([]byte{0})
-	comparedMsg := &Message{dataHash: new(common.Hash)}
-	*comparedMsg.dataHash = common.BytesToHash([]byte{1})
+	msg := &Message{dataHash: new(types.Hash)}
+	*msg.dataHash = types.BytesToHash([]byte{0})
+	comparedMsg := &Message{dataHash: new(types.Hash)}
+	*comparedMsg.dataHash = types.BytesToHash([]byte{1})
 
 	if !msg.Equal(comparedMsg) {
 		t.Fatal("dataHash must not affect equal even if it is different")
@@ -110,19 +109,19 @@ func TestMessage_Equal_DataHashDoesNotAffectResult(t *testing.T) {
 }
 
 func TestMessage_EqualAccessList(t *testing.T) {
-	msg := &Message{AccessList: []types.AccessTuple{{Address: common.Address{0}, StorageKeys: []common.Hash{common.BytesToHash([]byte{0})}}}}
-	comparedMsg := &Message{AccessList: []types.AccessTuple{{Address: common.Address{0}, StorageKeys: []common.Hash{common.BytesToHash([]byte{1})}}}}
+	msg := &Message{AccessList: []types.AccessTuple{{Address: types.Address{0}, StorageKeys: []types.Hash{types.BytesToHash([]byte{0})}}}}
+	comparedMsg := &Message{AccessList: []types.AccessTuple{{Address: types.Address{0}, StorageKeys: []types.Hash{types.BytesToHash([]byte{1})}}}}
 
 	if msg.Equal(comparedMsg) {
 		t.Fatal("messages access list have different Storage Key for same address but equal returned true")
 	}
 
-	comparedMsg.AccessList = append(comparedMsg.AccessList, types.AccessTuple{Address: common.Address{0}, StorageKeys: []common.Hash{common.BytesToHash([]byte{0})}})
+	comparedMsg.AccessList = append(comparedMsg.AccessList, types.AccessTuple{Address: types.Address{0}, StorageKeys: []types.Hash{types.BytesToHash([]byte{0})}})
 	if msg.Equal(comparedMsg) {
 		t.Fatal("messages access list have different Storage Keys for same address but equal returned true")
 	}
 
-	comparedMsg = &Message{AccessList: []types.AccessTuple{{Address: common.Address{1}, StorageKeys: []common.Hash{common.BytesToHash([]byte{1})}}}}
+	comparedMsg = &Message{AccessList: []types.AccessTuple{{Address: types.Address{1}, StorageKeys: []types.Hash{types.BytesToHash([]byte{1})}}}}
 	if msg.Equal(comparedMsg) {
 		t.Fatal("messages access list have different AccessList but equal returned true")
 	}
@@ -162,7 +161,7 @@ func TestMessage_EqualGasTipCap(t *testing.T) {
 }
 
 func TestMessage_DataHashReturnsIfExists(t *testing.T) {
-	want := common.BytesToHash([]byte{1})
+	want := types.BytesToHash([]byte{1})
 	msg := &Message{dataHash: &want}
 
 	got := msg.DataHash()
@@ -176,7 +175,7 @@ func TestMessage_DataHashGeneratesNewHashIfNil(t *testing.T) {
 	msg := &Message{Data: []byte{1}}
 	got := msg.DataHash()
 
-	want := crypto.Keccak256Hash(msg.Data)
+	want := hash.Keccak256Hash(msg.Data)
 
 	if got.IsEmpty() {
 		t.Fatal("dataHash is nil")

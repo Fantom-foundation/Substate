@@ -5,29 +5,29 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/Fantom-foundation/Substate/types/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 type Env struct {
-	Coinbase    common.Address
+	Coinbase    types.Address
 	Difficulty  *big.Int
 	GasLimit    uint64
 	Number      uint64
 	Timestamp   uint64
-	BlockHashes map[uint64]common.Hash
+	BlockHashes map[uint64]types.Hash
 
 	// London hard fork, EIP-1559
 	BaseFee *big.Int // nil if EIP-1559 is not activated
 }
 
 func NewEnv(
-	coinbase common.Address,
+	coinbase types.Address,
 	difficulty *big.Int,
 	gasLimit uint64,
 	number uint64,
 	timestamp uint64,
 	baseFee *big.Int,
-	blockHashes map[uint64]common.Hash) *Env {
+	blockHashes map[uint64]types.Hash) *Env {
 	return &Env{
 		Coinbase:    coinbase,
 		Difficulty:  difficulty,

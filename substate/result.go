@@ -6,19 +6,18 @@ import (
 	"strings"
 
 	"github.com/Fantom-foundation/Substate/types"
-	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 // Result is the transaction result - hence receipt
 type Result struct {
 	Status          uint64
-	Bloom           [256]byte
+	Bloom           []byte
 	Logs            []*types.Log
-	ContractAddress common.Address
+	ContractAddress types.Address
 	GasUsed         uint64
 }
 
-func NewResult(status uint64, bloom [256]byte, logs []*types.Log, contractAddress common.Address, gasUsed uint64) *Result {
+func NewResult(status uint64, bloom []byte, logs []*types.Log, contractAddress types.Address, gasUsed uint64) *Result {
 	return &Result{
 		Status:          status,
 		Bloom:           bloom,
@@ -40,7 +39,7 @@ func (r *Result) Equal(y *Result) bool {
 	}
 
 	equal := r.Status == y.Status &&
-		r.Bloom == y.Bloom &&
+		bytes.Equal(r.Bloom, y.Bloom) &&
 		len(r.Logs) == len(y.Logs) &&
 		r.ContractAddress == y.ContractAddress &&
 		r.GasUsed == y.GasUsed

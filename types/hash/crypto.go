@@ -1,11 +1,11 @@
-package crypto
+package hash
 
 import (
 	"hash"
 
 	"golang.org/x/crypto/sha3"
 
-	"github.com/Fantom-foundation/Substate/types/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 // KeccakState wraps sha3.state. In addition to the usual hash methods, it also supports
@@ -23,7 +23,7 @@ func NewKeccakState() KeccakState {
 
 // Keccak256Hash calculates and returns the Keccak256 hash of the input data,
 // converting it to an internal Hash data structure.
-func Keccak256Hash(data ...[]byte) (h common.Hash) {
+func Keccak256Hash(data ...[]byte) (h types.Hash) {
 	d := NewKeccakState()
 	for _, b := range data {
 		d.Write(b)

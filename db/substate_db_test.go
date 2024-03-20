@@ -9,23 +9,22 @@ import (
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
-	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 var testSubstate = &substate.Substate{
 	PreState:  substate.NewWorldState(),
 	PostState: substate.NewWorldState(),
 	Env: &substate.Env{
-		Coinbase:    common.Address{1},
+		Coinbase:    types.Address{1},
 		Difficulty:  new(big.Int).SetUint64(1),
 		GasLimit:    1,
 		Number:      1,
 		Timestamp:   1,
-		BlockHashes: make(map[uint64]common.Hash),
+		BlockHashes: make(map[uint64]types.Hash),
 		BaseFee:     new(big.Int).SetUint64(1),
 	},
-	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, common.Address{1}, new(common.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
-	Result:      substate.NewResult(1, [256]byte{}, []*types.Log{}, common.Address{1}, 1),
+	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, types.Address{1}, new(types.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
+	Result:      substate.NewResult(1, []byte{}, []*types.Log{}, types.Address{1}, 1),
 	Block:       37_534_834,
 	Transaction: 1,
 }
@@ -116,15 +115,15 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 		return nil, fmt.Errorf("cannot open db; %v", err)
 	}
 
-	h1 := common.Hash{}
+	h1 := types.Hash{}
 	h1.SetBytes(nil)
 
-	h2 := common.Hash{}
+	h2 := types.Hash{}
 	h2.SetBytes(nil)
 
-	testSubstate.PreState[common.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
-	testSubstate.PostState[common.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
-	testSubstate.Env.BlockHashes[1] = common.BytesToHash([]byte{1})
+	testSubstate.PreState[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
+	testSubstate.PostState[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
+	testSubstate.Env.BlockHashes[1] = types.BytesToHash([]byte{1})
 
 	err = db.PutSubstate(testSubstate)
 	if err != nil {

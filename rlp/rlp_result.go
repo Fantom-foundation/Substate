@@ -3,7 +3,6 @@ package rlp
 import (
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
-	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func NewResult(result *substate.Result) *Result {
@@ -18,10 +17,10 @@ func NewResult(result *substate.Result) *Result {
 
 type Result struct {
 	Status uint64
-	Bloom  [256]byte
+	Bloom  []byte
 	Logs   []*types.Log
 
-	ContractAddress common.Address
+	ContractAddress types.Address
 	GasUsed         uint64
 }
 

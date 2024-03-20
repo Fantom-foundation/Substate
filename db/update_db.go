@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Fantom-foundation/Substate/types/common"
-	trlp "github.com/Fantom-foundation/Substate/types/rlp"
-	"github.com/Fantom-foundation/Substate/updateset"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
+
+	"github.com/Fantom-foundation/Substate/types"
+	trlp "github.com/Fantom-foundation/Substate/types/rlp"
+	"github.com/Fantom-foundation/Substate/updateset"
 )
 
 const (
@@ -33,7 +34,7 @@ type UpdateDB interface {
 	GetUpdateSet(block uint64) (*updateset.UpdateSet, error)
 
 	// PutUpdateSet inserts the UpdateSet with deleted accounts into the DB assigned to given block.
-	PutUpdateSet(updateSet *updateset.UpdateSet, deletedAccounts []common.Address) error
+	PutUpdateSet(updateSet *updateset.UpdateSet, deletedAccounts []types.Address) error
 
 	// DeleteUpdateSet deletes UpdateSet for given block. It returns an error if there is no UpdateSet on given block.
 	DeleteUpdateSet(block uint64) error
@@ -123,7 +124,7 @@ func (db *updateDB) GetUpdateSet(block uint64) (*updateset.UpdateSet, error) {
 	return updateSetRLP.ToWorldState(db.GetCode, block)
 }
 
-func (db *updateDB) PutUpdateSet(updateSet *updateset.UpdateSet, deletedAccounts []common.Address) error {
+func (db *updateDB) PutUpdateSet(updateSet *updateset.UpdateSet, deletedAccounts []types.Address) error {
 	// put deployed/creation code
 	for _, account := range updateSet.WorldState {
 		err := db.PutCode(account.Code)

@@ -2,12 +2,12 @@ package rlp
 
 import (
 	"github.com/Fantom-foundation/Substate/substate"
-	"github.com/Fantom-foundation/Substate/types/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func NewWorldState(worldState substate.WorldState) WorldState {
 	ws := WorldState{
-		Addresses: []common.Address{},
+		Addresses: []types.Address{},
 		Accounts:  []*Account{},
 	}
 
@@ -20,7 +20,7 @@ func NewWorldState(worldState substate.WorldState) WorldState {
 }
 
 type WorldState struct {
-	Addresses []common.Address
+	Addresses []types.Address
 	Accounts  []*Account
 }
 

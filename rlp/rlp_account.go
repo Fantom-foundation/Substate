@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/Fantom-foundation/Substate/substate"
-	"github.com/Fantom-foundation/Substate/types/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func NewRLPAccount(acc *substate.Account) *Account {
@@ -13,10 +13,10 @@ func NewRLPAccount(acc *substate.Account) *Account {
 		Nonce:    acc.Nonce,
 		Balance:  new(big.Int).Set(acc.Balance),
 		CodeHash: acc.CodeHash(),
-		Storage:  [][2]common.Hash{},
+		Storage:  [][2]types.Hash{},
 	}
 
-	var sortedKeys []common.Hash
+	var sortedKeys []types.Hash
 	for key := range acc.Storage {
 		sortedKeys = append(sortedKeys, key)
 	}
@@ -27,7 +27,7 @@ func NewRLPAccount(acc *substate.Account) *Account {
 
 	for _, key := range sortedKeys {
 		value := acc.Storage[key]
-		a.Storage = append(a.Storage, [2]common.Hash{key, value})
+		a.Storage = append(a.Storage, [2]types.Hash{key, value})
 	}
 
 	return a
@@ -36,6 +36,6 @@ func NewRLPAccount(acc *substate.Account) *Account {
 type Account struct {
 	Nonce    uint64
 	Balance  *big.Int
-	CodeHash common.Hash
-	Storage  [][2]common.Hash
+	CodeHash types.Hash
+	Storage  [][2]types.Hash
 }

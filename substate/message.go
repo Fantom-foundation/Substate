@@ -7,8 +7,7 @@ import (
 	"strings"
 
 	"github.com/Fantom-foundation/Substate/types"
-	"github.com/Fantom-foundation/Substate/types/common"
-	"github.com/Fantom-foundation/Substate/types/crypto"
+	"github.com/Fantom-foundation/Substate/types/hash"
 )
 
 type Message struct {
@@ -17,13 +16,13 @@ type Message struct {
 	GasPrice   *big.Int
 	Gas        uint64
 
-	From  common.Address
-	To    *common.Address // nil means contract creation
+	From  types.Address
+	To    *types.Address // nil means contract creation
 	Value *big.Int
 	Data  []byte
 
 	// for memoization
-	dataHash *common.Hash
+	dataHash *types.Hash
 
 	// Berlin hard fork, EIP-2930: Optional access lists
 	AccessList types.AccessList // nil if EIP-2930 is not activated
@@ -38,11 +37,11 @@ func NewMessage(
 	checkNonce bool,
 	gasPrice *big.Int,
 	gas uint64,
-	from common.Address,
-	to *common.Address,
+	from types.Address,
+	to *types.Address,
 	value *big.Int,
 	data []byte,
-	dataHash *common.Hash,
+	dataHash *types.Hash,
 	accessList types.AccessList,
 	gasFeeCap *big.Int,
 	gasTipCap *big.Int) *Message {
@@ -116,9 +115,9 @@ func (m *Message) Equal(y *Message) bool {
 }
 
 // DataHash returns m.dataHash if it exists. If not, it is generated using Keccak256 algorithm.
-func (m *Message) DataHash() common.Hash {
+func (m *Message) DataHash() types.Hash {
 	if m.dataHash == nil {
-		dataHash := crypto.Keccak256Hash(m.Data)
+		dataHash := hash.Keccak256Hash(m.Data)
 		m.dataHash = &dataHash
 	}
 	return *m.dataHash

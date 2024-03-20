@@ -2,7 +2,7 @@ package rlp
 
 import (
 	"github.com/Fantom-foundation/Substate/substate"
-	"github.com/Fantom-foundation/Substate/types/common"
+	"github.com/Fantom-foundation/Substate/types"
 	"github.com/Fantom-foundation/Substate/types/rlp"
 )
 
@@ -52,7 +52,7 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 }
 
 // ToSubstate transforms every attribute of r from RLP to substate.Substate.
-func (r RLP) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
+func (r RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
 	msg, err := r.Message.ToSubstate(getHashFunc)
 	if err != nil {
 		return nil, err

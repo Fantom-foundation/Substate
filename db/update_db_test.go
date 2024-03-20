@@ -5,19 +5,20 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/substate"
-	"github.com/Fantom-foundation/Substate/types/common"
-	"github.com/Fantom-foundation/Substate/updateset"
 	"github.com/syndtr/goleveldb/leveldb"
+
+	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/updateset"
 )
 
 var testUpdateSet = &updateset.UpdateSet{
 	WorldState: substate.WorldState{
-		common.Address{1}: &substate.Account{
+		types.Address{1}: &substate.Account{
 			Nonce:   1,
 			Balance: new(big.Int).SetUint64(1),
 		},
-		common.Address{2}: &substate.Account{
+		types.Address{2}: &substate.Account{
 			Nonce:   2,
 			Balance: new(big.Int).SetUint64(2),
 		},
@@ -25,7 +26,7 @@ var testUpdateSet = &updateset.UpdateSet{
 	Block: 1,
 }
 
-var testDeletedAccounts = []common.Address{common.Address{3}, common.Address{4}}
+var testDeletedAccounts = []types.Address{types.Address{3}, types.Address{4}}
 
 func TestUpdateDB_PutUpdateSet(t *testing.T) {
 	dbPath := t.TempDir() + "test-db"

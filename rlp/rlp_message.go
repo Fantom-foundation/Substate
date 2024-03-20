@@ -5,7 +5,6 @@ import (
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
-	"github.com/Fantom-foundation/Substate/types/common"
 )
 
 func NewMessage(message *substate.Message) *Message {
@@ -40,12 +39,12 @@ type Message struct {
 	GasPrice   *big.Int
 	Gas        uint64
 
-	From  common.Address
-	To    *common.Address `rlp:"nil"` // nil means contract creation
+	From  types.Address
+	To    *types.Address `rlp:"nil"` // nil means contract creation
 	Value *big.Int
 	Data  []byte
 
-	InitCodeHash *common.Hash `rlp:"nil"` // NOT nil for contract creation
+	InitCodeHash *types.Hash `rlp:"nil"` // NOT nil for contract creation
 
 	AccessList types.AccessList // missing in substate DB from Geth v1.9.x
 
@@ -54,7 +53,7 @@ type Message struct {
 }
 
 // ToSubstate transforms m from Message to substate.Message.
-func (m Message) ToSubstate(getHashFunc func(codeHash common.Hash) ([]byte, error)) (*substate.Message, error) {
+func (m Message) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error)) (*substate.Message, error) {
 	sm := &substate.Message{
 		Nonce:      m.Nonce,
 		CheckNonce: !m.CheckNonce, //TODO: find out if this is correct
