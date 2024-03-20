@@ -57,14 +57,14 @@ func (e Env) ToSubstate() *substate.Env {
 		Number:      e.Number,
 		Timestamp:   e.Timestamp,
 		BlockHashes: make(map[uint64]common.Hash),
-		BaseFee:     e.BaseFee.Big(),
+		BaseFee:     new(big.Int).SetBytes(e.BaseFee[:]),
 	}
 
 	// iterate through BlockHashes
 	// first hash is the block number
 	// second hash is the block hash itself
 	for _, hashes := range e.BlockHashes {
-		number := hashes[0].Big().Uint64()
+		number := hashes[0].Uint64()
 		hash := hashes[1]
 		se.BlockHashes[number] = hash
 	}

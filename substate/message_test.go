@@ -178,7 +178,7 @@ func TestMessage_DataHashGeneratesNewHashIfNil(t *testing.T) {
 
 	want := crypto.Keccak256Hash(msg.Data)
 
-	if got == common.EmptyHash {
+	if got.IsEmpty() {
 		t.Fatal("dataHash is nil")
 	}
 

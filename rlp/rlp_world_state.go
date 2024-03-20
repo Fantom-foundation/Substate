@@ -34,7 +34,7 @@ func (ws WorldState) ToSubstate() substate.WorldState {
 	// Address at second position matches Account at second position, and so on
 	for i, addr := range ws.Addresses {
 		acc := ws.Accounts[i]
-		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash.Bytes())
+		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash[:])
 		for pos := range acc.Storage {
 			sws[addr].Storage[acc.Storage[pos][0]] = acc.Storage[pos][1]
 		}

@@ -68,8 +68,8 @@ func (e *Env) Equal(y *Env) bool {
 func (e *Env) String() string {
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("Coinbase: %v\n", e.Coinbase.Hex()))
-	builder.WriteString(fmt.Sprintf("Difficulty: %v\n", e.Difficulty.String()))
+	builder.WriteString(fmt.Sprintf("Coinbase: %s\n", e.Coinbase))
+	builder.WriteString(fmt.Sprintf("Difficulty: %s\n", e.Difficulty.String()))
 	builder.WriteString(fmt.Sprintf("Gas Limit: %v\n", e.GasLimit))
 	builder.WriteString(fmt.Sprintf("Number: %v\n", e.Number))
 	builder.WriteString(fmt.Sprintf("Timestamp: %v\n", e.Timestamp))
@@ -77,7 +77,7 @@ func (e *Env) String() string {
 	builder.WriteString("Block Hashes: \n")
 
 	for number, hash := range e.BlockHashes {
-		builder.WriteString(fmt.Sprintf("%v: %v\n", number, hash.Hex()))
+		builder.WriteString(fmt.Sprintf("%v: %s\n", number, hash))
 	}
 
 	return builder.String()

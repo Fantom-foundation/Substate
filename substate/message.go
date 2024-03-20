@@ -129,18 +129,18 @@ func (m *Message) String() string {
 
 	builder.WriteString(fmt.Sprintf("Nonce: %v", m.Nonce))
 	builder.WriteString(fmt.Sprintf("CheckNonce: %v", m.CheckNonce))
-	builder.WriteString(fmt.Sprintf("From: %v", m.From.Hex()))
-	builder.WriteString(fmt.Sprintf("To: %v", m.To.Hex()))
+	builder.WriteString(fmt.Sprintf("From: %s", m.From))
+	builder.WriteString(fmt.Sprintf("To: %s", m.To))
 	builder.WriteString(fmt.Sprintf("Value: %v", m.Value.String()))
 	builder.WriteString(fmt.Sprintf("Data: %v", string(m.Data)))
-	builder.WriteString(fmt.Sprintf("Data Hash: %v", m.dataHash.Hex()))
+	builder.WriteString(fmt.Sprintf("Data Hash: %s", m.dataHash))
 	builder.WriteString(fmt.Sprintf("Gas Fee Cap: %v", m.GasFeeCap.String()))
 	builder.WriteString(fmt.Sprintf("Gas Tip Cap: %v", m.GasTipCap.String()))
 
 	for _, tuple := range m.AccessList {
-		builder.WriteString(fmt.Sprintf("Address: %v", tuple.Address.Hex()))
+		builder.WriteString(fmt.Sprintf("Address: %s", tuple.Address))
 		for i, key := range tuple.StorageKeys {
-			builder.WriteString(fmt.Sprintf("Storage Key %v: %v", i, key.Hex()))
+			builder.WriteString(fmt.Sprintf("Storage Key %v: %v", i, key))
 		}
 	}
 

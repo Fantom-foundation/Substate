@@ -70,14 +70,14 @@ func (db *codeDB) HasCode(codeHash common.Hash) (bool, error) {
 
 // GetCode gets the code for the given hash.
 func (db *codeDB) GetCode(codeHash common.Hash) ([]byte, error) {
-	if codeHash == common.EmptyHash {
+	if codeHash.IsEmpty() {
 		return nil, ErrorEmptyHash
 	}
 
 	key := CodeDBKey(codeHash)
 	code, err := db.Get(key)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get code %s: %v", codeHash.Hex(), err)
+		return nil, fmt.Errorf("cannot get code %s: %v", codeHash, err)
 	}
 	return code, nil
 }
@@ -88,7 +88,7 @@ func (db *codeDB) PutCode(code []byte) error {
 	key := CodeDBKey(codeHash)
 	err := db.Put(key, code)
 	if err != nil {
-		return fmt.Errorf("cannot put code %v; %v", codeHash.Hex(), err)
+		return fmt.Errorf("cannot put code %s: %v", codeHash, err)
 	}
 
 	return nil
@@ -96,14 +96,14 @@ func (db *codeDB) PutCode(code []byte) error {
 
 // DeleteCode deletes the code for the given hash.
 func (db *codeDB) DeleteCode(codeHash common.Hash) error {
-	if codeHash == common.EmptyHash {
+	if codeHash.IsEmpty() {
 		return ErrorEmptyHash
 	}
 
 	key := CodeDBKey(codeHash)
 	err := db.Delete(key)
 	if err != nil {
-		return fmt.Errorf("cannot get code %s: %v", codeHash.Hex(), err)
+		return fmt.Errorf("cannot get code %s: %v", codeHash, err)
 	}
 	return nil
 }
@@ -112,7 +112,7 @@ func (db *codeDB) DeleteCode(codeHash common.Hash) error {
 // codeHash creating key used in baseDB for Codes.
 func CodeDBKey(codeHash common.Hash) []byte {
 	prefix := []byte(CodeDBPrefix)
-	return append(prefix, codeHash.Bytes()...)
+	return append(prefix, codeHash[:]...)
 }
 
 // DecodeCodeDBKey decodes key created by CodeDBKey back to hash.
@@ -126,6 +126,8 @@ func DecodeCodeDBKey(key []byte) (codeHash common.Hash, err error) {
 		err = fmt.Errorf("invalid prefix of code db key: %#x", p)
 		return
 	}
+	var h common.Hash
+	h.SetBytes(key[len(prefix):])
 	codeHash = common.BytesToHash(key[len(prefix):])
 	return
 }

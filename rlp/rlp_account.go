@@ -22,7 +22,7 @@ func NewRLPAccount(acc *substate.Account) *Account {
 	}
 
 	sort.Slice(sortedKeys, func(i, j int) bool {
-		return sortedKeys[i].Big().Cmp(sortedKeys[j].Big()) < 0
+		return sortedKeys[i].Compare(sortedKeys[j]) < 0
 	})
 
 	for _, key := range sortedKeys {

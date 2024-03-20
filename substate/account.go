@@ -79,7 +79,7 @@ func (a *Account) String() string {
 	builder.WriteString(fmt.Sprintf("Nonce: %v\nBalance: %v\nCode: %v\nStorage:", a.Nonce, a.Balance.String(), string(a.Code)))
 
 	for key, val := range a.Storage {
-		builder.WriteString(fmt.Sprintf("%v: %v\n", key.Hex(), val.Hex()))
+		builder.WriteString(fmt.Sprintf("%s: %s\n", key, val))
 	}
 
 	return builder.String()
