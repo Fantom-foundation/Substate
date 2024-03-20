@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/Fantom-foundation/Substate/types"
 	"github.com/Fantom-foundation/Substate/types/common"
 )
 
@@ -21,15 +20,22 @@ type Env struct {
 	BaseFee *big.Int // nil if EIP-1559 is not activated
 }
 
-func NewEnv(b *types.Block, blockHashes map[uint64]common.Hash) *Env {
+func NewEnv(
+	coinbase common.Address,
+	difficulty *big.Int,
+	gasLimit uint64,
+	number uint64,
+	timestamp uint64,
+	baseFee *big.Int,
+	blockHashes map[uint64]common.Hash) *Env {
 	return &Env{
-		Coinbase:    b.Coinbase(),
-		Difficulty:  new(big.Int).Set(b.Difficulty()),
-		GasLimit:    b.GasLimit(),
-		Number:      b.NumberU64(),
-		Timestamp:   b.Time(),
+		Coinbase:    coinbase,
+		Difficulty:  difficulty,
+		GasLimit:    gasLimit,
+		Number:      number,
+		Timestamp:   timestamp,
 		BlockHashes: blockHashes,
-		BaseFee:     b.BaseFee(),
+		BaseFee:     baseFee,
 	}
 }
 

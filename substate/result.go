@@ -12,13 +12,13 @@ import (
 // Result is the transaction result - hence receipt
 type Result struct {
 	Status          uint64
-	Bloom           types.Bloom
+	Bloom           [256]byte
 	Logs            []*types.Log
 	ContractAddress common.Address
 	GasUsed         uint64
 }
 
-func NewResult(status uint64, bloom types.Bloom, logs []*types.Log, contractAddress common.Address, gasUsed uint64) *Result {
+func NewResult(status uint64, bloom [256]byte, logs []*types.Log, contractAddress common.Address, gasUsed uint64) *Result {
 	return &Result{
 		Status:          status,
 		Bloom:           bloom,
@@ -73,8 +73,8 @@ func (r *Result) String() string {
 	var builder strings.Builder
 
 	builder.WriteString(fmt.Sprintf("Status: %v", r.Status))
-	builder.WriteString(fmt.Sprintf("Bloom: %v", r.Bloom.Big().String()))
-	builder.WriteString(fmt.Sprintf("Contract Address: %v", r.ContractAddress.Hex()))
+	builder.WriteString(fmt.Sprintf("Bloom: %s", r.Bloom))
+	builder.WriteString(fmt.Sprintf("Contract Address: %s", r.ContractAddress))
 	builder.WriteString(fmt.Sprintf("Gas Used: %v", r.GasUsed))
 
 	for _, log := range r.Logs {

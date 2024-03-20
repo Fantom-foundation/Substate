@@ -135,7 +135,7 @@ func (ws WorldState) String() string {
 	var builder strings.Builder
 
 	for addr, acc := range ws {
-		builder.WriteString(fmt.Sprintf("%v: %v", addr.Hex(), acc.String()))
+		builder.WriteString(fmt.Sprintf("%s: %v", addr, acc.String()))
 	}
 	return builder.String()
 }

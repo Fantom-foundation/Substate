@@ -5,10 +5,11 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/syndtr/goleveldb/leveldb"
+
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
 	"github.com/Fantom-foundation/Substate/types/common"
-	"github.com/syndtr/goleveldb/leveldb"
 )
 
 var testSubstate = &substate.Substate{
@@ -24,7 +25,7 @@ var testSubstate = &substate.Substate{
 		BaseFee:     new(big.Int).SetUint64(1),
 	},
 	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, common.Address{1}, new(common.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
-	Result:      substate.NewResult(1, types.Bloom{}, []*types.Log{}, common.Address{1}, 1),
+	Result:      substate.NewResult(1, [256]byte{}, []*types.Log{}, common.Address{1}, 1),
 	Block:       37_534_834,
 	Transaction: 1,
 }
