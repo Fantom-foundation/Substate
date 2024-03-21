@@ -56,8 +56,7 @@ var ErrorEmptyHash = errors.New("give hash is empty")
 
 // HasCode returns true if the baseDB does contain given code hash.
 func (db *codeDB) HasCode(codeHash types.Hash) (bool, error) {
-	emptyHash := types.Hash{}
-	if codeHash == emptyHash {
+	if codeHash.IsEmpty() {
 		return false, ErrorEmptyHash
 	}
 
