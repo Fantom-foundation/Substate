@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/crypto"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/hash"
 )
 
 const CodeDBPrefix = "1c" // CodeDBPrefix + codeHash (256-bit) -> code
@@ -16,16 +17,16 @@ type CodeDB interface {
 	BaseDB
 
 	// HasCode returns true if the DB does contain given code hash.
-	HasCode(common.Hash) (bool, error)
+	HasCode(types.Hash) (bool, error)
 
 	// GetCode gets the code for the given hash.
-	GetCode(common.Hash) ([]byte, error)
+	GetCode(types.Hash) ([]byte, error)
 
 	// PutCode creates hash for given code and inserts it into the DB.
 	PutCode([]byte) error
 
 	// DeleteCode deletes the code for given hash.
-	DeleteCode(common.Hash) error
+	DeleteCode(types.Hash) error
 }
 
 // NewDefaultCodeDB creates new instance of CodeDB with default options.
@@ -54,9 +55,8 @@ type codeDB struct {
 var ErrorEmptyHash = errors.New("give hash is empty")
 
 // HasCode returns true if the baseDB does contain given code hash.
-func (db *codeDB) HasCode(codeHash common.Hash) (bool, error) {
-	emptyHash := common.Hash{}
-	if codeHash == emptyHash {
+func (db *codeDB) HasCode(codeHash types.Hash) (bool, error) {
+	if codeHash.IsEmpty() {
 		return false, ErrorEmptyHash
 	}
 
@@ -69,54 +69,54 @@ func (db *codeDB) HasCode(codeHash common.Hash) (bool, error) {
 }
 
 // GetCode gets the code for the given hash.
-func (db *codeDB) GetCode(codeHash common.Hash) ([]byte, error) {
-	if codeHash == common.EmptyHash {
+func (db *codeDB) GetCode(codeHash types.Hash) ([]byte, error) {
+	if codeHash.IsEmpty() {
 		return nil, ErrorEmptyHash
 	}
 
 	key := CodeDBKey(codeHash)
 	code, err := db.Get(key)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get code %s: %v", codeHash.Hex(), err)
+		return nil, fmt.Errorf("cannot get code %s: %v", codeHash, err)
 	}
 	return code, nil
 }
 
 // PutCode creates hash for given code and inserts it into the baseDB.
 func (db *codeDB) PutCode(code []byte) error {
-	codeHash := crypto.Keccak256Hash(code)
+	codeHash := hash.Keccak256Hash(code)
 	key := CodeDBKey(codeHash)
 	err := db.Put(key, code)
 	if err != nil {
-		return fmt.Errorf("cannot put code %v; %v", codeHash.Hex(), err)
+		return fmt.Errorf("cannot put code %s: %v", codeHash, err)
 	}
 
 	return nil
 }
 
 // DeleteCode deletes the code for the given hash.
-func (db *codeDB) DeleteCode(codeHash common.Hash) error {
-	if codeHash == common.EmptyHash {
+func (db *codeDB) DeleteCode(codeHash types.Hash) error {
+	if codeHash.IsEmpty() {
 		return ErrorEmptyHash
 	}
 
 	key := CodeDBKey(codeHash)
 	err := db.Delete(key)
 	if err != nil {
-		return fmt.Errorf("cannot get code %s: %v", codeHash.Hex(), err)
+		return fmt.Errorf("cannot get code %s: %v", codeHash, err)
 	}
 	return nil
 }
 
 // CodeDBKey returns CodeDBPrefix with appended
 // codeHash creating key used in baseDB for Codes.
-func CodeDBKey(codeHash common.Hash) []byte {
+func CodeDBKey(codeHash types.Hash) []byte {
 	prefix := []byte(CodeDBPrefix)
-	return append(prefix, codeHash.Bytes()...)
+	return append(prefix, codeHash[:]...)
 }
 
 // DecodeCodeDBKey decodes key created by CodeDBKey back to hash.
-func DecodeCodeDBKey(key []byte) (codeHash common.Hash, err error) {
+func DecodeCodeDBKey(key []byte) (codeHash types.Hash, err error) {
 	prefix := CodeDBPrefix
 	if len(key) != len(prefix)+32 {
 		err = fmt.Errorf("invalid length of code db key: %v", len(key))
@@ -126,6 +126,8 @@ func DecodeCodeDBKey(key []byte) (codeHash common.Hash, err error) {
 		err = fmt.Errorf("invalid prefix of code db key: %#x", p)
 		return
 	}
-	codeHash = common.BytesToHash(key[len(prefix):])
+	var h types.Hash
+	h.SetBytes(key[len(prefix):])
+	codeHash = types.BytesToHash(key[len(prefix):])
 	return
 }

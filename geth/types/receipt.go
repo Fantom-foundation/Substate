@@ -27,7 +27,7 @@ import (
 	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/geth/common/hexutil"
 	"github.com/Fantom-foundation/Substate/geth/crypto"
-	rlp2 "github.com/Fantom-foundation/Substate/geth/rlp"
+	"github.com/Fantom-foundation/Substate/geth/rlp"
 )
 
 //go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go
@@ -138,26 +138,26 @@ func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64) *Receipt {
 func (r *Receipt) EncodeRLP(w io.Writer) error {
 	data := &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs}
 	if r.Type == LegacyTxType {
-		return rlp2.Encode(w, data)
+		return rlp.Encode(w, data)
 	}
 	buf := encodeBufferPool.Get().(*bytes.Buffer)
 	defer encodeBufferPool.Put(buf)
 	buf.Reset()
 	buf.WriteByte(r.Type)
-	if err := rlp2.Encode(buf, data); err != nil {
+	if err := rlp.Encode(buf, data); err != nil {
 		return err
 	}
-	return rlp2.Encode(w, buf.Bytes())
+	return rlp.Encode(w, buf.Bytes())
 }
 
 // DecodeRLP implements rlp.Decoder, and loads the consensus fields of a receipt
 // from an RLP stream.
-func (r *Receipt) DecodeRLP(s *rlp2.Stream) error {
+func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 	kind, _, err := s.Kind()
 	switch {
 	case err != nil:
 		return err
-	case kind == rlp2.List:
+	case kind == rlp.List:
 		// It's a legacy receipt.
 		var dec receiptRLP
 		if err := s.Decode(&dec); err != nil {
@@ -165,7 +165,7 @@ func (r *Receipt) DecodeRLP(s *rlp2.Stream) error {
 		}
 		r.Type = LegacyTxType
 		return r.setFromRLP(dec)
-	case kind == rlp2.String:
+	case kind == rlp.String:
 		// It's an EIP-2718 typed tx receipt.
 		b, err := s.Bytes()
 		if err != nil {
@@ -177,14 +177,14 @@ func (r *Receipt) DecodeRLP(s *rlp2.Stream) error {
 		r.Type = b[0]
 		if r.Type == AccessListTxType || r.Type == DynamicFeeTxType {
 			var dec receiptRLP
-			if err := rlp2.DecodeBytes(b[1:], &dec); err != nil {
+			if err := rlp.DecodeBytes(b[1:], &dec); err != nil {
 				return err
 			}
 			return r.setFromRLP(dec)
 		}
 		return ErrTxTypeNotSupported
 	default:
-		return rlp2.ErrExpectedList
+		return rlp.ErrExpectedList
 	}
 }
 
@@ -243,12 +243,12 @@ func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 	for i, log := range r.Logs {
 		enc.Logs[i] = (*LogForStorage)(log)
 	}
-	return rlp2.Encode(w, enc)
+	return rlp.Encode(w, enc)
 }
 
 // DecodeRLP implements rlp.Decoder, and loads both consensus and implementation
 // fields of a receipt from an RLP stream.
-func (r *ReceiptForStorage) DecodeRLP(s *rlp2.Stream) error {
+func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 	// Retrieve the entire receipt blob as we need to try multiple decoders
 	blob, err := s.Raw()
 	if err != nil {
@@ -268,7 +268,7 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp2.Stream) error {
 
 func decodeStoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 	var stored storedReceiptRLP
-	if err := rlp2.DecodeBytes(blob, &stored); err != nil {
+	if err := rlp.DecodeBytes(blob, &stored); err != nil {
 		return err
 	}
 	if err := (*Receipt)(r).setStatus(stored.PostStateOrStatus); err != nil {
@@ -286,7 +286,7 @@ func decodeStoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 
 func decodeV4StoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 	var stored v4StoredReceiptRLP
-	if err := rlp2.DecodeBytes(blob, &stored); err != nil {
+	if err := rlp.DecodeBytes(blob, &stored); err != nil {
 		return err
 	}
 	if err := (*Receipt)(r).setStatus(stored.PostStateOrStatus); err != nil {
@@ -307,7 +307,7 @@ func decodeV4StoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 
 func decodeV3StoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 	var stored v3StoredReceiptRLP
-	if err := rlp2.DecodeBytes(blob, &stored); err != nil {
+	if err := rlp.DecodeBytes(blob, &stored); err != nil {
 		return err
 	}
 	if err := (*Receipt)(r).setStatus(stored.PostStateOrStatus); err != nil {
@@ -337,13 +337,13 @@ func (rs Receipts) EncodeIndex(i int, w *bytes.Buffer) {
 	data := &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs}
 	switch r.Type {
 	case LegacyTxType:
-		rlp2.Encode(w, data)
+		rlp.Encode(w, data)
 	case AccessListTxType:
 		w.WriteByte(AccessListTxType)
-		rlp2.Encode(w, data)
+		rlp.Encode(w, data)
 	case DynamicFeeTxType:
 		w.WriteByte(DynamicFeeTxType)
-		rlp2.Encode(w, data)
+		rlp.Encode(w, data)
 	default:
 		// For unsupported types, write nothing. Since this is for
 		// DeriveSha, the error will be caught matching the derived hash

@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func TestAccount_EqualNonce(t *testing.T) {
@@ -36,12 +36,12 @@ func TestAccount_EqualBalance(t *testing.T) {
 }
 
 func TestAccount_EqualStorage(t *testing.T) {
-	hashOne := common.BigToHash(new(big.Int).SetUint64(1))
-	hashTwo := common.BigToHash(new(big.Int).SetUint64(2))
-	hashThree := common.BigToHash(new(big.Int).SetUint64(3))
+	hashOne := types.BigToHash(new(big.Int).SetUint64(1))
+	hashTwo := types.BigToHash(new(big.Int).SetUint64(2))
+	hashThree := types.BigToHash(new(big.Int).SetUint64(3))
 
 	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
-	acc.Storage = make(map[common.Hash]common.Hash)
+	acc.Storage = make(map[types.Hash]types.Hash)
 	acc.Storage[hashOne] = hashTwo
 
 	// first compare with no storage
@@ -51,21 +51,21 @@ func TestAccount_EqualStorage(t *testing.T) {
 	}
 
 	// then compare different value for same key
-	comparedStorageAcc.Storage = make(map[common.Hash]common.Hash)
+	comparedStorageAcc.Storage = make(map[types.Hash]types.Hash)
 	comparedStorageAcc.Storage[hashOne] = hashThree
 	if acc.Equal(comparedStorageAcc) {
 		t.Fatal("accounts storages are different but equal returned true")
 	}
 
 	// then compare different keys
-	comparedStorageAcc.Storage = make(map[common.Hash]common.Hash)
+	comparedStorageAcc.Storage = make(map[types.Hash]types.Hash)
 	comparedStorageAcc.Storage[hashTwo] = hashThree
 	if acc.Equal(comparedStorageAcc) {
 		t.Fatal("accounts storages are different but equal returned true")
 	}
 
 	// then compare same
-	comparedStorageAcc.Storage = make(map[common.Hash]common.Hash)
+	comparedStorageAcc.Storage = make(map[types.Hash]types.Hash)
 	comparedStorageAcc.Storage[hashOne] = hashTwo
 
 	if !acc.Equal(comparedStorageAcc) {
@@ -88,10 +88,10 @@ func TestAccount_EqualCode(t *testing.T) {
 }
 
 func TestAccount_Copy(t *testing.T) {
-	hashOne := common.BigToHash(new(big.Int).SetUint64(1))
-	hashTwo := common.BigToHash(new(big.Int).SetUint64(2))
+	hashOne := types.BigToHash(new(big.Int).SetUint64(1))
+	hashTwo := types.BigToHash(new(big.Int).SetUint64(2))
 	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
-	acc.Storage = make(map[common.Hash]common.Hash)
+	acc.Storage = make(map[types.Hash]types.Hash)
 	acc.Storage[hashOne] = hashTwo
 
 	cpy := acc.Copy()

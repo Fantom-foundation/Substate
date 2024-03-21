@@ -3,8 +3,7 @@ package rlp
 import (
 	"math/big"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 const (
@@ -47,12 +46,12 @@ type legacyMessage struct {
 	GasPrice   *big.Int
 	Gas        uint64
 
-	From  common.Address
-	To    *common.Address `rlp:"nil"` // nil means contract creation
+	From  types.Address
+	To    *types.Address `rlp:"nil"` // nil means contract creation
 	Value *big.Int
 	Data  []byte
 
-	InitCodeHash *common.Hash `rlp:"nil"` // NOT nil for contract creation
+	InitCodeHash *types.Hash `rlp:"nil"` // NOT nil for contract creation
 }
 
 func (m legacyMessage) toLondon() *Message {
@@ -75,12 +74,12 @@ func (m legacyMessage) toLondon() *Message {
 }
 
 type legacyEnv struct {
-	Coinbase    common.Address
+	Coinbase    types.Address
 	Difficulty  *big.Int
 	GasLimit    uint64
 	Number      uint64
 	Timestamp   uint64
-	BlockHashes [][2]common.Hash
+	BlockHashes [][2]types.Hash
 }
 
 func (e legacyEnv) toLondon() *Env {
@@ -120,12 +119,12 @@ type berlinMessage struct {
 	GasPrice   *big.Int
 	Gas        uint64
 
-	From  common.Address
-	To    *common.Address `rlp:"nil"` // nil means contract creation
+	From  types.Address
+	To    *types.Address `rlp:"nil"` // nil means contract creation
 	Value *big.Int
 	Data  []byte
 
-	InitCodeHash *common.Hash `rlp:"nil"` // NOT nil for contract creation
+	InitCodeHash *types.Hash `rlp:"nil"` // NOT nil for contract creation
 
 	AccessList types.AccessList // missing in substate DB from Geth v1.9.x
 }

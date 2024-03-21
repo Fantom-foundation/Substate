@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/syndtr/goleveldb/leveldb"
-	ldbiterator "github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
+
+	"github.com/syndtr/goleveldb/leveldb"
+	ldbiterator "github.com/syndtr/goleveldb/leveldb/iterator"
 )
 
 // KeyValueWriter wraps the Put method of a backing data store.

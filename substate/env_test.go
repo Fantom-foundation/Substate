@@ -4,15 +4,15 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func TestEnv_EqualCoinbase(t *testing.T) {
 	env := &Env{
-		Coinbase: common.Address{0},
+		Coinbase: types.Address{0},
 	}
 	comparedEnv := &Env{
-		Coinbase: common.Address{1},
+		Coinbase: types.Address{1},
 	}
 
 	if env.Equal(comparedEnv) {
@@ -81,17 +81,17 @@ func TestEnv_EqualNumber(t *testing.T) {
 
 func TestEnv_EqualBlockHashes(t *testing.T) {
 	env := &Env{
-		BlockHashes: map[uint64]common.Hash{0: common.BytesToHash([]byte{0})},
+		BlockHashes: map[uint64]types.Hash{0: types.BytesToHash([]byte{0})},
 	}
 	comparedEnv := &Env{
-		BlockHashes: map[uint64]common.Hash{0: common.BytesToHash([]byte{1})},
+		BlockHashes: map[uint64]types.Hash{0: types.BytesToHash([]byte{1})},
 	}
 
 	if env.Equal(comparedEnv) {
 		t.Fatal("envs hashes for block 0 are different but equal returned true")
 	}
 
-	comparedEnv.BlockHashes = map[uint64]common.Hash{1: common.BytesToHash([]byte{1})}
+	comparedEnv.BlockHashes = map[uint64]types.Hash{1: types.BytesToHash([]byte{1})}
 
 	if env.Equal(comparedEnv) {
 		t.Fatal("envs blockHashes are different but equal returned true")

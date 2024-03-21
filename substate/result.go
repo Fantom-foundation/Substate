@@ -5,20 +5,19 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 // Result is the transaction result - hence receipt
 type Result struct {
 	Status          uint64
-	Bloom           types.Bloom
+	Bloom           []byte
 	Logs            []*types.Log
-	ContractAddress common.Address
+	ContractAddress types.Address
 	GasUsed         uint64
 }
 
-func NewResult(status uint64, bloom types.Bloom, logs []*types.Log, contractAddress common.Address, gasUsed uint64) *Result {
+func NewResult(status uint64, bloom []byte, logs []*types.Log, contractAddress types.Address, gasUsed uint64) *Result {
 	return &Result{
 		Status:          status,
 		Bloom:           bloom,
@@ -40,7 +39,7 @@ func (r *Result) Equal(y *Result) bool {
 	}
 
 	equal := r.Status == y.Status &&
-		r.Bloom == y.Bloom &&
+		bytes.Equal(r.Bloom, y.Bloom) &&
 		len(r.Logs) == len(y.Logs) &&
 		r.ContractAddress == y.ContractAddress &&
 		r.GasUsed == y.GasUsed
@@ -73,8 +72,8 @@ func (r *Result) String() string {
 	var builder strings.Builder
 
 	builder.WriteString(fmt.Sprintf("Status: %v", r.Status))
-	builder.WriteString(fmt.Sprintf("Bloom: %v", r.Bloom.Big().String()))
-	builder.WriteString(fmt.Sprintf("Contract Address: %v", r.ContractAddress.Hex()))
+	builder.WriteString(fmt.Sprintf("Bloom: %s", r.Bloom))
+	builder.WriteString(fmt.Sprintf("Contract Address: %s", r.ContractAddress))
 	builder.WriteString(fmt.Sprintf("Gas Used: %v", r.GasUsed))
 
 	for _, log := range r.Logs {

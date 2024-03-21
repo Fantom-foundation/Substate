@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/crypto"
 	"github.com/syndtr/goleveldb/leveldb"
+
+	"github.com/Fantom-foundation/Substate/types/hash"
 )
 
 var testCode = []byte{1}
@@ -39,7 +40,7 @@ func TestCodeDB_HasCode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	has, err := db.HasCode(crypto.Keccak256Hash(testCode))
+	has, err := db.HasCode(hash.Keccak256Hash(testCode))
 	if err != nil {
 		t.Fatalf("get code returned error; %v", err)
 	}
@@ -56,7 +57,7 @@ func TestCodeDB_GetCode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	code, err := db.GetCode(crypto.Keccak256Hash(testCode))
+	code, err := db.GetCode(hash.Keccak256Hash(testCode))
 	if err != nil {
 		t.Fatalf("get code returned error; %v", err)
 	}
@@ -73,7 +74,7 @@ func TestCodeDB_DeleteCode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hash := crypto.Keccak256Hash(testCode)
+	hash := hash.Keccak256Hash(testCode)
 
 	err = db.DeleteCode(hash)
 	if err != nil {

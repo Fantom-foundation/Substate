@@ -3,8 +3,7 @@ package substate
 import (
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func TestAccount_EqualStatus(t *testing.T) {
@@ -22,8 +21,8 @@ func TestAccount_EqualStatus(t *testing.T) {
 }
 
 func TestAccount_EqualBloom(t *testing.T) {
-	res := &Result{Bloom: types.Bloom{0}}
-	comparedRes := &Result{Bloom: types.Bloom{1}}
+	res := &Result{Bloom: []byte{0}}
+	comparedRes := &Result{Bloom: []byte{1}}
 
 	if res.Equal(comparedRes) {
 		t.Fatal("results Bloom are different but equal returned true")
@@ -36,8 +35,8 @@ func TestAccount_EqualBloom(t *testing.T) {
 }
 
 func TestAccount_EqualLogs(t *testing.T) {
-	res := &Result{Logs: []*types.Log{{Address: common.Address{0}}}}
-	comparedRes := &Result{Logs: []*types.Log{{Address: common.Address{1}}}}
+	res := &Result{Logs: []*types.Log{{Address: types.Address{0}}}}
+	comparedRes := &Result{Logs: []*types.Log{{Address: types.Address{1}}}}
 
 	if res.Equal(comparedRes) {
 		t.Fatal("results Log are different but equal returned true")
@@ -50,8 +49,8 @@ func TestAccount_EqualLogs(t *testing.T) {
 }
 
 func TestAccount_EqualContractAddress(t *testing.T) {
-	res := &Result{ContractAddress: common.Address{0}}
-	comparedRes := &Result{ContractAddress: common.Address{1}}
+	res := &Result{ContractAddress: types.Address{0}}
+	comparedRes := &Result{ContractAddress: types.Address{1}}
 
 	if res.Equal(comparedRes) {
 		t.Fatal("results ContractAddress are different but equal returned true")

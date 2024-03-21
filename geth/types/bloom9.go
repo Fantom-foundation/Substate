@@ -21,20 +21,13 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/Fantom-foundation/Substate/geth/common/hexutil"
+	"github.com/Fantom-foundation/Substate/geth/crypto"
 )
-
-type bytesBacked interface {
-	Bytes() []byte
-}
 
 const (
 	// BloomByteLength represents the number of bytes used in a header log bloom.
 	BloomByteLength = 256
-
-	// BloomBitLength represents the number of bits used in a header log bloom.
-	BloomBitLength = 8 * BloomByteLength
 )
 
 // Bloom represents a 2048 bit bloom filter.
@@ -155,6 +148,6 @@ func bloomValues(data []byte, hashbuf []byte) (uint, byte, uint, byte, uint, byt
 }
 
 // BloomLookup is a convenience-method to check presence int he bloom filter
-func BloomLookup(bin Bloom, topic bytesBacked) bool {
-	return bin.Test(topic.Bytes())
+func BloomLookup(bin Bloom, topic []byte) bool {
+	return bin.Test(topic)
 }

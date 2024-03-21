@@ -3,9 +3,10 @@ package db
 import (
 	"fmt"
 
+	"github.com/syndtr/goleveldb/leveldb/util"
+
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
-	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 func newSubstateIterator(db *substateDB, start []byte) *substateIterator {

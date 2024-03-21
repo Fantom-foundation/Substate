@@ -5,31 +5,37 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
-	"github.com/Fantom-foundation/Substate/geth/types"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 type Env struct {
-	Coinbase    common.Address
+	Coinbase    types.Address
 	Difficulty  *big.Int
 	GasLimit    uint64
 	Number      uint64
 	Timestamp   uint64
-	BlockHashes map[uint64]common.Hash
+	BlockHashes map[uint64]types.Hash
 
 	// London hard fork, EIP-1559
 	BaseFee *big.Int // nil if EIP-1559 is not activated
 }
 
-func NewEnv(b *types.Block, blockHashes map[uint64]common.Hash) *Env {
+func NewEnv(
+	coinbase types.Address,
+	difficulty *big.Int,
+	gasLimit uint64,
+	number uint64,
+	timestamp uint64,
+	baseFee *big.Int,
+	blockHashes map[uint64]types.Hash) *Env {
 	return &Env{
-		Coinbase:    b.Coinbase(),
-		Difficulty:  new(big.Int).Set(b.Difficulty()),
-		GasLimit:    b.GasLimit(),
-		Number:      b.NumberU64(),
-		Timestamp:   b.Time(),
+		Coinbase:    coinbase,
+		Difficulty:  difficulty,
+		GasLimit:    gasLimit,
+		Number:      number,
+		Timestamp:   timestamp,
 		BlockHashes: blockHashes,
-		BaseFee:     b.BaseFee(),
+		BaseFee:     baseFee,
 	}
 }
 
@@ -68,8 +74,8 @@ func (e *Env) Equal(y *Env) bool {
 func (e *Env) String() string {
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("Coinbase: %v\n", e.Coinbase.Hex()))
-	builder.WriteString(fmt.Sprintf("Difficulty: %v\n", e.Difficulty.String()))
+	builder.WriteString(fmt.Sprintf("Coinbase: %s\n", e.Coinbase))
+	builder.WriteString(fmt.Sprintf("Difficulty: %s\n", e.Difficulty.String()))
 	builder.WriteString(fmt.Sprintf("Gas Limit: %v\n", e.GasLimit))
 	builder.WriteString(fmt.Sprintf("Number: %v\n", e.Number))
 	builder.WriteString(fmt.Sprintf("Timestamp: %v\n", e.Timestamp))
@@ -77,7 +83,7 @@ func (e *Env) String() string {
 	builder.WriteString("Block Hashes: \n")
 
 	for number, hash := range e.BlockHashes {
-		builder.WriteString(fmt.Sprintf("%v: %v\n", number, hash.Hex()))
+		builder.WriteString(fmt.Sprintf("%v: %s\n", number, hash))
 	}
 
 	return builder.String()

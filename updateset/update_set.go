@@ -1,9 +1,9 @@
 package updateset
 
 import (
-	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func NewUpdateSet(alloc substate.WorldState, block uint64) *UpdateSet {
@@ -17,12 +17,12 @@ func NewUpdateSet(alloc substate.WorldState, block uint64) *UpdateSet {
 type UpdateSet struct {
 	WorldState      substate.WorldState
 	Block           uint64
-	DeletedAccounts []common.Address
+	DeletedAccounts []types.Address
 }
 
 func (s UpdateSet) ToWorldStateRLP() rlp.WorldState {
 	a := rlp.WorldState{
-		Addresses: []common.Address{},
+		Addresses: []types.Address{},
 		Accounts:  []*rlp.Account{},
 	}
 
@@ -34,7 +34,7 @@ func (s UpdateSet) ToWorldStateRLP() rlp.WorldState {
 	return a
 }
 
-func NewUpdateSetRLP(updateSet *UpdateSet, deletedAccounts []common.Address) UpdateSetRLP {
+func NewUpdateSetRLP(updateSet *UpdateSet, deletedAccounts []types.Address) UpdateSetRLP {
 	return UpdateSetRLP{
 		WorldState:      updateSet.ToWorldStateRLP(),
 		DeletedAccounts: deletedAccounts,
@@ -44,10 +44,10 @@ func NewUpdateSetRLP(updateSet *UpdateSet, deletedAccounts []common.Address) Upd
 // UpdateSetRLP represents the DB structure of UpdateSet.
 type UpdateSetRLP struct {
 	WorldState      rlp.WorldState
-	DeletedAccounts []common.Address
+	DeletedAccounts []types.Address
 }
 
-func (up UpdateSetRLP) ToWorldState(getCodeFunc func(codeHash common.Hash) ([]byte, error), block uint64) (*UpdateSet, error) {
+func (up UpdateSetRLP) ToWorldState(getCodeFunc func(codeHash types.Hash) ([]byte, error), block uint64) (*UpdateSet, error) {
 	worldState := make(substate.WorldState)
 
 	for i, addr := range up.WorldState.Addresses {
@@ -61,7 +61,7 @@ func (up UpdateSetRLP) ToWorldState(getCodeFunc func(codeHash common.Hash) ([]by
 		acc := substate.Account{
 			Nonce:   worldStateAcc.Nonce,
 			Balance: worldStateAcc.Balance,
-			Storage: make(map[common.Hash]common.Hash),
+			Storage: make(map[types.Hash]types.Hash),
 			Code:    code,
 		}
 

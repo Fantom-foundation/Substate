@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 const (
@@ -16,13 +16,13 @@ const (
 )
 
 func NewWorldState() WorldState {
-	return make(map[common.Address]*Account)
+	return make(map[types.Address]*Account)
 }
 
-type WorldState map[common.Address]*Account
+type WorldState map[types.Address]*Account
 
 // Add assigns new Account to an Address
-func (ws WorldState) Add(addr common.Address, nonce uint64, balance *big.Int, code []byte) WorldState {
+func (ws WorldState) Add(addr types.Address, nonce uint64, balance *big.Int, code []byte) WorldState {
 	ws[addr] = NewAccount(nonce, balance, code)
 	return ws
 }
@@ -65,14 +65,14 @@ func (ws WorldState) EstimateIncrementalSize(y WorldState) uint64 {
 			for key, _ := range yAcc.Storage {
 				// only add new storage keys
 				if _, found := ws[yAddr].Storage[key]; !found {
-					size += sizeOfHash // add sizeof(common.Hash)
+					size += sizeOfHash // add sizeof(types.Hash)
 				}
 			}
 		} else {
 			// add size of new accounts
 			// address + nonce + balance + codehash
 			size += sizeOfAddress + sizeOfNonce + uint64(len(yAcc.Balance.Bytes())) + sizeOfHash
-			// storage slots * sizeof(common.Hash)
+			// storage slots * sizeof(types.Hash)
 			size += uint64(len(yAcc.Storage)) * sizeOfHash
 		}
 	}
@@ -100,7 +100,7 @@ func (ws WorldState) Diff(y WorldState) WorldState {
 
 				// check storage
 				for key, value := range acc.Storage {
-					if yVal, found := y[addr].Storage[key]; (!found && value != common.Hash{}) || yVal != value {
+					if yVal, found := y[addr].Storage[key]; (!found && value != types.Hash{}) || yVal != value {
 						// initialize if not exists.
 						if _, found := z[addr]; !found {
 							z[addr] = NewAccount(acc.Nonce, acc.Balance, acc.Code)
@@ -135,7 +135,7 @@ func (ws WorldState) String() string {
 	var builder strings.Builder
 
 	for addr, acc := range ws {
-		builder.WriteString(fmt.Sprintf("%v: %v", addr.Hex(), acc.String()))
+		builder.WriteString(fmt.Sprintf("%s: %v", addr, acc.String()))
 	}
 	return builder.String()
 }

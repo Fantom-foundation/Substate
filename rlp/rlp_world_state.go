@@ -1,13 +1,13 @@
 package rlp
 
 import (
-	"github.com/Fantom-foundation/Substate/geth/common"
 	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func NewWorldState(worldState substate.WorldState) WorldState {
 	ws := WorldState{
-		Addresses: []common.Address{},
+		Addresses: []types.Address{},
 		Accounts:  []*Account{},
 	}
 
@@ -20,7 +20,7 @@ func NewWorldState(worldState substate.WorldState) WorldState {
 }
 
 type WorldState struct {
-	Addresses []common.Address
+	Addresses []types.Address
 	Accounts  []*Account
 }
 
@@ -34,7 +34,7 @@ func (ws WorldState) ToSubstate() substate.WorldState {
 	// Address at second position matches Account at second position, and so on
 	for i, addr := range ws.Addresses {
 		acc := ws.Accounts[i]
-		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash.Bytes())
+		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash[:])
 		for pos := range acc.Storage {
 			sws[addr].Storage[acc.Storage[pos][0]] = acc.Storage[pos][1]
 		}

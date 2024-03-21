@@ -4,12 +4,12 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Fantom-foundation/Substate/geth/common"
+	"github.com/Fantom-foundation/Substate/types"
 )
 
 func TestWorldState_Add(t *testing.T) {
-	addr1 := common.Address{1}
-	addr2 := common.Address{2}
+	addr1 := types.Address{1}
+	addr2 := types.Address{2}
 	acc := &Account{
 		Nonce:   2,
 		Balance: new(big.Int).SetUint64(2),
@@ -29,7 +29,7 @@ func TestWorldState_Add(t *testing.T) {
 }
 
 func TestWorldState_MergeOneAccount(t *testing.T) {
-	addr := common.Address{1}
+	addr := types.Address{1}
 
 	worldState := make(WorldState).Add(addr, 1, new(big.Int).SetUint64(1), []byte{1})
 	worldStateToMerge := make(WorldState).Add(addr, 2, new(big.Int).SetUint64(2), []byte{2})
@@ -49,8 +49,8 @@ func TestWorldState_MergeOneAccount(t *testing.T) {
 }
 
 func TestWorldState_MergeTwoAccounts(t *testing.T) {
-	addr1 := common.Address{1}
-	addr2 := common.Address{2}
+	addr1 := types.Address{1}
+	addr2 := types.Address{2}
 
 	worldState := make(WorldState).Add(addr1, 1, new(big.Int).SetUint64(1), []byte{1})
 	worldStateToMerge := make(WorldState).Add(addr2, 2, new(big.Int).SetUint64(2), []byte{2})
@@ -84,8 +84,8 @@ func TestWorldState_MergeTwoAccounts(t *testing.T) {
 }
 
 func TestWorldState_EstimateIncrementalSize_NewWorldState(t *testing.T) {
-	addr1 := common.Address{1}
-	addr2 := common.Address{2}
+	addr1 := types.Address{1}
+	addr2 := types.Address{2}
 
 	worldState := make(WorldState).Add(addr1, 1, new(big.Int).SetUint64(1), []byte{1})
 	worldStateToEstimate := make(WorldState).Add(addr2, 2, new(big.Int).SetUint64(2), []byte{2})
@@ -99,7 +99,7 @@ func TestWorldState_EstimateIncrementalSize_NewWorldState(t *testing.T) {
 }
 
 func TestWorldState_EstimateIncrementalSize_SameWorldState(t *testing.T) {
-	addr1 := common.Address{1}
+	addr1 := types.Address{1}
 
 	worldState := make(WorldState).Add(addr1, 1, new(big.Int).SetUint64(1), []byte{1})
 	worldStateToEstimate := make(WorldState).Add(addr1, 2, new(big.Int).SetUint64(2), []byte{2})
@@ -111,11 +111,11 @@ func TestWorldState_EstimateIncrementalSize_SameWorldState(t *testing.T) {
 }
 
 func TestWorldState_EstimateIncrementalSize_AddingStorageHash(t *testing.T) {
-	addr1 := common.Address{1}
+	addr1 := types.Address{1}
 
 	worldState := make(WorldState).Add(addr1, 1, new(big.Int).SetUint64(1), []byte{1})
 	worldStateToEstimate := make(WorldState).Add(addr1, 2, new(big.Int).SetUint64(2), []byte{2})
-	worldStateToEstimate[addr1].Storage[common.Hash{1}] = common.Hash{1}
+	worldStateToEstimate[addr1].Storage[types.Hash{1}] = types.Hash{1}
 
 	// we add one key to already existing account, this size is increased by the sizeOfHash
 	if got := worldState.EstimateIncrementalSize(worldStateToEstimate); got != sizeOfHash {
@@ -126,8 +126,8 @@ func TestWorldState_EstimateIncrementalSize_AddingStorageHash(t *testing.T) {
 // todo diff tests
 
 func TestWorldState_Equal(t *testing.T) {
-	worldState := make(WorldState).Add(common.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
-	comparedWorldStateEqual := make(WorldState).Add(common.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
+	worldState := make(WorldState).Add(types.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
+	comparedWorldStateEqual := make(WorldState).Add(types.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
 
 	if !worldState.Equal(comparedWorldStateEqual) {
 		t.Fatal("world states are same but equal returned false")
@@ -135,8 +135,8 @@ func TestWorldState_Equal(t *testing.T) {
 }
 
 func TestWorldState_NotEqual(t *testing.T) {
-	worldState := make(WorldState).Add(common.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
-	comparedWorldStateEqual := make(WorldState).Add(common.Address{2}, 1, new(big.Int).SetUint64(1), []byte{1})
+	worldState := make(WorldState).Add(types.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
+	comparedWorldStateEqual := make(WorldState).Add(types.Address{2}, 1, new(big.Int).SetUint64(1), []byte{1})
 
 	if worldState.Equal(comparedWorldStateEqual) {
 		t.Fatal("world states are different but equal returned false")
@@ -144,11 +144,11 @@ func TestWorldState_NotEqual(t *testing.T) {
 }
 
 func TestWorldState_NotEqual_DifferentLen(t *testing.T) {
-	worldState := make(WorldState).Add(common.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
-	comparedWorldStateEqual := make(WorldState).Add(common.Address{2}, 1, new(big.Int).SetUint64(1), []byte{1})
+	worldState := make(WorldState).Add(types.Address{1}, 1, new(big.Int).SetUint64(1), []byte{1})
+	comparedWorldStateEqual := make(WorldState).Add(types.Address{2}, 1, new(big.Int).SetUint64(1), []byte{1})
 
 	// add one more acc to world state
-	worldState.Add(common.Address{2}, 1, new(big.Int).SetUint64(1), []byte{1})
+	worldState.Add(types.Address{2}, 1, new(big.Int).SetUint64(1), []byte{1})
 
 	if worldState.Equal(comparedWorldStateEqual) {
 		t.Fatal("world states are different but equal returned false")
@@ -156,10 +156,10 @@ func TestWorldState_NotEqual_DifferentLen(t *testing.T) {
 }
 
 func TestWorl_Copy(t *testing.T) {
-	hashOne := common.BigToHash(new(big.Int).SetUint64(1))
-	hashTwo := common.BigToHash(new(big.Int).SetUint64(2))
+	hashOne := types.BigToHash(new(big.Int).SetUint64(1))
+	hashTwo := types.BigToHash(new(big.Int).SetUint64(2))
 	acc := NewAccount(1, new(big.Int).SetUint64(1), []byte{1})
-	acc.Storage = make(map[common.Hash]common.Hash)
+	acc.Storage = make(map[types.Hash]types.Hash)
 	acc.Storage[hashOne] = hashTwo
 
 	cpy := acc.Copy()
