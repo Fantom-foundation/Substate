@@ -30,7 +30,7 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 		substateRLP RLP
 		err         error
 	)
-
+	// todo decode does not work
 	err = rlp.DecodeBytes(val, &substateRLP)
 	if err == nil {
 		return &substateRLP, nil

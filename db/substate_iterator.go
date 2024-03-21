@@ -87,8 +87,6 @@ func (i *substateIterator) start(numWorkers int) {
 		i.wg.Add(1)
 		id := w
 
-		fmt.Println(w)
-
 		go func() {
 			defer func() {
 				close(resultChs[id])
