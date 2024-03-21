@@ -44,7 +44,7 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 
 	var legacy legacyRLP
 	err = rlp.DecodeBytes(val, &legacy)
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 

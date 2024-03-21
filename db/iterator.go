@@ -52,6 +52,7 @@ type iterator[T comparable] struct {
 	resultCh chan T
 	wg       *sync.WaitGroup
 	cur      T
+	stopCh   chan any
 }
 
 func newIterator[T comparable](iter ldbiterator.Iterator) iterator[T] {
@@ -59,12 +60,16 @@ func newIterator[T comparable](iter ldbiterator.Iterator) iterator[T] {
 		iter:     iter,
 		resultCh: make(chan T, 10),
 		wg:       new(sync.WaitGroup),
+		stopCh:   make(chan any, 1),
 	}
 }
 
 // Next returns false if iterator is at its end. Otherwise, it returns true.
 // Note: False does not stop the iterator. Release() should be called.
 func (i *iterator[T]) Next() bool {
+	if i.err != nil {
+		return false
+	}
 	i.cur = <-i.resultCh
 	var zero T
 	return i.cur != zero
@@ -82,6 +87,7 @@ func (i *iterator[T]) Value() T {
 
 // Release the iterator and wait until all threads are closed gracefully.
 func (i *iterator[T]) Release() {
+	close(i.stopCh)
 	i.wg.Wait()
 	i.iter.Release()
 }
