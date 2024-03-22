@@ -8,8 +8,8 @@ import (
 	"github.com/Fantom-foundation/Substate/types"
 )
 
-func NewRLPAccount(acc *substate.Account) *Account {
-	a := &Account{
+func NewRLPAccount(acc *substate.Account) *SubstateAccountRLP {
+	a := &SubstateAccountRLP{
 		Nonce:    acc.Nonce,
 		Balance:  new(big.Int).Set(acc.Balance),
 		CodeHash: acc.CodeHash(),
@@ -33,7 +33,7 @@ func NewRLPAccount(acc *substate.Account) *Account {
 	return a
 }
 
-type Account struct {
+type SubstateAccountRLP struct {
 	Nonce    uint64
 	Balance  *big.Int
 	CodeHash types.Hash

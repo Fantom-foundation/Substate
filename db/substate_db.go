@@ -89,14 +89,14 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 }
 
 func (db *substateDB) PutSubstate(ss *substate.Substate) error {
-	for i, account := range ss.PreState {
+	for i, account := range ss.InputSubstate {
 		err := db.PutCode(account.Code)
 		if err != nil {
 			return fmt.Errorf("cannot put preState code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
 		}
 	}
 
-	for i, account := range ss.PostState {
+	for i, account := range ss.OutputSubstate {
 		err := db.PutCode(account.Code)
 		if err != nil {
 			return fmt.Errorf("cannot put postState code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)

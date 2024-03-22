@@ -8,20 +8,20 @@ import (
 
 func NewRLP(substate *substate.Substate) *RLP {
 	return &RLP{
-		PreState:  NewWorldState(substate.PreState),
-		PostState: NewWorldState(substate.PostState),
-		Env:       NewEnv(substate.Env),
-		Message:   NewMessage(substate.Message),
-		Result:    NewResult(substate.Result),
+		InputSubstate:  NewWorldState(substate.InputSubstate),
+		OutputSubstate: NewWorldState(substate.OutputSubstate),
+		Env:            NewEnv(substate.Env),
+		Message:        NewMessage(substate.Message),
+		Result:         NewResult(substate.Result),
 	}
 }
 
 type RLP struct {
-	PreState  WorldState
-	PostState WorldState
-	Env       *Env
-	Message   *Message
-	Result    *Result
+	InputSubstate  WorldState
+	OutputSubstate WorldState
+	Env            *Env
+	Message        *Message
+	Result         *Result
 }
 
 // Decode decodes val into RLP and returns it.
@@ -47,7 +47,7 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 
 		return berlin.toLondon(), nil
 	} else {
-		var legacy legacyRLP
+		var legacy legacySubstateRLP
 		err = rlp.DecodeBytes(val, &legacy)
 		if err != nil {
 			return nil, err
@@ -65,12 +65,12 @@ func (r *RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), 
 	}
 
 	return &substate.Substate{
-		PreState:    r.PreState.ToSubstate(),
-		PostState:   r.PostState.ToSubstate(),
-		Env:         r.Env.ToSubstate(),
-		Message:     msg,
-		Result:      r.Result.ToSubstate(),
-		Block:       block,
-		Transaction: tx,
+		InputSubstate:  r.InputSubstate.ToSubstate(),
+		OutputSubstate: r.OutputSubstate.ToSubstate(),
+		Env:            r.Env.ToSubstate(),
+		Message:        msg,
+		Result:         r.Result.ToSubstate(),
+		Block:          block,
+		Transaction:    tx,
 	}, nil
 }

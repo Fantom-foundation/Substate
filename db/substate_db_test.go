@@ -12,8 +12,8 @@ import (
 )
 
 var testSubstate = &substate.Substate{
-	PreState:  substate.NewWorldState(),
-	PostState: substate.NewWorldState(),
+	InputSubstate:  substate.NewWorldState(),
+	OutputSubstate: substate.NewWorldState(),
 	Env: &substate.Env{
 		Coinbase:    types.Address{1},
 		Difficulty:  new(big.Int).SetUint64(1),
@@ -121,8 +121,8 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 	h2 := types.Hash{}
 	h2.SetBytes(nil)
 
-	testSubstate.PreState[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
-	testSubstate.PostState[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
+	testSubstate.InputSubstate[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
+	testSubstate.OutputSubstate[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
 	testSubstate.Env.BlockHashes[1] = types.BytesToHash([]byte{1})
 
 	err = db.PutSubstate(testSubstate)

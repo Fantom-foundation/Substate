@@ -8,24 +8,24 @@ import (
 
 func NewSubstate(preState WorldState, postState WorldState, env *Env, message *Message, result *Result, block uint64, transaction int) *Substate {
 	return &Substate{
-		PreState:    preState,
-		PostState:   postState,
-		Env:         env,
-		Message:     message,
-		Result:      result,
-		Block:       block,
-		Transaction: transaction,
+		InputSubstate:  preState,
+		OutputSubstate: postState,
+		Env:            env,
+		Message:        message,
+		Result:         result,
+		Block:          block,
+		Transaction:    transaction,
 	}
 }
 
 type Substate struct {
-	PreState    WorldState
-	PostState   WorldState
-	Env         *Env
-	Message     *Message
-	Result      *Result
-	Block       uint64
-	Transaction int
+	InputSubstate  WorldState
+	OutputSubstate WorldState
+	Env            *Env
+	Message        *Message
+	Result         *Result
+	Block          uint64
+	Transaction    int
 }
 
 // Equal returns true if s is y or if values of s are equal to values of y.
@@ -39,18 +39,18 @@ func (s *Substate) Equal(y *Substate) (err error) {
 		return errors.New("one of the substates is nil")
 	}
 
-	preState := s.PreState.Equal(y.PreState)
-	postState := s.PostState.Equal(y.PostState)
+	preState := s.InputSubstate.Equal(y.InputSubstate)
+	postState := s.OutputSubstate.Equal(y.OutputSubstate)
 	env := s.Env.Equal(y.Env)
 	msg := s.Message.Equal(y.Message)
 	res := s.Result.Equal(y.Result)
 
 	if !preState {
-		err = errors.Join(err, fmt.Errorf("preState is different\nwant: %v\n got: %v", s.PreState.String(), y.PreState.String()))
+		err = errors.Join(err, fmt.Errorf("preState is different\nwant: %v\n got: %v", s.InputSubstate.String(), y.InputSubstate.String()))
 	}
 
 	if !postState {
-		err = errors.Join(err, fmt.Errorf("postState is different\nwant: %v\n got: %v", s.PostState.String(), y.PostState.String()))
+		err = errors.Join(err, fmt.Errorf("postState is different\nwant: %v\n got: %v", s.OutputSubstate.String(), y.OutputSubstate.String()))
 	}
 
 	if !env {
@@ -71,8 +71,8 @@ func (s *Substate) Equal(y *Substate) (err error) {
 func (s *Substate) String() string {
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("PreState: %v", s.PreState.String()))
-	builder.WriteString(fmt.Sprintf("PostState: %v", s.PostState.String()))
+	builder.WriteString(fmt.Sprintf("InputSubstate: %v", s.InputSubstate.String()))
+	builder.WriteString(fmt.Sprintf("OutputSubstate: %v", s.OutputSubstate.String()))
 	builder.WriteString(fmt.Sprintf("Env World State: %v", s.Env.String()))
 	builder.WriteString(fmt.Sprintf("Message World State: %v", s.Message.String()))
 	builder.WriteString(fmt.Sprintf("Result World State: %v", s.Result.String()))

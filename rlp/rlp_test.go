@@ -81,7 +81,7 @@ func Test_DecodeBerlin_IncorrectDecoder(t *testing.T) {
 }
 
 func Test_DecodeLegacy(t *testing.T) {
-	legacy := legacyRLP{
+	legacy := legacySubstateRLP{
 		Message: &legacyMessage{Data: []byte{1}, Value: big.NewInt(1), GasPrice: big.NewInt(1)},
 		Env:     &legacyEnv{},
 		Result:  &Result{}}
@@ -101,7 +101,7 @@ func Test_DecodeLegacy(t *testing.T) {
 }
 
 func Test_DecodeLegacy_IncorrectDecoder(t *testing.T) {
-	legacy := legacyRLP{
+	legacy := legacySubstateRLP{
 		Message: &legacyMessage{Data: []byte{1}, Value: big.NewInt(1), GasPrice: big.NewInt(1)},
 		Env:     &legacyEnv{},
 		Result:  &Result{}}
