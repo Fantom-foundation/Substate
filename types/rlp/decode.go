@@ -57,6 +57,37 @@ var (
 // Kind represents the kind of value contained in an RLP stream.
 type Kind int8
 
+func (k Kind) String() string {
+	switch k {
+	case Byte:
+		return "Byte"
+	case String:
+		return "String"
+	case List:
+		return "List"
+	default:
+		return fmt.Sprintf("Unknown(%d)", k)
+	}
+}
+
+// Decode parses RLP-encoded data from r and stores the result in the value pointed to by
+// val. Please see package-level documentation for the decoding rules. Val must be a
+// non-nil pointer.
+//
+// If r does not implement ByteReader, Decode will do its own buffering.
+//
+// Note that Decode does not set an input limit for all readers and may be vulnerable to
+// panics cause by huge value sizes. If you need an input limit, use
+//
+//	NewStream(r, limit).Decode(val)
+func Decode(r io.Reader, val interface{}) error {
+	stream := streamPool.Get().(*Stream)
+	defer streamPool.Put(stream)
+
+	stream.Reset(r, 0)
+	return stream.Decode(val)
+}
+
 // DecodeBytes parses RLP data from b into val. Please see package-level documentation for
 // the decoding rules. The input must contain exactly one value and no trailing data.
 func DecodeBytes(b []byte, val interface{}) error {
@@ -98,6 +129,29 @@ type Stream struct {
 	kind      Kind     // kind of value ahead
 	byteval   byte     // value of single byte in type tag
 	limited   bool     // true if input limit is in effect
+}
+
+// NewStream creates a new decoding stream reading from r.
+//
+// If r implements the ByteReader interface, Stream will
+// not introduce any buffering.
+//
+// For non-toplevel values, Stream returns ErrElemTooLarge
+// for values that do not fit into the enclosing list.
+//
+// Stream supports an optional input limit. If a limit is set, the
+// size of any toplevel value will be checked against the remaining
+// input length. Stream operations that encounter a value exceeding
+// the remaining input length will return ErrValueTooLarge. The limit
+// can be set by passing a non-zero value for inputLimit.
+//
+// If r is a bytes.Reader or strings.Reader, the input limit is set to
+// the length of r's underlying data unless an explicit limit is
+// provided.
+func NewStream(r io.Reader, inputLimit uint64) *Stream {
+	s := new(Stream)
+	s.Reset(r, inputLimit)
+	return s
 }
 
 // Decode decodes a value and stores the result in the value pointed

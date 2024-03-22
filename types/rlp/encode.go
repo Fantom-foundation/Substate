@@ -42,6 +42,20 @@ func Encode(w io.Writer, val interface{}) error {
 	return eb.toWriter(w)
 }
 
+// EncodeToReader returns a reader from which the RLP encoding of val
+// can be read. The returned size is the total size of the encoded
+// data.
+//
+// Please see the documentation of Encode for the encoding rules.
+func EncodeToReader(val interface{}) (size int, r io.Reader, err error) {
+	eb := encbufPool.Get().(*encbuf)
+	eb.reset()
+	if err := eb.encode(val); err != nil {
+		return 0, nil, err
+	}
+	return eb.size(), &encReader{buf: eb}, nil
+}
+
 type listhead struct {
 	offset int // index of this header in string data
 	size   int // total size of encoded data (including list headers)
@@ -241,6 +255,73 @@ func putint(b []byte, i uint64) (size int) {
 		b[6] = byte(i >> 8)
 		b[7] = byte(i)
 		return 8
+	}
+}
+
+// encReader is the io.Reader returned by EncodeToReader.
+// It releases its encbuf at EOF.
+type encReader struct {
+	buf    *encbuf // the buffer we're reading from. this is nil when we're at EOF.
+	lhpos  int     // index of list header that we're reading
+	strpos int     // current position in string buffer
+	piece  []byte  // next piece to be read
+}
+
+func (r *encReader) Read(b []byte) (n int, err error) {
+	for {
+		if r.piece = r.next(); r.piece == nil {
+			// Put the encode buffer back into the pool at EOF when it
+			// is first encountered. Subsequent calls still return EOF
+			// as the error but the buffer is no longer valid.
+			if r.buf != nil {
+				encbufPool.Put(r.buf)
+				r.buf = nil
+			}
+			return n, io.EOF
+		}
+		nn := copy(b[n:], r.piece)
+		n += nn
+		if nn < len(r.piece) {
+			// piece didn't fit, see you next time.
+			r.piece = r.piece[nn:]
+			return n, nil
+		}
+		r.piece = nil
+	}
+}
+
+// next returns the next piece of data to be read.
+// it returns nil at EOF.
+func (r *encReader) next() []byte {
+	switch {
+	case r.buf == nil:
+		return nil
+
+	case r.piece != nil:
+		// There is still data available for reading.
+		return r.piece
+
+	case r.lhpos < len(r.buf.lheads):
+		// We're before the last list header.
+		head := r.buf.lheads[r.lhpos]
+		sizebefore := head.offset - r.strpos
+		if sizebefore > 0 {
+			// String data before header.
+			p := r.buf.str[r.strpos:head.offset]
+			r.strpos += sizebefore
+			return p
+		}
+		r.lhpos++
+		return head.encode(r.buf.sizebuf[:])
+
+	case r.strpos < len(r.buf.str):
+		// String data at the end, after all list headers.
+		p := r.buf.str[r.strpos:]
+		r.strpos = len(r.buf.str)
+		return p
+
+	default:
+		return nil
 	}
 }
 

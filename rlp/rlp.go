@@ -27,32 +27,38 @@ type RLP struct {
 // Decode decodes val into RLP and returns it.
 func Decode(val []byte, block uint64) (*RLP, error) {
 	var (
-		substateRLP RLP
+		substateRLP = new(RLP)
 		err         error
 	)
 
-	err = rlp.DecodeBytes(val, &substateRLP)
-	if err == nil {
-		return &substateRLP, nil
-	}
+	if IsLondonFork(block) {
+		err = rlp.DecodeBytes(val, substateRLP)
+		if err != nil {
+			return nil, err
+		}
 
-	var berlin berlinRLP
-	err = rlp.DecodeBytes(val, &berlin)
-	if err == nil {
+		return substateRLP, nil
+	} else if IsBerlinFork(block) {
+		var berlin berlinRLP
+		err = rlp.DecodeBytes(val, &berlin)
+		if err != nil {
+			return nil, err
+		}
+
 		return berlin.toLondon(), nil
-	}
+	} else {
+		var legacy legacyRLP
+		err = rlp.DecodeBytes(val, &legacy)
+		if err != nil {
+			return nil, err
+		}
 
-	var legacy legacyRLP
-	err = rlp.DecodeBytes(val, &legacy)
-	if err == nil {
-		return nil, err
+		return legacy.toLondon(), nil
 	}
-
-	return legacy.toLondon(), nil
 }
 
 // ToSubstate transforms every attribute of r from RLP to substate.Substate.
-func (r RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
+func (r *RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
 	msg, err := r.Message.ToSubstate(getHashFunc)
 	if err != nil {
 		return nil, err
