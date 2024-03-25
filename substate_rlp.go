@@ -89,7 +89,7 @@ func (alloc *SubstateAlloc) SetRLP(allocRLP SubstateAllocRLP, db *DB) {
 	}
 }
 
-type legacySubstateEnvRLP struct {
+type LegacySubstateEnvRLP struct {
 	Coinbase    common.Address
 	Difficulty  *big.Int
 	GasLimit    uint64
@@ -98,7 +98,7 @@ type legacySubstateEnvRLP struct {
 	BlockHashes [][2]common.Hash
 }
 
-func (envRLP *SubstateEnvRLP) setLegacyRLP(lenvRLP *legacySubstateEnvRLP) {
+func (envRLP *SubstateEnvRLP) setLegacyRLP(lenvRLP *LegacySubstateEnvRLP) {
 	envRLP.Coinbase = lenvRLP.Coinbase
 	envRLP.Difficulty = lenvRLP.Difficulty
 	envRLP.GasLimit = lenvRLP.GasLimit
@@ -167,7 +167,7 @@ func (env *SubstateEnv) SetRLP(envRLP *SubstateEnvRLP, db *DB) {
 	}
 }
 
-type legacySubstateMessageRLP struct {
+type LegacySubstateMessageRLP struct {
 	Nonce      uint64
 	CheckNonce bool
 	GasPrice   *big.Int
@@ -181,7 +181,7 @@ type legacySubstateMessageRLP struct {
 	InitCodeHash *common.Hash `rlp:"nil"` // NOT nil for contract creation
 }
 
-func (msgRLP *SubstateMessageRLP) setLegacyRLP(lmsgRLP *legacySubstateMessageRLP) {
+func (msgRLP *SubstateMessageRLP) setLegacyRLP(lmsgRLP *LegacySubstateMessageRLP) {
 	msgRLP.Nonce = lmsgRLP.Nonce
 	msgRLP.CheckNonce = lmsgRLP.CheckNonce
 	msgRLP.GasPrice = lmsgRLP.GasPrice
@@ -201,7 +201,7 @@ func (msgRLP *SubstateMessageRLP) setLegacyRLP(lmsgRLP *legacySubstateMessageRLP
 	msgRLP.GasTipCap = lmsgRLP.GasPrice
 }
 
-type berlinSubstateMessageRLP struct {
+type BerlinSubstateMessageRLP struct {
 	Nonce      uint64
 	CheckNonce bool
 	GasPrice   *big.Int
@@ -217,7 +217,7 @@ type berlinSubstateMessageRLP struct {
 	AccessList types.AccessList // missing in substate DB from Geth v1.9.x
 }
 
-func (msgRLP *SubstateMessageRLP) setBerlinRLP(bmsgRLP *berlinSubstateMessageRLP) {
+func (msgRLP *SubstateMessageRLP) setBerlinRLP(bmsgRLP *BerlinSubstateMessageRLP) {
 	msgRLP.Nonce = bmsgRLP.Nonce
 	msgRLP.CheckNonce = bmsgRLP.CheckNonce
 	msgRLP.GasPrice = bmsgRLP.GasPrice
@@ -338,15 +338,15 @@ func (result *SubstateResult) SetRLP(resultRLP *SubstateResultRLP, db *DB) {
 	result.GasUsed = resultRLP.GasUsed
 }
 
-type legacySubstateRLP struct {
+type LegacySubstateRLP struct {
 	InputAlloc  SubstateAllocRLP
 	OutputAlloc SubstateAllocRLP
-	Env         *legacySubstateEnvRLP
-	Message     *legacySubstateMessageRLP
+	Env         *LegacySubstateEnvRLP
+	Message     *LegacySubstateMessageRLP
 	Result      *SubstateResultRLP
 }
 
-func (substateRLP *SubstateRLP) setLegacyRLP(lsubstateRLP *legacySubstateRLP) {
+func (substateRLP *SubstateRLP) setLegacyRLP(lsubstateRLP *LegacySubstateRLP) {
 	substateRLP.InputAlloc = lsubstateRLP.InputAlloc
 	substateRLP.OutputAlloc = lsubstateRLP.OutputAlloc
 	substateRLP.Env = &SubstateEnvRLP{}
@@ -356,15 +356,15 @@ func (substateRLP *SubstateRLP) setLegacyRLP(lsubstateRLP *legacySubstateRLP) {
 	substateRLP.Result = lsubstateRLP.Result
 }
 
-type berlinSubstateRLP struct {
+type BerlinSubstateRLP struct {
 	InputAlloc  SubstateAllocRLP
 	OutputAlloc SubstateAllocRLP
-	Env         *legacySubstateEnvRLP
-	Message     *berlinSubstateMessageRLP
+	Env         *LegacySubstateEnvRLP
+	Message     *BerlinSubstateMessageRLP
 	Result      *SubstateResultRLP
 }
 
-func (substateRLP *SubstateRLP) setBerlinRLP(bsubstateRLP *berlinSubstateRLP) {
+func (substateRLP *SubstateRLP) setBerlinRLP(bsubstateRLP *BerlinSubstateRLP) {
 	substateRLP.InputAlloc = bsubstateRLP.InputAlloc
 	substateRLP.OutputAlloc = bsubstateRLP.OutputAlloc
 	substateRLP.Env = &SubstateEnvRLP{}

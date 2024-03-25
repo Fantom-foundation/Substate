@@ -11,13 +11,13 @@ import (
 // Result is the transaction result - hence receipt
 type Result struct {
 	Status          uint64
-	Bloom           []byte
+	Bloom           types.Bloom
 	Logs            []*types.Log
 	ContractAddress types.Address
 	GasUsed         uint64
 }
 
-func NewResult(status uint64, bloom []byte, logs []*types.Log, contractAddress types.Address, gasUsed uint64) *Result {
+func NewResult(status uint64, bloom types.Bloom, logs []*types.Log, contractAddress types.Address, gasUsed uint64) *Result {
 	return &Result{
 		Status:          status,
 		Bloom:           bloom,
@@ -39,7 +39,7 @@ func (r *Result) Equal(y *Result) bool {
 	}
 
 	equal := r.Status == y.Status &&
-		bytes.Equal(r.Bloom, y.Bloom) &&
+		bytes.Equal(r.Bloom[:], y.Bloom[:]) &&
 		len(r.Logs) == len(y.Logs) &&
 		r.ContractAddress == y.ContractAddress &&
 		r.GasUsed == y.GasUsed

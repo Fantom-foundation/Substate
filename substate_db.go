@@ -164,7 +164,7 @@ func (db *DB) GetSubstate(block uint64, tx int) *Substate {
 
 	if err != nil {
 		// try decoding as legacy substates between Berlin and London hard forks
-		berlinRLP := berlinSubstateRLP{}
+		berlinRLP := BerlinSubstateRLP{}
 		err = rlp.DecodeBytes(value, &berlinRLP)
 		if err == nil {
 			substateRLP.setBerlinRLP(&berlinRLP)
@@ -173,7 +173,7 @@ func (db *DB) GetSubstate(block uint64, tx int) *Substate {
 
 	if err != nil {
 		// try decoding as legacy substates before Berlin hard fork
-		legacyRLP := legacySubstateRLP{}
+		legacyRLP := LegacySubstateRLP{}
 		err = rlp.DecodeBytes(value, &legacyRLP)
 		if err != nil {
 			panic(fmt.Errorf("error decoding substateRLP %v_%v: %v", block, tx, err))
@@ -214,7 +214,7 @@ func (db *DB) GetBlockSubstates(block uint64) map[int]*Substate {
 
 		if err != nil {
 			// try decoding as legacy substates between Berlin and London hard forks
-			berlinRLP := berlinSubstateRLP{}
+			berlinRLP := BerlinSubstateRLP{}
 			err = rlp.DecodeBytes(value, &berlinRLP)
 			if err == nil {
 				substateRLP.setBerlinRLP(&berlinRLP)
@@ -223,7 +223,7 @@ func (db *DB) GetBlockSubstates(block uint64) map[int]*Substate {
 
 		if err != nil {
 			// try decoding as legacy substates before Berlin hard fork
-			legacyRLP := legacySubstateRLP{}
+			legacyRLP := LegacySubstateRLP{}
 			err = rlp.DecodeBytes(value, &legacyRLP)
 			if err != nil {
 				panic(fmt.Errorf("error decoding substateRLP %v_%v: %v", block, tx, err))
@@ -312,7 +312,7 @@ func parseTransaction(db *DB, data rawEntry) *Transaction {
 
 	if err != nil {
 		// try decoding as legacy substates between Berlin and London hard forks
-		berlinRLP := berlinSubstateRLP{}
+		berlinRLP := BerlinSubstateRLP{}
 		err = rlp.DecodeBytes(value, &berlinRLP)
 		if err == nil {
 			substateRLP.setBerlinRLP(&berlinRLP)
@@ -321,7 +321,7 @@ func parseTransaction(db *DB, data rawEntry) *Transaction {
 
 	if err != nil {
 		// try decoding as legacy substates before Berlin hard fork
-		legacyRLP := legacySubstateRLP{}
+		legacyRLP := LegacySubstateRLP{}
 		err = rlp.DecodeBytes(value, &legacyRLP)
 		if err != nil {
 			panic(fmt.Errorf("error decoding substateRLP %v_%v: %v", block, tx, err))
