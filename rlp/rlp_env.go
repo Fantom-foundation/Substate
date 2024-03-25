@@ -45,7 +45,8 @@ type Env struct {
 	Number      uint64
 	Timestamp   uint64
 	BlockHashes [][2]types.Hash
-	//BaseFee     *types.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
+
+	BaseFee *types.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
 }
 
 // ToSubstate transforms e from Env to substate.Env.

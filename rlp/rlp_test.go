@@ -18,7 +18,17 @@ var (
 	testHash2 = common.Hash{2}
 	testHash3 = common.Hash{3}
 	testBloom = gethTypes.Bloom{1}
-	testLog   = &gethTypes.Log{}
+	testLog   = &gethTypes.Log{
+		Address:     testAddr1,
+		Topics:      []common.Hash{testHash1, testHash2},
+		Data:        []byte{1},
+		BlockNumber: 10,
+		TxHash:      testHash3,
+		TxIndex:     20,
+		BlockHash:   testHash1,
+		Index:       30,
+		Removed:     false,
+	}
 )
 
 func Test_DecodeFromOldLegacy(t *testing.T) {
