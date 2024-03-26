@@ -71,6 +71,8 @@ func (i *substateIterator) start(numWorkers int) {
 			res := rawEntry{key, value}
 
 			select {
+			case <-i.stopCh:
+				return
 			case e := <-errCh:
 				i.err = e
 				return
@@ -90,13 +92,22 @@ func (i *substateIterator) start(numWorkers int) {
 				close(resultChs[id])
 				i.wg.Done()
 			}()
-			for raw := range rawDataChs[id] {
-				transaction, err := i.decode(raw)
-				if err != nil {
-					errCh <- err
+			for {
+				select {
+				case <-i.stopCh:
 					return
+				case raw, ok := <-rawDataChs[id]:
+					if !ok {
+						return
+					}
+					transaction, err := i.decode(raw)
+					if err != nil {
+						errCh <- err
+						return
+					}
+					resultChs[id] <- transaction
 				}
-				resultChs[id] <- transaction
+
 			}
 		}()
 	}
@@ -110,9 +121,16 @@ func (i *substateIterator) start(numWorkers int) {
 		}()
 		step := 0
 		for openProducers := numWorkers; openProducers > 0; {
-			next := <-resultChs[step%numWorkers]
+			next, ok := <-resultChs[step%numWorkers]
+			if !ok {
+				return
+			}
 			if next != nil {
-				i.resultCh <- next
+				select {
+				case <-i.stopCh:
+					return
+				case i.resultCh <- next:
+				}
 			} else {
 				openProducers--
 			}
