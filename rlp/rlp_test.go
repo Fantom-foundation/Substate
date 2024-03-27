@@ -5,9 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	substate "github.com/Fantom-foundation/Substate"
 	"github.com/Fantom-foundation/Substate/geth/rlp"
-	"github.com/ethereum/go-ethereum/common"
 	gethTypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -108,7 +109,7 @@ func Test_DecodeFromOldLegacy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := Decode(b, 1)
+	res, err := Decode(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +198,7 @@ func Test_DecodeFromOldBerlin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := Decode(b, berlinBlock)
+	res, err := Decode(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +289,7 @@ func Test_DecodeFromOldLondon(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := Decode(b, londonBlock)
+	res, err := Decode(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -308,29 +309,13 @@ func Test_DecodeLondon(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := Decode(b, londonBlock)
+	res, err := Decode(b)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if !bytes.Equal(res.Message.Data, []byte{1}) {
 		t.Fatal("incorrect data")
-	}
-}
-
-func Test_DecodeLondon_IncorrectDecoder(t *testing.T) {
-	london := RLP{
-		Message: &Message{Data: []byte{1}, Value: big.NewInt(1), GasPrice: big.NewInt(1)},
-		Env:     &Env{},
-		Result:  &Result{}}
-	b, err := rlp.EncodeToBytes(london)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = Decode(b, berlinBlock)
-	if err == nil {
-		t.Fatal(err)
 	}
 }
 
@@ -344,29 +329,13 @@ func Test_DecodeBerlin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := Decode(b, berlinBlock)
+	res, err := Decode(b)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if !bytes.Equal(res.Message.Data, []byte{1}) {
 		t.Fatal("incorrect data")
-	}
-}
-
-func Test_DecodeBerlin_IncorrectDecoder(t *testing.T) {
-	berlin := berlinRLP{
-		Message: &berlinMessage{Data: []byte{1}, Value: big.NewInt(1), GasPrice: big.NewInt(1)},
-		Env:     &legacyEnv{},
-		Result:  &Result{}}
-	b, err := rlp.EncodeToBytes(berlin)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = Decode(b, londonBlock)
-	if err == nil {
-		t.Fatal(err)
 	}
 }
 
@@ -380,28 +349,12 @@ func Test_DecodeLegacy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := Decode(b, berlinBlock-1)
+	res, err := Decode(b)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if !bytes.Equal(res.Message.Data, []byte{1}) {
 		t.Fatal("incorrect data")
-	}
-}
-
-func Test_DecodeLegacy_IncorrectDecoder(t *testing.T) {
-	legacy := legacySubstateRLP{
-		Message: &legacyMessage{Data: []byte{1}, Value: big.NewInt(1), GasPrice: big.NewInt(1)},
-		Env:     &legacyEnv{},
-		Result:  &Result{}}
-	b, err := rlp.EncodeToBytes(legacy)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = Decode(b, londonBlock)
-	if err == nil {
-		t.Fatal(err)
 	}
 }

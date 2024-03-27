@@ -25,36 +25,30 @@ type RLP struct {
 }
 
 // Decode decodes val into RLP and returns it.
-func Decode(val []byte, block uint64) (*RLP, error) {
+func Decode(val []byte) (*RLP, error) {
 	var (
 		substateRLP = new(RLP)
 		err         error
 	)
 
-	if IsLondonFork(block) {
-		err = rlp.DecodeBytes(val, substateRLP)
-		if err != nil {
-			return nil, err
-		}
-
+	err = rlp.DecodeBytes(val, substateRLP)
+	if err == nil {
 		return substateRLP, nil
-	} else if IsBerlinFork(block) {
-		var berlin berlinRLP
-		err = rlp.DecodeBytes(val, &berlin)
-		if err != nil {
-			return nil, err
-		}
-
-		return berlin.toLondon(), nil
-	} else {
-		var legacy legacySubstateRLP
-		err = rlp.DecodeBytes(val, &legacy)
-		if err != nil {
-			return nil, err
-		}
-
-		return legacy.toLondon(), nil
 	}
+
+	var berlin berlinRLP
+	err = rlp.DecodeBytes(val, &berlin)
+	if err == nil {
+		return berlin.toLondon(), nil
+	}
+
+	var legacy legacySubstateRLP
+	err = rlp.DecodeBytes(val, &legacy)
+	if err != nil {
+		return nil, err
+	}
+
+	return legacy.toLondon(), nil
 }
 
 // ToSubstate transforms every attribute of r from RLP to substate.Substate.
