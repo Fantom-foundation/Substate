@@ -12,8 +12,8 @@ import (
 )
 
 var testSubstate = &substate.Substate{
-	PreState:  substate.NewWorldState(),
-	PostState: substate.NewWorldState(),
+	InputSubstate:  substate.NewWorldState(),
+	OutputSubstate: substate.NewWorldState(),
 	Env: &substate.Env{
 		Coinbase:    types.Address{1},
 		Difficulty:  new(big.Int).SetUint64(1),
@@ -25,7 +25,7 @@ var testSubstate = &substate.Substate{
 	},
 	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, types.Address{1}, new(types.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
 	Result:      substate.NewResult(1, []byte{}, []*types.Log{}, types.Address{1}, 1),
-	Block:       37_534_834,
+	Block:       37_134_834,
 	Transaction: 1,
 }
 
@@ -55,7 +55,7 @@ func TestSubstateDB_HasSubstate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	has, err := db.HasSubstate(37_534_834, 1)
+	has, err := db.HasSubstate(37_134_834, 1)
 	if err != nil {
 		t.Fatalf("has substate returned error; %v", err)
 	}
@@ -72,7 +72,7 @@ func TestSubstateDB_GetSubstate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ss, err := db.GetSubstate(37_534_834, 1)
+	ss, err := db.GetSubstate(37_134_834, 1)
 	if err != nil {
 		t.Fatalf("get substate returned error; %v", err)
 	}
@@ -94,12 +94,12 @@ func TestSubstateDB_DeleteSubstate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = db.DeleteSubstate(37_534_834, 1)
+	err = db.DeleteSubstate(37_134_834, 1)
 	if err != nil {
 		t.Fatalf("delete substate returned error; %v", err)
 	}
 
-	ss, err := db.GetSubstate(37_534_834, 1)
+	ss, err := db.GetSubstate(37_134_834, 1)
 	if err != nil {
 		t.Fatalf("get substate returned error; %v", err)
 	}
@@ -121,8 +121,8 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 	h2 := types.Hash{}
 	h2.SetBytes(nil)
 
-	testSubstate.PreState[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
-	testSubstate.PostState[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
+	testSubstate.InputSubstate[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
+	testSubstate.OutputSubstate[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
 	testSubstate.Env.BlockHashes[1] = types.BytesToHash([]byte{1})
 
 	err = db.PutSubstate(testSubstate)

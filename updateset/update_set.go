@@ -23,7 +23,7 @@ type UpdateSet struct {
 func (s UpdateSet) ToWorldStateRLP() rlp.WorldState {
 	a := rlp.WorldState{
 		Addresses: []types.Address{},
-		Accounts:  []*rlp.Account{},
+		Accounts:  []*rlp.SubstateAccountRLP{},
 	}
 
 	for addr, acc := range s.WorldState {

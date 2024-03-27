@@ -39,7 +39,7 @@ func (r *Result) Equal(y *Result) bool {
 	}
 
 	equal := r.Status == y.Status &&
-		bytes.Equal(r.Bloom, y.Bloom) &&
+		bytes.Equal(r.Bloom[:], y.Bloom[:]) &&
 		len(r.Logs) == len(y.Logs) &&
 		r.ContractAddress == y.ContractAddress &&
 		r.GasUsed == y.GasUsed

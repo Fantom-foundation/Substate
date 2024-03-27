@@ -8,32 +8,32 @@ import (
 
 func NewRLP(substate *substate.Substate) *RLP {
 	return &RLP{
-		PreState:  NewWorldState(substate.PreState),
-		PostState: NewWorldState(substate.PostState),
-		Env:       NewEnv(substate.Env),
-		Message:   NewMessage(substate.Message),
-		Result:    NewResult(substate.Result),
+		InputSubstate:  NewWorldState(substate.InputSubstate),
+		OutputSubstate: NewWorldState(substate.OutputSubstate),
+		Env:            NewEnv(substate.Env),
+		Message:        NewMessage(substate.Message),
+		Result:         NewResult(substate.Result),
 	}
 }
 
 type RLP struct {
-	PreState  WorldState
-	PostState WorldState
-	Env       *Env
-	Message   *Message
-	Result    *Result
+	InputSubstate  WorldState
+	OutputSubstate WorldState
+	Env            *Env
+	Message        *Message
+	Result         *Result
 }
 
 // Decode decodes val into RLP and returns it.
-func Decode(val []byte, block uint64) (*RLP, error) {
+func Decode(val []byte) (*RLP, error) {
 	var (
-		substateRLP RLP
+		substateRLP = new(RLP)
 		err         error
 	)
-	// todo decode does not work
-	err = rlp.DecodeBytes(val, &substateRLP)
+
+	err = rlp.DecodeBytes(val, substateRLP)
 	if err == nil {
-		return &substateRLP, nil
+		return substateRLP, nil
 	}
 
 	var berlin berlinRLP
@@ -42,7 +42,7 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 		return berlin.toLondon(), nil
 	}
 
-	var legacy legacyRLP
+	var legacy legacySubstateRLP
 	err = rlp.DecodeBytes(val, &legacy)
 	if err != nil {
 		return nil, err
@@ -52,19 +52,19 @@ func Decode(val []byte, block uint64) (*RLP, error) {
 }
 
 // ToSubstate transforms every attribute of r from RLP to substate.Substate.
-func (r RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
+func (r *RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
 	msg, err := r.Message.ToSubstate(getHashFunc)
 	if err != nil {
 		return nil, err
 	}
 
 	return &substate.Substate{
-		PreState:    r.PreState.ToSubstate(),
-		PostState:   r.PostState.ToSubstate(),
-		Env:         r.Env.ToSubstate(),
-		Message:     msg,
-		Result:      r.Result.ToSubstate(),
-		Block:       block,
-		Transaction: tx,
+		InputSubstate:  r.InputSubstate.ToSubstate(),
+		OutputSubstate: r.OutputSubstate.ToSubstate(),
+		Env:            r.Env.ToSubstate(),
+		Message:        msg,
+		Result:         r.Result.ToSubstate(),
+		Block:          block,
+		Transaction:    tx,
 	}, nil
 }

@@ -8,7 +8,7 @@ import (
 func NewWorldState(worldState substate.WorldState) WorldState {
 	ws := WorldState{
 		Addresses: []types.Address{},
-		Accounts:  []*Account{},
+		Accounts:  []*SubstateAccountRLP{},
 	}
 
 	for addr, acc := range worldState {
@@ -21,7 +21,7 @@ func NewWorldState(worldState substate.WorldState) WorldState {
 
 type WorldState struct {
 	Addresses []types.Address
-	Accounts  []*Account
+	Accounts  []*SubstateAccountRLP
 }
 
 // ToSubstate transforms a from WorldState to substate.WorldState.
@@ -30,8 +30,8 @@ func (ws WorldState) ToSubstate() substate.WorldState {
 
 	// iterate through addresses and assign it correctly to substate.WorldState
 	// positions in WorldState match map assignment in substate.WorldState
-	// that means that Address at first position matches Account at first position,
-	// Address at second position matches Account at second position, and so on
+	// that means that Address at first position matches SubstateAccountRLP at first position,
+	// Address at second position matches SubstateAccountRLP at second position, and so on
 	for i, addr := range ws.Addresses {
 		acc := ws.Accounts[i]
 		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash[:])
