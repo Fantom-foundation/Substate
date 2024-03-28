@@ -1,7 +1,8 @@
-package substate
+package db
 
 import (
 	"fmt"
+	"github.com/Fantom-foundation/Substate/substate"
 	"runtime"
 	"sort"
 	"sync"
@@ -31,8 +32,8 @@ var (
 	}
 )
 
-type SubstateBlockFunc func(block uint64, transactions map[int]*Substate, taskPool *SubstateTaskPool) error
-type SubstateTaskFunc func(block uint64, tx int, substate *Substate, taskPool *SubstateTaskPool) error
+type SubstateBlockFunc func(block uint64, transactions map[int]*substate.Substate, taskPool *SubstateTaskPool) error
+type SubstateTaskFunc func(block uint64, tx int, substate *substate.Substate, taskPool *SubstateTaskPool) error
 
 type SubstateTaskPool struct {
 	Name      string
@@ -49,10 +50,10 @@ type SubstateTaskPool struct {
 
 	Ctx *cli.Context // CLI context required to read additional flags
 
-	DB *DB
+	DB SubstateDB
 }
 
-func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context) *SubstateTaskPool {
+func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context, database SubstateDB) *SubstateTaskPool {
 	return &SubstateTaskPool{
 		Name:     name,
 		TaskFunc: taskFunc,
@@ -67,13 +68,17 @@ func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uin
 
 		Ctx: ctx,
 
-		DB: staticSubstateDB,
+		DB: database,
 	}
 }
 
 // ExecuteBlock function iterates on substates of a given block call TaskFunc
 func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64, err error) {
-	transactions := pool.DB.GetBlockSubstates(block)
+	transactions, err := pool.DB.GetBlockSubstates(block)
+	if err != nil {
+		return numTx, gas, err
+	}
+
 	if pool.BlockFunc != nil {
 		err := pool.BlockFunc(block, transactions, pool)
 		if err != nil {
@@ -95,7 +100,7 @@ func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64
 
 	for _, tx := range txNumbers {
 		substate := transactions[tx]
-		alloc := substate.InputAlloc
+		alloc := substate.InputSubstate
 		msg := substate.Message
 
 		to := msg.To
@@ -262,7 +267,7 @@ func (pool *SubstateTaskPool) Execute() error {
 			return err
 
 		default:
-			panic(fmt.Errorf("%s: unknown type %T value from doneChan", pool.Name, t))
+			return fmt.Errorf("%s: unknown type %T value from doneChan", pool.Name, t)
 
 		}
 	}

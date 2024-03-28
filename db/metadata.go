@@ -1,4 +1,4 @@
-package substate
+package db
 
 import (
 	"encoding/binary"
@@ -12,19 +12,19 @@ const (
 )
 
 // PutMetadata into db
-func (db *UpdateDB) PutMetadata(interval, size uint64) error {
+func (db *updateDB) PutMetadata(interval, size uint64) error {
 
 	byteInterval := make([]byte, 8)
 	binary.BigEndian.PutUint64(byteInterval, interval)
 
-	if err := db.backend.Put([]byte(UpdatesetIntervalKey), byteInterval); err != nil {
+	if err := db.backend.Put([]byte(UpdatesetIntervalKey), byteInterval, db.wo); err != nil {
 		return err
 	}
 
 	sizeInterval := make([]byte, 8)
 	binary.BigEndian.PutUint64(sizeInterval, size)
 
-	if err := db.backend.Put([]byte(UpdatesetSizeKey), sizeInterval); err != nil {
+	if err := db.backend.Put([]byte(UpdatesetSizeKey), sizeInterval, db.wo); err != nil {
 		return err
 	}
 
@@ -32,13 +32,13 @@ func (db *UpdateDB) PutMetadata(interval, size uint64) error {
 }
 
 // GetMetadata from db
-func (db *UpdateDB) GetMetadata() (uint64, uint64, error) {
-	byteInterval, err := db.backend.Get([]byte(UpdatesetIntervalKey))
+func (db *updateDB) GetMetadata() (uint64, uint64, error) {
+	byteInterval, err := db.backend.Get([]byte(UpdatesetIntervalKey), db.ro)
 	if err != nil {
 		return 0, 0, err
 	}
 
-	byteSize, err := db.backend.Get([]byte(UpdatesetSizeKey))
+	byteSize, err := db.backend.Get([]byte(UpdatesetSizeKey), db.ro)
 	if err != nil {
 		return 0, 0, err
 	}

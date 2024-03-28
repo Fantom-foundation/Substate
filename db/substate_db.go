@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/syndtr/goleveldb/leveldb/util"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
@@ -23,6 +24,9 @@ type SubstateDB interface {
 
 	// GetSubstate gets the Substate for given block and tx number.
 	GetSubstate(block uint64, tx int) (*substate.Substate, error)
+
+	// GetBlockSubstates returns all existing substates for given block.
+	GetBlockSubstates(block uint64) (map[int]*substate.Substate, error)
 
 	// PutSubstate inserts given substate to DB.
 	PutSubstate(substate *substate.Substate) error
@@ -86,6 +90,49 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 	}
 
 	return rlpSubstate.ToSubstate(db.GetCode, block, tx)
+}
+
+// GetBlockSubstates returns substates for given block if exists within DB.
+func (db *substateDB) GetBlockSubstates(block uint64) (map[int]*substate.Substate, error) {
+	var err error
+
+	txSubstate := make(map[int]*substate.Substate)
+
+	prefix := SubstateDBBlockPrefix(block)
+
+	iter := db.backend.NewIterator(util.BytesPrefix(prefix), nil)
+	for iter.Next() {
+		key := iter.Key()
+		value := iter.Value()
+
+		b, tx, err := DecodeSubstateDBKey(key)
+		if err != nil {
+			return nil, fmt.Errorf("record-replay: invalid substate key found for block %v: %v", block, err)
+		}
+
+		if block != b {
+			return nil, fmt.Errorf("record-replay: GetBlockSubstates(%v) iterated substates from block %v", block, b)
+		}
+
+		rlpSubstate, err := rlp.Decode(value)
+		if err != nil {
+			return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %v", block, tx, err)
+		}
+
+		sbstt, err := rlpSubstate.ToSubstate(db.GetCode, block, tx)
+		if err != nil {
+			return nil, fmt.Errorf("cannot decode data into substate: %v", err)
+		}
+
+		txSubstate[tx] = sbstt
+	}
+	iter.Release()
+	err = iter.Error()
+	if err != nil {
+		return nil, err
+	}
+
+	return txSubstate, nil
 }
 
 func (db *substateDB) PutSubstate(ss *substate.Substate) error {

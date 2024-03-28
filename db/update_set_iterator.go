@@ -36,7 +36,7 @@ func (i *updateSetIterator) decode(data rawEntry) (*updateset.UpdateSet, error) 
 
 	block, err := DecodeUpdateSetKey(data.key)
 	if err != nil {
-		panic(fmt.Errorf("substate: invalid update-set key found: %v - issue: %v", key, err))
+		return nil, fmt.Errorf("substate: invalid update-set key found: %v - issue: %v", key, err)
 	}
 
 	var updateSetRLP updateset.UpdateSetRLP
