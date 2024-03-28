@@ -1,34 +1,35 @@
-package substate
+package db
 
 import (
 	"encoding/binary"
 	"fmt"
 	"log"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/syndtr/goleveldb/leveldb/opt"
+
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/rlp"
 )
 
 type DestroyedAccountDB struct {
-	backend BackendDatabase
+	backend BaseDB
 }
 
-func NewDestroyedAccountDB(backend BackendDatabase) *DestroyedAccountDB {
+func NewDestroyedAccountDB(backend BaseDB) *DestroyedAccountDB {
 	return &DestroyedAccountDB{backend: backend}
 }
 
 func OpenDestroyedAccountDB(destroyedAccountDir string) (*DestroyedAccountDB, error) {
-	return openDestroyedAccountDB(destroyedAccountDir, false)
+	return openDestroyedAccountDB(destroyedAccountDir, &opt.Options{ReadOnly: false}, nil, nil)
 }
 
 func OpenDestroyedAccountDBReadOnly(destroyedAccountDir string) (*DestroyedAccountDB, error) {
-	return openDestroyedAccountDB(destroyedAccountDir, true)
+	return openDestroyedAccountDB(destroyedAccountDir, &opt.Options{ReadOnly: true}, nil, nil)
 }
 
-func openDestroyedAccountDB(destroyedAccountDir string, readOnly bool) (*DestroyedAccountDB, error) {
+func openDestroyedAccountDB(destroyedAccountDir string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*DestroyedAccountDB, error) {
 	log.Println("substate: OpenDestroyedAccountDB")
-	backend, err := rawdb.NewLevelDBDatabase(destroyedAccountDir, 1024, 100, "destroyed_accounts", readOnly)
+	backend, err := newBaseDB(destroyedAccountDir, o, wo, ro)
 	if err != nil {
 		return nil, fmt.Errorf("error opening deletion-db %s: %v", destroyedAccountDir, err)
 	}
@@ -40,11 +41,11 @@ func (db *DestroyedAccountDB) Close() error {
 }
 
 type SuicidedAccountLists struct {
-	DestroyedAccounts   []common.Address
-	ResurrectedAccounts []common.Address
+	DestroyedAccounts   []types.Address
+	ResurrectedAccounts []types.Address
 }
 
-func (db *DestroyedAccountDB) SetDestroyedAccounts(block uint64, tx int, des []common.Address, res []common.Address) error {
+func (db *DestroyedAccountDB) SetDestroyedAccounts(block uint64, tx int, des []types.Address, res []types.Address) error {
 	accountList := SuicidedAccountLists{DestroyedAccounts: des, ResurrectedAccounts: res}
 	value, err := rlp.EncodeToBytes(accountList)
 	if err != nil {
@@ -53,7 +54,7 @@ func (db *DestroyedAccountDB) SetDestroyedAccounts(block uint64, tx int, des []c
 	return db.backend.Put(encodeDestroyedAccountKey(block, tx), value)
 }
 
-func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]common.Address, []common.Address, error) {
+func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]types.Address, []types.Address, error) {
 	data, err := db.backend.Get(encodeDestroyedAccountKey(block, tx))
 	if err != nil {
 		return nil, nil, err
@@ -63,13 +64,13 @@ func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]comm
 }
 
 // GetAccountsDestroyedInRange get list of all accounts between block from and to (including from and to).
-func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]common.Address, error) {
+func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]types.Address, error) {
 	startingBlockBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(startingBlockBytes, from)
 
 	iter := db.backend.NewIterator([]byte(DestroyedAccountPrefix), startingBlockBytes)
 	defer iter.Release()
-	isDestroyed := make(map[common.Address]bool)
+	isDestroyed := make(map[types.Address]bool)
 	for iter.Next() {
 		block, _, err := DecodeDestroyedAccountKey(iter.Key())
 		if err != nil {
@@ -90,7 +91,7 @@ func (db *DestroyedAccountDB) GetAccountsDestroyedInRange(from, to uint64) ([]co
 		}
 	}
 
-	var accountList []common.Address
+	var accountList []types.Address
 	for addr, isDeleted := range isDestroyed {
 		if isDeleted {
 			accountList = append(accountList, addr)
