@@ -25,7 +25,7 @@ var testSubstate = &substate.Substate{
 	},
 	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, types.Address{1}, new(types.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
 	Result:      substate.NewResult(1, []byte{}, []*types.Log{}, types.Address{1}, 1),
-	Block:       37_134_834,
+	Block:       37_534_834,
 	Transaction: 1,
 }
 
@@ -55,7 +55,7 @@ func TestSubstateDB_HasSubstate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	has, err := db.HasSubstate(37_134_834, 1)
+	has, err := db.HasSubstate(37_534_834, 1)
 	if err != nil {
 		t.Fatalf("has substate returned error; %v", err)
 	}
@@ -72,7 +72,7 @@ func TestSubstateDB_GetSubstate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ss, err := db.GetSubstate(37_134_834, 1)
+	ss, err := db.GetSubstate(37_534_834, 1)
 	if err != nil {
 		t.Fatalf("get substate returned error; %v", err)
 	}
@@ -94,12 +94,12 @@ func TestSubstateDB_DeleteSubstate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = db.DeleteSubstate(37_134_834, 1)
+	err = db.DeleteSubstate(37_534_834, 1)
 	if err != nil {
 		t.Fatalf("delete substate returned error; %v", err)
 	}
 
-	ss, err := db.GetSubstate(37_134_834, 1)
+	ss, err := db.GetSubstate(37_534_834, 1)
 	if err != nil {
 		t.Fatalf("get substate returned error; %v", err)
 	}

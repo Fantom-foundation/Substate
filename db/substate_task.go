@@ -74,7 +74,11 @@ func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uin
 
 // ExecuteBlock function iterates on substates of a given block call TaskFunc
 func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64, err error) {
-	transactions := pool.DB.GetBlockSubstates(block)
+	transactions, err := pool.DB.GetBlockSubstates(block)
+	if err != nil {
+		return numTx, gas, err
+	}
+
 	if pool.BlockFunc != nil {
 		err := pool.BlockFunc(block, transactions, pool)
 		if err != nil {
@@ -263,7 +267,7 @@ func (pool *SubstateTaskPool) Execute() error {
 			return err
 
 		default:
-			panic(fmt.Errorf("%s: unknown type %T value from doneChan", pool.Name, t))
+			return fmt.Errorf("%s: unknown type %T value from doneChan", pool.Name, t)
 
 		}
 	}

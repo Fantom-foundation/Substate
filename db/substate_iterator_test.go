@@ -41,8 +41,8 @@ func TestSubstateIterator_Value(t *testing.T) {
 		t.Fatal("iterator returned nil")
 	}
 
-	if tx.Block != 37_134_834 {
-		t.Fatalf("iterator returned transaction with different block number\ngot: %v\n want: %v", tx.Block, 37_134_834)
+	if tx.Block != 37_534_834 {
+		t.Fatalf("iterator returned transaction with different block number\ngot: %v\n want: %v", tx.Block, 37_534_834)
 	}
 
 	if tx.Transaction != 1 {

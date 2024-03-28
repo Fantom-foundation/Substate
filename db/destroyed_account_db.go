@@ -49,7 +49,7 @@ func (db *DestroyedAccountDB) SetDestroyedAccounts(block uint64, tx int, des []t
 	accountList := SuicidedAccountLists{DestroyedAccounts: des, ResurrectedAccounts: res}
 	value, err := rlp.EncodeToBytes(accountList)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	return db.backend.Put(encodeDestroyedAccountKey(block, tx), value)
 }
