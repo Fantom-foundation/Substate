@@ -1,6 +1,8 @@
 package rlp
 
 import (
+	"fmt"
+
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
 )
@@ -25,7 +27,7 @@ type WorldState struct {
 }
 
 // ToSubstate transforms a from WorldState to substate.WorldState.
-func (ws WorldState) ToSubstate() substate.WorldState {
+func (ws WorldState) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error)) (substate.WorldState, error) {
 	sws := make(substate.WorldState)
 
 	// iterate through addresses and assign it correctly to substate.WorldState
@@ -34,11 +36,15 @@ func (ws WorldState) ToSubstate() substate.WorldState {
 	// Address at second position matches SubstateAccountRLP at second position, and so on
 	for i, addr := range ws.Addresses {
 		acc := ws.Accounts[i]
-		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash[:])
+		accCodeHash, err := getHashFunc(acc.CodeHash)
+		if err != nil {
+			return nil, fmt.Errorf("cannot get code hash; base code hash %s acc %s; %w", acc.CodeHash, addr, err)
+		}
+		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, accCodeHash)
 		for pos := range acc.Storage {
 			sws[addr].Storage[acc.Storage[pos][0]] = acc.Storage[pos][1]
 		}
 	}
 
-	return sws
+	return sws, nil
 }

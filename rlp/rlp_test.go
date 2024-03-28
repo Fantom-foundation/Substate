@@ -5,8 +5,11 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/Fantom-foundation/Substate/types"
 	"github.com/Fantom-foundation/Substate/types/rlp"
 )
+
+var addr1 = types.Address{0x01}
 
 func Test_DecodeLondon(t *testing.T) {
 	london := RLP{
@@ -66,4 +69,38 @@ func Test_DecodeLegacy(t *testing.T) {
 	if !bytes.Equal(res.Message.Data, []byte{1}) {
 		t.Fatal("incorrect data")
 	}
+}
+
+func Test_ToSubstateLooksAccountsCodeHashInDatabase(t *testing.T) {
+	baseHash := types.Hash{1}
+	r := RLP{
+		InputSubstate: WorldState{},
+		OutputSubstate: WorldState{
+			Addresses: []types.Address{addr1},
+			Accounts: []*SubstateAccountRLP{{
+				Balance:  big.NewInt(10),
+				CodeHash: baseHash,
+			}},
+		},
+		Env: &Env{
+			BaseFee: new(types.Hash),
+		},
+		Message: &Message{
+			To: new(types.Address),
+		},
+		Result: &Result{},
+	}
+
+	wantedCode := []byte{2}
+
+	ss, err := r.ToSubstate(func(_ types.Hash) ([]byte, error) {
+		return wantedCode, nil
+	}, 1, 1)
+	if err != nil {
+		t.Fatalf("cannot convert rlp to substate; %v", err)
+	}
+	if !bytes.Equal(ss.OutputSubstate[addr1].Code, wantedCode) {
+		t.Fatalf("unexpected code was generated\ngot: %s\nwant: %s", string(ss.OutputSubstate[addr1].Code), string(wantedCode))
+	}
+
 }
