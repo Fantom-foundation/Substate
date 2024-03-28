@@ -29,11 +29,11 @@ func NewEnv(env *substate.Env) *Env {
 		e.BlockHashes = append(e.BlockHashes, pair)
 	}
 
-	//e.BaseFee = nil
-	//if env.BaseFee != nil {
-	//	baseFeeHash := types.BigToHash(env.BaseFee)
-	//	e.BaseFee = &baseFeeHash
-	//}
+	e.BaseFee = nil
+	if env.BaseFee != nil {
+		baseFeeHash := types.BigToHash(env.BaseFee)
+		e.BaseFee = &baseFeeHash
+	}
 
 	return e
 }
@@ -58,7 +58,7 @@ func (e Env) ToSubstate() *substate.Env {
 		Number:      e.Number,
 		Timestamp:   e.Timestamp,
 		BlockHashes: make(map[uint64]types.Hash),
-		//BaseFee:     new(big.Int).SetBytes(e.BaseFee[:]),
+		BaseFee:     new(big.Int).SetBytes(e.BaseFee[:]),
 	}
 
 	// iterate through BlockHashes
