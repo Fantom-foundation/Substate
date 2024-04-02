@@ -80,10 +80,9 @@ func TestUpdateDB_GetUpdateSet(t *testing.T) {
 		t.Fatal("update-set is nil")
 	}
 
-	// todo code does weird stuff
-	//if err = ss.Equal(testSubstate); err != nil {
-	//	t.Fatalf("substates are different; %v", err)
-	//}
+	if !us.Equal(testUpdateSet) {
+		t.Fatal("substates are different")
+	}
 }
 
 func TestUpdateDB_DeleteUpdateSet(t *testing.T) {

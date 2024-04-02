@@ -56,7 +56,7 @@ type Message struct {
 func (m Message) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error)) (*substate.Message, error) {
 	sm := &substate.Message{
 		Nonce:      m.Nonce,
-		CheckNonce: !m.CheckNonce, //TODO: find out if this is correct
+		CheckNonce: m.CheckNonce,
 		GasPrice:   m.GasPrice,
 		Gas:        m.Gas,
 		From:       m.From,

@@ -81,10 +81,9 @@ func TestSubstateDB_GetSubstate(t *testing.T) {
 		t.Fatal("substate is nil")
 	}
 
-	// todo code does weird stuff
-	//if err = ss.Equal(testSubstate); err != nil {
-	//	t.Fatalf("substates are different; %v", err)
-	//}
+	if err = ss.Equal(testSubstate); err != nil {
+		t.Fatalf("substates are different; %v", err)
+	}
 }
 
 func TestSubstateDB_DeleteSubstate(t *testing.T) {
@@ -121,6 +120,8 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 	h2 := types.Hash{}
 	h2.SetBytes(nil)
 
+	tt := &testSubstate
+	_ = tt
 	testSubstate.InputSubstate[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
 	testSubstate.OutputSubstate[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
 	testSubstate.Env.BlockHashes[1] = types.BytesToHash([]byte{1})
