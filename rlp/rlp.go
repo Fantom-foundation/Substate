@@ -31,6 +31,8 @@ func Decode(val []byte) (*RLP, error) {
 		err         error
 	)
 
+	// blk 1489 tx 0
+
 	err = rlp.DecodeBytes(val, substateRLP)
 	if err == nil {
 		return substateRLP, nil
