@@ -9,7 +9,10 @@ import (
 	"github.com/Fantom-foundation/Substate/types/rlp"
 )
 
-var addr1 = types.Address{0x01}
+var (
+	addr1 = types.Address{0x01}
+	hash1 = types.Hash{0x01}
+)
 
 func Test_DecodeLondon(t *testing.T) {
 	london := RLP{
@@ -103,4 +106,23 @@ func Test_ToSubstateLooksAccountsCodeHashInDatabase(t *testing.T) {
 		t.Fatalf("unexpected code was generated\ngot: %s\nwant: %s", string(ss.OutputSubstate[addr1].Code), string(wantedCode))
 	}
 
+}
+
+func Test_Message_ToSubstate_CorrectlyAssignsDataIfContractCreation(t *testing.T) {
+	r := Message{
+		InitCodeHash: &hash1,
+	}
+	wantedData := []byte{2}
+	getHash := func(codeHash types.Hash) ([]byte, error) {
+		return wantedData, nil
+	}
+
+	m, err := r.ToSubstate(getHash)
+	if err != nil {
+		t.Fatalf("cannot convert rlp to substate; %v", err)
+	}
+
+	if !bytes.Equal(wantedData, m.Data) {
+		t.Fatalf("unexpected data\ngot: %v\n want: %v", wantedData, m.Data)
+	}
 }
