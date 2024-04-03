@@ -58,9 +58,17 @@ func (r *RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), 
 		return nil, err
 	}
 
+	input, err := r.InputSubstate.ToSubstate(getHashFunc)
+	if err != nil {
+		return nil, err
+	}
+	output, err := r.OutputSubstate.ToSubstate(getHashFunc)
+	if err != nil {
+		return nil, err
+	}
 	return &substate.Substate{
-		InputSubstate:  r.InputSubstate.ToSubstate(),
-		OutputSubstate: r.OutputSubstate.ToSubstate(),
+		InputSubstate:  input,
+		OutputSubstate: output,
 		Env:            r.Env.ToSubstate(),
 		Message:        msg,
 		Result:         r.Result.ToSubstate(),

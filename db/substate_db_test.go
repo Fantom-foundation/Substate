@@ -81,10 +81,9 @@ func TestSubstateDB_GetSubstate(t *testing.T) {
 		t.Fatal("substate is nil")
 	}
 
-	// todo code does weird stuff
-	//if err = ss.Equal(testSubstate); err != nil {
-	//	t.Fatalf("substates are different; %v", err)
-	//}
+	if err = ss.Equal(testSubstate); err != nil {
+		t.Fatalf("substates are different; %v", err)
+	}
 }
 
 func TestSubstateDB_DeleteSubstate(t *testing.T) {

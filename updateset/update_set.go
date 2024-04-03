@@ -73,3 +73,23 @@ func (up UpdateSetRLP) ToWorldState(getCodeFunc func(codeHash types.Hash) ([]byt
 
 	return NewUpdateSet(worldState, block), nil
 }
+
+func (x *UpdateSet) Equal(y *UpdateSet) bool {
+	if x == y {
+		return true
+	}
+	if !x.WorldState.Equal(y.WorldState) {
+		return false
+	}
+
+	if x.Block != y.Block {
+		return false
+	}
+
+	for i, val := range x.DeletedAccounts {
+		if val != y.DeletedAccounts[i] {
+			return false
+		}
+	}
+	return true
+}

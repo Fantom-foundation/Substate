@@ -25,7 +25,7 @@ type WorldState struct {
 }
 
 // ToSubstate transforms a from WorldState to substate.WorldState.
-func (ws WorldState) ToSubstate() substate.WorldState {
+func (ws WorldState) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error)) (substate.WorldState, error) {
 	sws := make(substate.WorldState)
 
 	// iterate through addresses and assign it correctly to substate.WorldState
@@ -34,11 +34,15 @@ func (ws WorldState) ToSubstate() substate.WorldState {
 	// Address at second position matches SubstateAccountRLP at second position, and so on
 	for i, addr := range ws.Addresses {
 		acc := ws.Accounts[i]
-		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, acc.CodeHash[:])
+		code, err := getHashFunc(acc.CodeHash)
+		if err != nil {
+			return nil, err
+		}
+		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, code)
 		for pos := range acc.Storage {
 			sws[addr].Storage[acc.Storage[pos][0]] = acc.Storage[pos][1]
 		}
 	}
 
-	return sws
+	return sws, nil
 }
