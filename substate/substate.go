@@ -71,11 +71,11 @@ func (s *Substate) Equal(y *Substate) (err error) {
 func (s *Substate) String() string {
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("InputSubstate: %v", s.InputSubstate.String()))
-	builder.WriteString(fmt.Sprintf("OutputSubstate: %v", s.OutputSubstate.String()))
-	builder.WriteString(fmt.Sprintf("Env World State: %v", s.Env.String()))
-	builder.WriteString(fmt.Sprintf("Message World State: %v", s.Message.String()))
-	builder.WriteString(fmt.Sprintf("Result World State: %v", s.Result.String()))
+	builder.WriteString(fmt.Sprintf("InputSubstate: %v\n", s.InputSubstate.String()))
+	builder.WriteString(fmt.Sprintf("OutputSubstate: %v\n", s.OutputSubstate.String()))
+	builder.WriteString(fmt.Sprintf("Env World State: %v\n", s.Env.String()))
+	builder.WriteString(fmt.Sprintf("Message World State: %v\n", s.Message.String()))
+	builder.WriteString(fmt.Sprintf("Result World State: %v\n", s.Result.String()))
 
 	return builder.String()
 }

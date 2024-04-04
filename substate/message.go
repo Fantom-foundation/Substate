@@ -126,15 +126,15 @@ func (m *Message) DataHash() types.Hash {
 func (m *Message) String() string {
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("Nonce: %v", m.Nonce))
-	builder.WriteString(fmt.Sprintf("CheckNonce: %v", m.CheckNonce))
-	builder.WriteString(fmt.Sprintf("From: %s", m.From))
-	builder.WriteString(fmt.Sprintf("To: %s", m.To))
-	builder.WriteString(fmt.Sprintf("Value: %v", m.Value.String()))
-	builder.WriteString(fmt.Sprintf("Data: %v", string(m.Data)))
-	builder.WriteString(fmt.Sprintf("Data Hash: %s", m.dataHash))
-	builder.WriteString(fmt.Sprintf("Gas Fee Cap: %v", m.GasFeeCap.String()))
-	builder.WriteString(fmt.Sprintf("Gas Tip Cap: %v", m.GasTipCap.String()))
+	builder.WriteString(fmt.Sprintf("Nonce: %v\n", m.Nonce))
+	builder.WriteString(fmt.Sprintf("CheckNonce: %v\n", m.CheckNonce))
+	builder.WriteString(fmt.Sprintf("From: %s\n", m.From))
+	builder.WriteString(fmt.Sprintf("To: %s\n", m.To))
+	builder.WriteString(fmt.Sprintf("Value: %v\n", m.Value.String()))
+	builder.WriteString(fmt.Sprintf("Data: %v\n", string(m.Data)))
+	builder.WriteString(fmt.Sprintf("Data Hash: %s\n", m.dataHash))
+	builder.WriteString(fmt.Sprintf("Gas Fee Cap: %v\n", m.GasFeeCap.String()))
+	builder.WriteString(fmt.Sprintf("Gas Tip Cap: %v\n", m.GasTipCap.String()))
 
 	for _, tuple := range m.AccessList {
 		builder.WriteString(fmt.Sprintf("Address: %s", tuple.Address))
