@@ -60,6 +60,9 @@ func (h *Hash) SetBytes(b []byte) {
 	copy(h[32-len(b):], b)
 }
 
+// Bytes gets the byte representation of the underlying hash.
+func (h Hash) Bytes() []byte { return h[:] }
+
 // BigToHash sets byte representation of b to hash.
 // If b is larger than len(h), b will be cropped from the left.
 func BigToHash(b *big.Int) Hash { return BytesToHash(b.Bytes()) }

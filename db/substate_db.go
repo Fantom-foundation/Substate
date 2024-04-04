@@ -3,7 +3,9 @@ package db
 import (
 	"encoding/binary"
 	"fmt"
+
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/urfave/cli/v2"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
@@ -35,6 +37,14 @@ type SubstateDB interface {
 	DeleteSubstate(block uint64, tx int) error
 
 	NewSubstateIterator(start int, numWorkers int) Iterator[*substate.Substate]
+
+	NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context) *SubstateTaskPool
+
+	// GetFirstSubstate returns last substate (block and transaction wise) inside given DB.
+	GetFirstSubstate() *substate.Substate
+
+	// GetLastSubstate returns last substate (block and transaction wise) inside given DB.
+	GetLastSubstate() (*substate.Substate, error)
 }
 
 // NewDefaultSubstateDB creates new instance of SubstateDB with default options.
@@ -48,8 +58,12 @@ func NewSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.Re
 	return newSubstateDB(path, o, wo, ro)
 }
 
-func MakeDefaultSubstateDb(db *leveldb.DB) SubstateDB {
+func MakeDefaultSubstateDB(db *leveldb.DB) SubstateDB {
 	return &substateDB{&codeDB{&baseDB{backend: db}}}
+}
+
+func MakeDefaultSubstateDBFromBaseDB(db BaseDB) SubstateDB {
+	return &substateDB{&codeDB{&baseDB{backend: db.getBackend()}}}
 }
 
 func MakeSubstateDb(db *leveldb.DB, wo *opt.WriteOptions, ro *opt.ReadOptions) SubstateDB {
@@ -66,6 +80,18 @@ func newSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.Re
 
 type substateDB struct {
 	*codeDB
+}
+
+func (db *substateDB) GetFirstSubstate() *substate.Substate {
+	iter := db.NewSubstateIterator(0, 1)
+
+	defer iter.Release()
+
+	if iter.Next() {
+		return iter.Value()
+	}
+
+	return nil
 }
 
 func (db *substateDB) HasSubstate(block uint64, tx int) (bool, error) {
@@ -181,6 +207,46 @@ func (db *substateDB) NewSubstateIterator(start int, numWorkers int) Iterator[*s
 	iter.start(numWorkers)
 
 	return iter
+}
+
+func (db *substateDB) NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context) *SubstateTaskPool {
+	return &SubstateTaskPool{
+		Name:     name,
+		TaskFunc: taskFunc,
+
+		First: first,
+		Last:  last,
+
+		Workers:         ctx.Int(WorkersFlag.Name),
+		SkipTransferTxs: ctx.Bool(SkipTransferTxsFlag.Name),
+		SkipCallTxs:     ctx.Bool(SkipCallTxsFlag.Name),
+		SkipCreateTxs:   ctx.Bool(SkipCreateTxsFlag.Name),
+
+		Ctx: ctx,
+
+		DB: db,
+	}
+}
+
+func (db *substateDB) GetLastSubstate() (*substate.Substate, error) {
+	block, err := db.GetLastBlock()
+	if err != nil {
+		return nil, err
+	}
+	substates, err := db.GetBlockSubstates(block)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get block substates; %w", err)
+	}
+	if len(substates) == 0 {
+		return nil, fmt.Errorf("block %v doesn't have any substates.", block)
+	}
+	maxTx := 0
+	for txIdx, _ := range substates {
+		if txIdx > maxTx {
+			maxTx = txIdx
+		}
+	}
+	return substates[maxTx], nil
 }
 
 // BlockToBytes returns binary BigEndian representation of given block number.

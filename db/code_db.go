@@ -40,6 +40,10 @@ func NewCodeDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOp
 	return newCodeDB(path, o, wo, ro)
 }
 
+func MakeDefaultCodeDBFromBaseDB(db BaseDB) CodeDB {
+	return &codeDB{&baseDB{backend: db.getBackend()}}
+}
+
 func newCodeDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*codeDB, error) {
 	base, err := newBaseDB(path, o, wo, ro)
 	if err != nil {

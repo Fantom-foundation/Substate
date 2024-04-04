@@ -21,8 +21,8 @@ func TestAccount_EqualStatus(t *testing.T) {
 }
 
 func TestAccount_EqualBloom(t *testing.T) {
-	res := &Result{Bloom: []byte{0}}
-	comparedRes := &Result{Bloom: []byte{1}}
+	res := &Result{Bloom: types.Bloom{0}}
+	comparedRes := &Result{Bloom: types.Bloom{1}}
 
 	if res.Equal(comparedRes) {
 		t.Fatal("results Bloom are different but equal returned true")

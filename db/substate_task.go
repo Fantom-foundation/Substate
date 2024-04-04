@@ -2,12 +2,13 @@ package db
 
 import (
 	"fmt"
-	"github.com/Fantom-foundation/Substate/substate"
 	"runtime"
 	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/Fantom-foundation/Substate/substate"
 
 	"github.com/urfave/cli/v2"
 )
@@ -51,25 +52,6 @@ type SubstateTaskPool struct {
 	Ctx *cli.Context // CLI context required to read additional flags
 
 	DB SubstateDB
-}
-
-func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context, database SubstateDB) *SubstateTaskPool {
-	return &SubstateTaskPool{
-		Name:     name,
-		TaskFunc: taskFunc,
-
-		First: first,
-		Last:  last,
-
-		Workers:         ctx.Int(WorkersFlag.Name),
-		SkipTransferTxs: ctx.Bool(SkipTransferTxsFlag.Name),
-		SkipCallTxs:     ctx.Bool(SkipCallTxsFlag.Name),
-		SkipCreateTxs:   ctx.Bool(SkipCreateTxsFlag.Name),
-
-		Ctx: ctx,
-
-		DB: database,
-	}
 }
 
 // ExecuteBlock function iterates on substates of a given block call TaskFunc

@@ -27,6 +27,10 @@ func OpenDestroyedAccountDBReadOnly(destroyedAccountDir string) (*DestroyedAccou
 	return openDestroyedAccountDB(destroyedAccountDir, &opt.Options{ReadOnly: true}, nil, nil)
 }
 
+func MakeDestroyedAccountDBFromBaseDB(db BaseDB) *DestroyedAccountDB {
+	return &DestroyedAccountDB{db}
+}
+
 func openDestroyedAccountDB(destroyedAccountDir string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*DestroyedAccountDB, error) {
 	log.Println("substate: OpenDestroyedAccountDB")
 	backend, err := newBaseDB(destroyedAccountDir, o, wo, ro)
