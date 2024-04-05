@@ -1,6 +1,6 @@
 module github.com/Fantom-foundation/Substate
 
-go 1.21
+go 1.22
 
 require (
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954

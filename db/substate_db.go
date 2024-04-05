@@ -174,9 +174,9 @@ func (db *substateDB) DeleteSubstate(block uint64, tx int) error {
 
 // NewSubstateIterator returns iterator which iterates over Substates.
 func (db *substateDB) NewSubstateIterator(start int, numWorkers int) Iterator[*substate.Substate] {
-	num := make([]byte, 4)
-	binary.BigEndian.PutUint32(num, uint32(start))
-	iter := newSubstateIterator(db, num)
+	blockTx := make([]byte, 8)
+	binary.BigEndian.PutUint64(blockTx, uint64(start))
+	iter := newSubstateIterator(db, blockTx)
 
 	iter.start(numWorkers)
 
