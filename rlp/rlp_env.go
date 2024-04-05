@@ -51,6 +51,11 @@ type Env struct {
 
 // ToSubstate transforms e from Env to substate.Env.
 func (e Env) ToSubstate() *substate.Env {
+	var baseFee *big.Int
+	if e.BaseFee != nil {
+		baseFee = e.BaseFee.Big()
+	}
+
 	se := &substate.Env{
 		Coinbase:    e.Coinbase,
 		Difficulty:  e.Difficulty,
@@ -58,7 +63,7 @@ func (e Env) ToSubstate() *substate.Env {
 		Number:      e.Number,
 		Timestamp:   e.Timestamp,
 		BlockHashes: make(map[uint64]types.Hash),
-		BaseFee:     new(big.Int).SetBytes(e.BaseFee[:]),
+		BaseFee:     baseFee,
 	}
 
 	// iterate through BlockHashes
