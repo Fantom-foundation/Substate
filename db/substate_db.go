@@ -226,8 +226,60 @@ func (db *substateDB) NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc
 	}
 }
 
+// getLongestEncodedKeyZeroPrefixLength returns longest index of biggest block number to be search for in its search
+func (db *substateDB) getLongestEncodedKeyZeroPrefixLength() (byte, error) {
+	var i byte
+	for i = 0; i < 8; i++ {
+		startingIndex := make([]byte, 8)
+		startingIndex[i] = 1
+		if db.hasKeyValuesFor([]byte(SubstateDBPrefix), startingIndex) {
+			return i, nil
+		}
+	}
+
+	return 0, fmt.Errorf("unable to find prefix of substate with biggest block")
+}
+
+// getLastBlock returns block number of last substate
+func (db *substateDB) getLastBlock() (uint64, error) {
+	zeroBytes, err := db.getLongestEncodedKeyZeroPrefixLength()
+	if err != nil {
+		return 0, err
+	}
+
+	var lastKeyPrefix []byte
+	if zeroBytes > 0 {
+		blockBytes := make([]byte, zeroBytes)
+
+		lastKeyPrefix = append([]byte(SubstateDBPrefix), blockBytes...)
+	} else {
+		lastKeyPrefix = []byte(SubstateDBPrefix)
+	}
+
+	substatePrefixSize := len([]byte(SubstateDBPrefix))
+
+	// binary search for biggest key
+	for {
+		nextBiggestPrefixValue, err := db.binarySearchForLastPrefixKey(lastKeyPrefix)
+		if err != nil {
+			return 0, err
+		}
+		lastKeyPrefix = append(lastKeyPrefix, nextBiggestPrefixValue)
+		// we have all 8 bytes of uint64 encoded block
+		if len(lastKeyPrefix) == (substatePrefixSize + 8) {
+			// full key is already found
+			substateBlockValue := lastKeyPrefix[substatePrefixSize:]
+
+			if len(substateBlockValue) != 8 {
+				return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search; retrieved block bytes can't be converted")
+			}
+			return binary.BigEndian.Uint64(substateBlockValue), nil
+		}
+	}
+}
+
 func (db *substateDB) GetLastSubstate() (*substate.Substate, error) {
-	block, err := db.GetLastBlock()
+	block, err := db.getLastBlock()
 	if err != nil {
 		return nil, err
 	}

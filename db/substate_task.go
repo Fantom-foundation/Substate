@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Fantom-foundation/Substate/substate"
-
 	"github.com/urfave/cli/v2"
 )
 

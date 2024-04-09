@@ -15,13 +15,12 @@ var testSubstate = &substate.Substate{
 	InputSubstate:  substate.NewWorldState(),
 	OutputSubstate: substate.NewWorldState(),
 	Env: &substate.Env{
-		Coinbase:    types.Address{1},
-		Difficulty:  new(big.Int).SetUint64(1),
-		GasLimit:    1,
-		Number:      1,
-		Timestamp:   1,
-		BlockHashes: make(map[uint64]types.Hash),
-		BaseFee:     new(big.Int).SetUint64(1),
+		Coinbase:   types.Address{1},
+		Difficulty: new(big.Int).SetUint64(1),
+		GasLimit:   1,
+		Number:     1,
+		Timestamp:  1,
+		BaseFee:    new(big.Int).SetUint64(1),
 	},
 	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, types.Address{1}, new(types.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
 	Result:      substate.NewResult(1, []byte{}, []*types.Log{}, types.Address{1}, 1),
@@ -108,12 +107,94 @@ func TestSubstateDB_DeleteSubstate(t *testing.T) {
 	}
 }
 
+func TestSubstateDB_getLastBlock(t *testing.T) {
+	dbPath := t.TempDir() + "test-db"
+	db, err := createDbAndPutSubstate(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// add one more substate
+	if err = addSubstate(db, 2); err != nil {
+		t.Fatal(err)
+	}
+
+	block, err := db.getLastBlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if block != 2 {
+		t.Fatalf("incorrect block number\ngot: %v\nwant: %v", block, 2)
+	}
+
+}
+
+func TestSubstateDB_GetFirstSubstate(t *testing.T) {
+	// save data for comparison
+	want := *testSubstate
+	want.Block = 1
+
+	dbPath := t.TempDir() + "test-db"
+	db, err := createDbAndPutSubstate(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// add one more substate
+	if err = addSubstate(db, 2); err != nil {
+		t.Fatal(err)
+	}
+
+	got := db.GetFirstSubstate()
+
+	if err = got.Equal(&want); err != nil {
+		t.Fatalf("substates are different\nerr: %v\ngot: %s\nwant: %s", err, got, &want)
+	}
+
+}
+
+func TestSubstateDB_GetLastSubstate(t *testing.T) {
+	// save data for comparison
+	want := *testSubstate
+	want.Block = 2
+
+	dbPath := t.TempDir() + "test-db"
+	db, err := createDbAndPutSubstate(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// add one more substate
+	if err = addSubstate(db, 2); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := db.GetLastSubstate()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = got.Equal(&want); err != nil {
+		t.Fatalf("substates are different\nerr: %v\ngot: %s\nwant: %s", err, got, &want)
+	}
+
+}
+
 func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 	db, err := newSubstateDB(dbPath, nil, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open db; %v", err)
 	}
 
+	if err = addSubstate(db, 1); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func addSubstate(db *substateDB, blk uint64) error {
 	h1 := types.Hash{}
 	h1.SetBytes(nil)
 
@@ -122,12 +203,7 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 
 	testSubstate.InputSubstate[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
 	testSubstate.OutputSubstate[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
-	testSubstate.Env.BlockHashes[1] = types.BytesToHash([]byte{1})
+	testSubstate.Block = blk
 
-	err = db.PutSubstate(testSubstate)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	return db.PutSubstate(testSubstate)
 }
