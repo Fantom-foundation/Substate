@@ -236,7 +236,7 @@ func (db *substateDB) GetLastSubstate() (*substate.Substate, error) {
 		return nil, fmt.Errorf("cannot get block substates; %w", err)
 	}
 	if len(substates) == 0 {
-		return nil, fmt.Errorf("block %v doesn't have any substates.", block)
+		return nil, fmt.Errorf("block %v doesn't have any substates", block)
 	}
 	maxTx := 0
 	for txIdx, _ := range substates {
