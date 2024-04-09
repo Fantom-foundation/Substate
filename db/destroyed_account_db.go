@@ -63,6 +63,9 @@ func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]type
 	if err != nil {
 		return nil, nil, err
 	}
+	if data == nil {
+		return nil, nil, nil
+	}
 	list, err := DecodeAddressList(data)
 	return list.DestroyedAccounts, list.ResurrectedAccounts, err
 }

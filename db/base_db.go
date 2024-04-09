@@ -84,6 +84,10 @@ func NewBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOp
 	return newBaseDB(path, o, wo, ro)
 }
 
+func MakeDefaultBaseDBFromBaseDB(db BaseDB) BaseDB {
+	return &baseDB{backend: db.getBackend()}
+}
+
 func newBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*baseDB, error) {
 	b, err := leveldb.OpenFile(path, o)
 	if err != nil {
