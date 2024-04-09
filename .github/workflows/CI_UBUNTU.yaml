@@ -7,17 +7,10 @@ on:
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Set up Go 1.21
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.21
-
-      - name: Set up cmake
-        uses: jwlawson/actions-setup-cmake@v1.13
-        with:
-         cmake-version: '3.19.x'
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Check import formatting
         run: diff -u <(echo -n) <(find . \( -path "./carmen" -o -path "./tosca" \) -prune -o  -name '*.go' -exec goimports -l {} \;)
@@ -26,4 +19,4 @@ jobs:
         run: diff -u <(echo -n)  <(find . \( -path "./carmen" -o -path "./tosca" \) -prune -o  -name '*.go' -exec gofmt -d -s {} \;)
 
       - name: Test
-        run: go test -v ./db ./substate
+        run: go test -v ./...
