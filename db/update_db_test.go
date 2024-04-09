@@ -26,7 +26,7 @@ var testUpdateSet = &updateset.UpdateSet{
 	Block: 1,
 }
 
-var testDeletedAccounts = []types.Address{types.Address{3}, types.Address{4}}
+var testDeletedAccounts = []types.Address{{3}, {4}}
 
 func TestUpdateDB_PutUpdateSet(t *testing.T) {
 	dbPath := t.TempDir() + "test-db"

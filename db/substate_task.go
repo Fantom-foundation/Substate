@@ -2,13 +2,13 @@ package db
 
 import (
 	"fmt"
-	"github.com/Fantom-foundation/Substate/substate"
 	"runtime"
 	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/urfave/cli/v2"
 )
 

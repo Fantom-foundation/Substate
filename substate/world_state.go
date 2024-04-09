@@ -62,7 +62,7 @@ func (ws WorldState) EstimateIncrementalSize(y WorldState) uint64 {
 				continue
 			}
 			// update storage by y
-			for key, _ := range yAcc.Storage {
+			for key := range yAcc.Storage {
 				// only add new storage keys
 				if _, found := ws[yAddr].Storage[key]; !found {
 					size += sizeOfHash // add sizeof(types.Hash)
