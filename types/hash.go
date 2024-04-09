@@ -35,6 +35,9 @@ func (h Hash) IsEmpty() bool {
 // Uint64 converts a hash to a uint64.
 func (h Hash) Uint64() uint64 { return new(big.Int).SetBytes(h[:]).Uint64() }
 
+// Big converts a hash to a big integer.
+func (h Hash) Big() *big.Int { return new(big.Int).SetBytes(h[:]) }
+
 // Compare two big int representations of h and h2.
 func (h Hash) Compare(h2 Hash) int {
 	b1 := new(big.Int).SetBytes(h[:])
