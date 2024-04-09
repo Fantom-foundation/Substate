@@ -40,6 +40,8 @@ type UpdateDB interface {
 	DeleteUpdateSet(block uint64) error
 
 	NewUpdateSetIterator(start, end uint64) Iterator[*updateset.UpdateSet]
+
+	PutMetadata(interval, size uint64) error
 }
 
 // NewDefaultUpdateDB creates new instance of UpdateDB with default options.
@@ -51,6 +53,10 @@ func NewDefaultUpdateDB(path string) (UpdateDB, error) {
 // Note: Any of three options is nillable. If that's the case a default value for the option is set.
 func NewUpdateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (UpdateDB, error) {
 	return newUpdateDB(path, o, wo, ro)
+}
+
+func MakeDefaultUpdateDBFromBaseDB(db BaseDB) UpdateDB {
+	return &updateDB{&codeDB{&baseDB{backend: db.getBackend()}}}
 }
 
 func newUpdateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*updateDB, error) {
