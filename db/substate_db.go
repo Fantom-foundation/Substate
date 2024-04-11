@@ -291,7 +291,7 @@ func (db *substateDB) GetLastSubstate() (*substate.Substate, error) {
 		return nil, fmt.Errorf("block %v doesn't have any substates", block)
 	}
 	maxTx := 0
-	for txIdx, _ := range substates {
+	for txIdx := range substates {
 		if txIdx > maxTx {
 			maxTx = txIdx
 		}
