@@ -115,7 +115,7 @@ func TestSubstateDB_getLastBlock(t *testing.T) {
 	}
 
 	// add one more substate
-	if err = addSubstate(db, 2); err != nil {
+	if err = addSubstate(db, testSubstate.Block+1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -124,8 +124,8 @@ func TestSubstateDB_getLastBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if block != 2 {
-		t.Fatalf("incorrect block number\ngot: %v\nwant: %v", block, 2)
+	if block != 37534835 {
+		t.Fatalf("incorrect block number\ngot: %v\nwant: %v", block, testSubstate.Block+1)
 	}
 
 }
@@ -187,7 +187,7 @@ func createDbAndPutSubstate(dbPath string) (*substateDB, error) {
 		return nil, fmt.Errorf("cannot open db; %v", err)
 	}
 
-	if err = addSubstate(db, 1); err != nil {
+	if err = addSubstate(db, testSubstate.Block); err != nil {
 		return nil, err
 	}
 
@@ -201,9 +201,11 @@ func addSubstate(db *substateDB, blk uint64) error {
 	h2 := types.Hash{}
 	h2.SetBytes(nil)
 
-	testSubstate.InputSubstate[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
-	testSubstate.OutputSubstate[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
-	testSubstate.Block = blk
+	s := *testSubstate
 
-	return db.PutSubstate(testSubstate)
+	s.InputSubstate[types.Address{1}] = substate.NewAccount(1, new(big.Int).SetUint64(1), h1[:])
+	s.OutputSubstate[types.Address{2}] = substate.NewAccount(2, new(big.Int).SetUint64(2), h2[:])
+	s.Block = blk
+
+	return db.PutSubstate(&s)
 }
