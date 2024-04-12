@@ -66,12 +66,30 @@ func TestSubstateTaskPool_ExecuteBlock(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, int64(1), numTx)
 	require.Equal(t, testSubstate.Message.Gas, uint64(gas))
+}
 
-	stPool.TaskFunc = func(block uint64, tx int, substate *substate.Substate, taskPool *SubstateTaskPool) error {
-		return errors.New("test error")
+func TestSubstateTaskPool_ExecuteBlock_TaskFuncErr(t *testing.T) {
+	dbPath := t.TempDir() + "test-db"
+	db, err := createDbAndPutSubstate(dbPath)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	numTx, gas, err = stPool.ExecuteBlock(testSubstate.Block)
+	stPool := SubstateTaskPool{
+		Name: "test",
+
+		TaskFunc: func(block uint64, tx int, substate *substate.Substate, taskPool *SubstateTaskPool) error {
+			return errors.New("test error")
+		},
+
+		First: testSubstate.Block,
+		Last:  testSubstate.Block + 1,
+
+		Workers: 1,
+		DB:      db,
+	}
+
+	_, _, err = stPool.ExecuteBlock(testSubstate.Block)
 	require.Error(t, err)
 }
 
