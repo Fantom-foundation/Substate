@@ -66,7 +66,7 @@ func (up UpdateSetRLP) ToWorldState(getCodeFunc func(codeHash types.Hash) ([]byt
 		}
 
 		for j := range worldStateAcc.Storage {
-			acc.Storage[up.WorldState.Accounts[j].Storage[j][0]] = up.WorldState.Accounts[j].Storage[j][1]
+			acc.Storage[worldStateAcc.Storage[j][0]] = worldStateAcc.Storage[j][1]
 		}
 		worldState[addr] = &acc
 	}
