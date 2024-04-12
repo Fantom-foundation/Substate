@@ -53,36 +53,17 @@ type SubstateTaskPool struct {
 	DB SubstateDB
 }
 
-func NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context, database SubstateDB) *SubstateTaskPool {
-	return &SubstateTaskPool{
-		Name:     name,
-		TaskFunc: taskFunc,
-
-		First: first,
-		Last:  last,
-
-		Workers:         ctx.Int(WorkersFlag.Name),
-		SkipTransferTxs: ctx.Bool(SkipTransferTxsFlag.Name),
-		SkipCallTxs:     ctx.Bool(SkipCallTxsFlag.Name),
-		SkipCreateTxs:   ctx.Bool(SkipCreateTxsFlag.Name),
-
-		Ctx: ctx,
-
-		DB: database,
-	}
-}
-
 // ExecuteBlock function iterates on substates of a given block call TaskFunc
 func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64, err error) {
 	transactions, err := pool.DB.GetBlockSubstates(block)
 	if err != nil {
-		return numTx, gas, err
+		return 0, 0, err
 	}
 
 	if pool.BlockFunc != nil {
 		err := pool.BlockFunc(block, transactions, pool)
 		if err != nil {
-			return numTx, gas, fmt.Errorf("%s: block %v: %v", pool.Name, block, err)
+			return 0, 0, fmt.Errorf("%s: block %v: %v", pool.Name, block, err)
 		}
 	}
 	if pool.TaskFunc == nil {
@@ -122,7 +103,7 @@ func (pool *SubstateTaskPool) ExecuteBlock(block uint64) (numTx int64, gas int64
 		}
 		err = pool.TaskFunc(block, tx, substate, pool)
 		if err != nil {
-			return numTx, gas, fmt.Errorf("%s: %v_%v: %v", pool.Name, block, tx, err)
+			return 0, 0, fmt.Errorf("%s: %v_%v: %v", pool.Name, block, tx, err)
 		}
 
 		numTx++

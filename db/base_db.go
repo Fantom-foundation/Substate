@@ -36,7 +36,7 @@ type BaseDB interface {
 	// until a final write is called.
 	NewBatch() Batch
 
-	// newIterator creates a binary-alphabetical iterator over a subset
+	// NewIterator creates a binary-alphabetical iterator over a subset
 	// of database content with a particular key prefix, starting at a particular
 	// initial key (or after, if it does not exist).
 	//
@@ -64,6 +64,9 @@ type BaseDB interface {
 	// It is valid to call Close multiple times.
 	// Other methods should not be called after the DB has been closed.
 	Close() error
+
+	// getBackend returns the database backend.
+	getBackend() *leveldb.DB
 }
 
 // NewDefaultBaseDB creates new instance of BaseDB with default options.
@@ -75,6 +78,10 @@ func NewDefaultBaseDB(path string) (BaseDB, error) {
 // Note: Any of three options is nillable. If that's the case a default value for the option is set.
 func NewBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (BaseDB, error) {
 	return newBaseDB(path, o, wo, ro)
+}
+
+func MakeDefaultBaseDBFromBaseDB(db BaseDB) BaseDB {
+	return &baseDB{backend: db.getBackend()}
 }
 
 func newBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*baseDB, error) {
@@ -94,6 +101,10 @@ type baseDB struct {
 	backend *leveldb.DB
 	wo      *opt.WriteOptions
 	ro      *opt.ReadOptions
+}
+
+func (db *baseDB) getBackend() *leveldb.DB {
+	return db.backend
 }
 
 func (db *baseDB) Put(key []byte, value []byte) error {
@@ -140,4 +151,44 @@ func (db *baseDB) Stat(property string) (string, error) {
 
 func (db *baseDB) Compact(start []byte, limit []byte) error {
 	return db.backend.CompactRange(util.Range{Start: start, Limit: limit})
+}
+
+func (db *baseDB) hasKeyValuesFor(prefix []byte, start []byte) bool {
+	iter := db.NewIterator(prefix, start)
+	defer iter.Release()
+	return iter.Next()
+}
+
+func (db *baseDB) binarySearchForLastPrefixKey(lastKeyPrefix []byte) (byte, error) {
+	var min uint16 = 0
+	var max uint16 = 255
+
+	startIndex := make([]byte, 1)
+
+	for max-min > 1 {
+		searchHalf := (max + min) / 2
+		startIndex[0] = byte(searchHalf)
+		if db.hasKeyValuesFor(lastKeyPrefix, startIndex) {
+			min = searchHalf
+		} else {
+			max = searchHalf
+		}
+	}
+
+	// shouldn't occure
+	if max-min == 0 {
+		return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search; max - min == 0")
+	}
+
+	startIndex[0] = byte(min)
+	if db.hasKeyValuesFor(lastKeyPrefix, startIndex) {
+		startIndex[0] = byte(max)
+		if db.hasKeyValuesFor(lastKeyPrefix, startIndex) {
+			return byte(max), nil
+		} else {
+			return byte(min), nil
+		}
+	} else {
+		return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search")
+	}
 }

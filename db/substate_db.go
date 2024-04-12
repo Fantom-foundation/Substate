@@ -10,6 +10,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/urfave/cli/v2"
 )
 
 const SubstateDBPrefix = "1s" // SubstateDBPrefix + block (64-bit) + tx (64-bit) -> substateRLP
@@ -34,6 +35,14 @@ type SubstateDB interface {
 	DeleteSubstate(block uint64, tx int) error
 
 	NewSubstateIterator(start int, numWorkers int) Iterator[*substate.Substate]
+
+	NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context) *SubstateTaskPool
+
+	// GetFirstSubstate returns last substate (block and transaction wise) inside given DB.
+	GetFirstSubstate() *substate.Substate
+
+	// GetLastSubstate returns last substate (block and transaction wise) inside given DB.
+	GetLastSubstate() (*substate.Substate, error)
 }
 
 // NewDefaultSubstateDB creates new instance of SubstateDB with default options.
@@ -47,8 +56,12 @@ func NewSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.Re
 	return newSubstateDB(path, o, wo, ro)
 }
 
-func MakeDefaultSubstateDb(db *leveldb.DB) SubstateDB {
+func MakeDefaultSubstateDB(db *leveldb.DB) SubstateDB {
 	return &substateDB{&codeDB{&baseDB{backend: db}}}
+}
+
+func MakeDefaultSubstateDBFromBaseDB(db BaseDB) SubstateDB {
+	return &substateDB{&codeDB{&baseDB{backend: db.getBackend()}}}
 }
 
 func MakeSubstateDb(db *leveldb.DB, wo *opt.WriteOptions, ro *opt.ReadOptions) SubstateDB {
@@ -65,6 +78,18 @@ func newSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.Re
 
 type substateDB struct {
 	*codeDB
+}
+
+func (db *substateDB) GetFirstSubstate() *substate.Substate {
+	iter := db.NewSubstateIterator(0, 1)
+
+	defer iter.Release()
+
+	if iter.Next() {
+		return iter.Value()
+	}
+
+	return nil
 }
 
 func (db *substateDB) HasSubstate(block uint64, tx int) (bool, error) {
@@ -180,6 +205,98 @@ func (db *substateDB) NewSubstateIterator(start int, numWorkers int) Iterator[*s
 	iter.start(numWorkers)
 
 	return iter
+}
+
+func (db *substateDB) NewSubstateTaskPool(name string, taskFunc SubstateTaskFunc, first, last uint64, ctx *cli.Context) *SubstateTaskPool {
+	return &SubstateTaskPool{
+		Name:     name,
+		TaskFunc: taskFunc,
+
+		First: first,
+		Last:  last,
+
+		Workers:         ctx.Int(WorkersFlag.Name),
+		SkipTransferTxs: ctx.Bool(SkipTransferTxsFlag.Name),
+		SkipCallTxs:     ctx.Bool(SkipCallTxsFlag.Name),
+		SkipCreateTxs:   ctx.Bool(SkipCreateTxsFlag.Name),
+
+		Ctx: ctx,
+
+		DB: db,
+	}
+}
+
+// getLongestEncodedKeyZeroPrefixLength returns longest index of biggest block number to be search for in its search
+func (db *substateDB) getLongestEncodedKeyZeroPrefixLength() (byte, error) {
+	var i byte
+	for i = 0; i < 8; i++ {
+		startingIndex := make([]byte, 8)
+		startingIndex[i] = 1
+		if db.hasKeyValuesFor([]byte(SubstateDBPrefix), startingIndex) {
+			return i, nil
+		}
+	}
+
+	return 0, fmt.Errorf("unable to find prefix of substate with biggest block")
+}
+
+// getLastBlock returns block number of last substate
+func (db *substateDB) getLastBlock() (uint64, error) {
+	zeroBytes, err := db.getLongestEncodedKeyZeroPrefixLength()
+	if err != nil {
+		return 0, err
+	}
+
+	var lastKeyPrefix []byte
+	if zeroBytes > 0 {
+		blockBytes := make([]byte, zeroBytes)
+
+		lastKeyPrefix = append([]byte(SubstateDBPrefix), blockBytes...)
+	} else {
+		lastKeyPrefix = []byte(SubstateDBPrefix)
+	}
+
+	substatePrefixSize := len([]byte(SubstateDBPrefix))
+
+	// binary search for biggest key
+	for {
+		nextBiggestPrefixValue, err := db.binarySearchForLastPrefixKey(lastKeyPrefix)
+		if err != nil {
+			return 0, err
+		}
+		lastKeyPrefix = append(lastKeyPrefix, nextBiggestPrefixValue)
+		// we have all 8 bytes of uint64 encoded block
+		if len(lastKeyPrefix) == (substatePrefixSize + 8) {
+			// full key is already found
+			substateBlockValue := lastKeyPrefix[substatePrefixSize:]
+
+			if len(substateBlockValue) != 8 {
+				return 0, fmt.Errorf("undefined behaviour in GetLastSubstate search; retrieved block bytes can't be converted")
+			}
+			return binary.BigEndian.Uint64(substateBlockValue), nil
+		}
+	}
+}
+
+func (db *substateDB) GetLastSubstate() (*substate.Substate, error) {
+	block, err := db.getLastBlock()
+	if err != nil {
+		return nil, err
+	}
+	substates, err := db.GetBlockSubstates(block)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get block substates; %w", err)
+	}
+	if len(substates) == 0 {
+		return nil, fmt.Errorf("block %v doesn't have any substates", block)
+	}
+	maxTx := 0
+	for txIdx := range substates {
+		if txIdx > maxTx {
+			maxTx = txIdx
+		}
+	}
+	return substates[maxTx], nil
 }
 
 // BlockToBytes returns binary BigEndian representation of given block number.
