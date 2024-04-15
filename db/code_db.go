@@ -34,6 +34,11 @@ func NewDefaultCodeDB(path string) (CodeDB, error) {
 	return newCodeDB(path, nil, nil, nil)
 }
 
+// NewReadOnlyCodeDB creates a new instance of read-only CodeDB.
+func NewReadOnlyCodeDB(path string) (CodeDB, error) {
+	return newCodeDB(path, &opt.Options{ReadOnly: true}, nil, nil)
+}
+
 // NewCodeDB creates new instance of CodeDB with customizable options.
 // Note: Any of three options is nillable. If that's the case a default value for the option is set.
 func NewCodeDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (CodeDB, error) {

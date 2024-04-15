@@ -78,6 +78,11 @@ func NewDefaultBaseDB(path string) (BaseDB, error) {
 	return newBaseDB(path, nil, nil, nil)
 }
 
+// NewReadOnlyBaseDB creates a new instance of read-only BaseDB.
+func NewReadOnlyBaseDB(path string) (BaseDB, error) {
+	return newBaseDB(path, &opt.Options{ReadOnly: true}, nil, nil)
+}
+
 // NewBaseDB creates new instance of BaseDB with customizable options.
 // Note: Any of three options is nillable. If that's the case a default value for the option is set.
 func NewBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (BaseDB, error) {

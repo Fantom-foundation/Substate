@@ -49,6 +49,11 @@ func NewDefaultUpdateDB(path string) (UpdateDB, error) {
 	return newUpdateDB(path, nil, nil, nil)
 }
 
+// NewReadOnlyUpdateDB creates a new instance of read-only UpdateDB.
+func NewReadOnlyUpdateDB(path string) (UpdateDB, error) {
+	return newUpdateDB(path, &opt.Options{ReadOnly: true}, nil, nil)
+}
+
 // NewUpdateDB creates new instance of UpdateDB with customizable options.
 // Note: Any of three options is nillable. If that's the case a default value for the option is set.
 func NewUpdateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (UpdateDB, error) {

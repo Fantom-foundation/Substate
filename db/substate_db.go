@@ -52,6 +52,11 @@ func NewDefaultSubstateDB(path string) (SubstateDB, error) {
 	return newSubstateDB(path, nil, nil, nil)
 }
 
+// NewReadOnlySubstateDB creates a new instance of read-only SubstateDB.
+func NewReadOnlySubstateDB(path string) (SubstateDB, error) {
+	return newSubstateDB(path, &opt.Options{ReadOnly: true}, nil, nil)
+}
+
 // NewSubstateDB creates new instance of SubstateDB with customizable options.
 // Note: Any of three options is nillable. If that's the case a default value for the option is set.
 func NewSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (SubstateDB, error) {
