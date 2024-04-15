@@ -2,7 +2,6 @@ package db
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 
@@ -133,13 +132,7 @@ func (db *baseDB) Has(key []byte) (bool, error) {
 }
 
 func (db *baseDB) Get(key []byte) ([]byte, error) {
-	b, err := db.backend.Get(key, db.ro)
-	if err != nil {
-		if errors.Is(err, leveldb.ErrNotFound) {
-			return nil, nil
-		}
-	}
-	return b, nil
+	return db.backend.Get(key, db.ro)
 }
 
 func (db *baseDB) NewBatch() Batch {

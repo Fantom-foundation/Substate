@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 
@@ -89,7 +90,7 @@ func (db *updateDB) GetFirstKey() (uint64, error) {
 		}
 		return firstBlock, nil
 	}
-	return 0, errors.New("no updateset found")
+	return 0, leveldb.ErrNotFound
 }
 
 func (db *updateDB) GetLastKey() (uint64, error) {
