@@ -66,3 +66,8 @@ func (h *Hash) SetBytes(b []byte) {
 // BigToHash sets byte representation of b to hash.
 // If b is larger than len(h), b will be cropped from the left.
 func BigToHash(b *big.Int) Hash { return BytesToHash(b.Bytes()) }
+
+// MarshalText implements TextMarshaler interface for Hash
+func (h Hash) MarshalText() (text []byte, err error) {
+	return []byte(h.String()), nil
+}

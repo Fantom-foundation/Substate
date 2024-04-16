@@ -58,3 +58,8 @@ func Hex2Bytes(str string) []byte {
 	h, _ := hex.DecodeString(str)
 	return h
 }
+
+// MarshalText implements TextMarshaler interface for Address
+func (a Address) MarshalText() (text []byte, err error) {
+	return []byte(a.String()), nil
+}
