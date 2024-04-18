@@ -105,7 +105,12 @@ func (i *substateIterator) start(numWorkers int) {
 						errCh <- err
 						return
 					}
-					resultChs[id] <- transaction
+					select {
+					case resultChs[id] <- transaction:
+					case <-i.stopCh:
+						return
+
+					}
 				}
 
 			}
