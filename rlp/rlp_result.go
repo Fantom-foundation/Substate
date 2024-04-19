@@ -17,7 +17,7 @@ func NewResult(result *substate.Result) *Result {
 
 type Result struct {
 	Status uint64
-	Bloom  []byte
+	Bloom  types.Bloom
 	Logs   []*types.Log
 
 	ContractAddress types.Address

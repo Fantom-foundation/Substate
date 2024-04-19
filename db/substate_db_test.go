@@ -23,7 +23,7 @@ var testSubstate = &substate.Substate{
 		BaseFee:    new(big.Int).SetUint64(1),
 	},
 	Message:     substate.NewMessage(1, true, new(big.Int).SetUint64(1), 1, types.Address{1}, new(types.Address), new(big.Int).SetUint64(1), []byte{1}, nil, types.AccessList{}, new(big.Int).SetUint64(1), new(big.Int).SetUint64(1)),
-	Result:      substate.NewResult(1, []byte{}, []*types.Log{}, types.Address{1}, 1),
+	Result:      substate.NewResult(1, types.Bloom{}, []*types.Log{}, types.Address{1}, 1),
 	Block:       37_534_834,
 	Transaction: 1,
 }
