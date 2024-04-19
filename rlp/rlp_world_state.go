@@ -1,8 +1,11 @@
 package rlp
 
 import (
+	"errors"
+
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
 func NewWorldState(worldState substate.WorldState) WorldState {
@@ -35,7 +38,7 @@ func (ws WorldState) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, e
 	for i, addr := range ws.Addresses {
 		acc := ws.Accounts[i]
 		code, err := getHashFunc(acc.CodeHash)
-		if err != nil {
+		if err != nil && !errors.Is(err, ldberrors.ErrNotFound) {
 			return nil, err
 		}
 		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, code)
