@@ -112,7 +112,7 @@ func (db *codeDB) DeleteCode(codeHash types.Hash) error {
 	key := CodeDBKey(codeHash)
 	err := db.Delete(key)
 	if err != nil {
-		return fmt.Errorf("cannot get code %s: %v", codeHash, err)
+		return fmt.Errorf("cannot delete code %s: %v", codeHash, err)
 	}
 	return nil
 }

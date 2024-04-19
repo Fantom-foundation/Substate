@@ -1,9 +1,12 @@
 package updateset
 
 import (
+	"errors"
+
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func NewUpdateSet(alloc substate.WorldState, block uint64) *UpdateSet {
@@ -54,7 +57,7 @@ func (up UpdateSetRLP) ToWorldState(getCodeFunc func(codeHash types.Hash) ([]byt
 		worldStateAcc := up.WorldState.Accounts[i]
 
 		code, err := getCodeFunc(worldStateAcc.CodeHash)
-		if err != nil {
+		if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
 			return nil, err
 		}
 
