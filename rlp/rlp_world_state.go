@@ -38,7 +38,7 @@ func (ws WorldState) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, e
 	for i, addr := range ws.Addresses {
 		acc := ws.Accounts[i]
 		code, err := getHashFunc(acc.CodeHash)
-		if err != nil && !errors.Is(err, ldberrors.ErrNotFound) {
+		if err != nil && !errors.Is(ldberrors.ErrNotFound, err) {
 			return nil, err
 		}
 		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, code)
