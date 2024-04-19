@@ -81,7 +81,7 @@ func (db *codeDB) GetCode(codeHash types.Hash) ([]byte, error) {
 	key := CodeDBKey(codeHash)
 	code, err := db.Get(key)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get code %s: %v", codeHash, err)
+		return nil, fmt.Errorf("cannot get code %s: %w", codeHash, err)
 	}
 	return code, nil
 }
@@ -92,7 +92,7 @@ func (db *codeDB) PutCode(code []byte) error {
 	key := CodeDBKey(codeHash)
 	err := db.Put(key, code)
 	if err != nil {
-		return fmt.Errorf("cannot put code %s: %v", codeHash, err)
+		return fmt.Errorf("cannot put code %s: %w", codeHash, err)
 	}
 
 	return nil
@@ -107,7 +107,7 @@ func (db *codeDB) DeleteCode(codeHash types.Hash) error {
 	key := CodeDBKey(codeHash)
 	err := db.Delete(key)
 	if err != nil {
-		return fmt.Errorf("cannot get code %s: %v", codeHash, err)
+		return fmt.Errorf("cannot delete code %s: %w", codeHash, err)
 	}
 	return nil
 }
