@@ -86,7 +86,7 @@ func (db *codeDB) GetCode(codeHash types.Hash) ([]byte, error) {
 	key := CodeDBKey(codeHash)
 	code, err := db.Get(key)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get code %s: %v", codeHash, err)
+		return nil, fmt.Errorf("cannot get code %s: %w", codeHash, err)
 	}
 	return code, nil
 }
