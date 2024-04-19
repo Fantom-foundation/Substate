@@ -33,7 +33,13 @@ func (h Hash) IsEmpty() bool {
 }
 
 // Uint64 converts a hash to a uint64.
-func (h Hash) Uint64() uint64 { return new(big.Int).SetBytes(h[:]).Uint64() }
+func (h Hash) Uint64() uint64 { return h.Big().Uint64() }
+
+// Big converts a hash to a big integer.
+func (h Hash) Big() *big.Int { return new(big.Int).SetBytes(h[:]) }
+
+// Bytes gets the byte representation of the underlying hash.
+func (h Hash) Bytes() []byte { return h[:] }
 
 // Big converts a hash to a big integer.
 func (h Hash) Big() *big.Int { return new(big.Int).SetBytes(h[:]) }
