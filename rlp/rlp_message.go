@@ -1,10 +1,12 @@
 package rlp
 
 import (
+	"errors"
 	"math/big"
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func NewMessage(message *substate.Message) *Message {
@@ -72,7 +74,7 @@ func (m Message) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error
 	if sm.To == nil {
 		var err error
 		sm.Data, err = getHashFunc(*m.InitCodeHash)
-		if err != nil {
+		if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
 			return nil, err
 		}
 	}
