@@ -3,7 +3,6 @@ package db
 import (
 	"encoding/binary"
 	"fmt"
-	"log"
 
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
@@ -15,29 +14,24 @@ type DestroyedAccountDB struct {
 	backend BaseDB
 }
 
-func NewDestroyedAccountDB(backend BaseDB) *DestroyedAccountDB {
+func NewDefaultDestroyedAccountDB(destroyedAccountDir string) (*DestroyedAccountDB, error) {
+	return newDestroyedAccountDB(destroyedAccountDir, nil, nil, nil)
+}
+
+func MakeDefaultDestroyedAccountDBFromBaseDB(backend BaseDB) *DestroyedAccountDB {
 	return &DestroyedAccountDB{backend: backend}
 }
 
-func OpenDestroyedAccountDB(destroyedAccountDir string) (*DestroyedAccountDB, error) {
-	return openDestroyedAccountDB(destroyedAccountDir, &opt.Options{ReadOnly: false}, nil, nil)
+func NewReadOnlyDestroyedAccountDB(destroyedAccountDir string) (*DestroyedAccountDB, error) {
+	return newDestroyedAccountDB(destroyedAccountDir, &opt.Options{ReadOnly: true}, nil, nil)
 }
 
-func OpenDestroyedAccountDBReadOnly(destroyedAccountDir string) (*DestroyedAccountDB, error) {
-	return openDestroyedAccountDB(destroyedAccountDir, &opt.Options{ReadOnly: true}, nil, nil)
-}
-
-func MakeDestroyedAccountDBFromBaseDB(db BaseDB) *DestroyedAccountDB {
-	return &DestroyedAccountDB{db}
-}
-
-func openDestroyedAccountDB(destroyedAccountDir string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*DestroyedAccountDB, error) {
-	log.Println("substate: OpenDestroyedAccountDB")
+func newDestroyedAccountDB(destroyedAccountDir string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*DestroyedAccountDB, error) {
 	backend, err := newBaseDB(destroyedAccountDir, o, wo, ro)
 	if err != nil {
-		return nil, fmt.Errorf("error opening deletion-db %s: %v", destroyedAccountDir, err)
+		return nil, fmt.Errorf("error opening deletion-db %s: %w", destroyedAccountDir, err)
 	}
-	return NewDestroyedAccountDB(backend), nil
+	return MakeDefaultDestroyedAccountDBFromBaseDB(backend), nil
 }
 
 func (db *DestroyedAccountDB) Close() error {
