@@ -64,7 +64,12 @@ func MakeDefaultSubstateDBFromBaseDB(db BaseDB) SubstateDB {
 	return &substateDB{&codeDB{&baseDB{backend: db.getBackend()}}}
 }
 
-func MakeSubstateDb(db *leveldb.DB, wo *opt.WriteOptions, ro *opt.ReadOptions) SubstateDB {
+// NewReadOnlySubstateDB creates a new instance of read-only SubstateDB.
+func NewReadOnlySubstateDB(path string) (SubstateDB, error) {
+	return newSubstateDB(path, &opt.Options{ReadOnly: true}, nil, nil)
+}
+
+func MakeSubstateDB(db *leveldb.DB, wo *opt.WriteOptions, ro *opt.ReadOptions) SubstateDB {
 	return &substateDB{&codeDB{&baseDB{backend: db, wo: wo, ro: ro}}}
 }
 

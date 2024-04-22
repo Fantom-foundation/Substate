@@ -83,6 +83,10 @@ func MakeDefaultBaseDBFromBaseDB(db BaseDB) BaseDB {
 	return &baseDB{backend: db.getBackend()}
 }
 
+// NewReadOnlyBaseDB creates a new instance of read-only BaseDB.
+func NewReadOnlyBaseDB(path string) (BaseDB, error) {
+	return newBaseDB(path, &opt.Options{ReadOnly: true}, nil, nil)
+}
 func newBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*baseDB, error) {
 	b, err := leveldb.OpenFile(path, o)
 	if err != nil {
