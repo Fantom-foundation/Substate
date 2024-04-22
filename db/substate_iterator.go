@@ -30,7 +30,7 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 
 	block, tx, err := DecodeSubstateDBKey(data.key)
 	if err != nil {
-		return nil, fmt.Errorf("invalid substate key: %v; %v", key, err)
+		return nil, fmt.Errorf("invalid substate key: %v; %w", key, err)
 	}
 
 	rlpSubstate, err := rlp.Decode(value)

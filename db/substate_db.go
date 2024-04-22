@@ -100,17 +100,12 @@ func (db *substateDB) HasSubstate(block uint64, tx int) (bool, error) {
 func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, error) {
 	val, err := db.Get(SubstateDBKey(block, tx))
 	if err != nil {
-		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %v", block, tx, err)
-	}
-
-	// not in db
-	if val == nil {
-		return nil, nil
+		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %w", block, tx, err)
 	}
 
 	rlpSubstate, err := rlp.Decode(val)
 	if err != nil {
-		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %v", block, tx, err)
+		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
 	}
 
 	return rlpSubstate.ToSubstate(db.GetCode, block, tx)
@@ -131,7 +126,7 @@ func (db *substateDB) GetBlockSubstates(block uint64) (map[int]*substate.Substat
 
 		b, tx, err := DecodeSubstateDBKey(key)
 		if err != nil {
-			return nil, fmt.Errorf("record-replay: invalid substate key found for block %v: %v", block, err)
+			return nil, fmt.Errorf("record-replay: invalid substate key found for block %v: %w", block, err)
 		}
 
 		if block != b {
@@ -140,12 +135,12 @@ func (db *substateDB) GetBlockSubstates(block uint64) (map[int]*substate.Substat
 
 		rlpSubstate, err := rlp.Decode(value)
 		if err != nil {
-			return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %v", block, tx, err)
+			return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
 		}
 
 		sbstt, err := rlpSubstate.ToSubstate(db.GetCode, block, tx)
 		if err != nil {
-			return nil, fmt.Errorf("cannot decode data into substate: %v", err)
+			return nil, fmt.Errorf("cannot decode data into substate: %w", err)
 		}
 
 		txSubstate[tx] = sbstt
@@ -163,14 +158,14 @@ func (db *substateDB) PutSubstate(ss *substate.Substate) error {
 	for i, account := range ss.InputSubstate {
 		err := db.PutCode(account.Code)
 		if err != nil {
-			return fmt.Errorf("cannot put preState code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
+			return fmt.Errorf("cannot put preState code from substate-account %v block %v, %v tx into db; %w", i, ss.Block, ss.Transaction, err)
 		}
 	}
 
 	for i, account := range ss.OutputSubstate {
 		err := db.PutCode(account.Code)
 		if err != nil {
-			return fmt.Errorf("cannot put postState code from substate-account %v block %v, %v tx into db; %v", i, ss.Block, ss.Transaction, err)
+			return fmt.Errorf("cannot put postState code from substate-account %v block %v, %v tx into db; %w", i, ss.Block, ss.Transaction, err)
 		}
 	}
 

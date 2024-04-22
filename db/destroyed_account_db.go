@@ -2,9 +2,11 @@ package db
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"log"
 
+	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
 	"github.com/Fantom-foundation/Substate/types"
@@ -35,7 +37,7 @@ func openDestroyedAccountDB(destroyedAccountDir string, o *opt.Options, wo *opt.
 	log.Println("substate: OpenDestroyedAccountDB")
 	backend, err := newBaseDB(destroyedAccountDir, o, wo, ro)
 	if err != nil {
-		return nil, fmt.Errorf("error opening deletion-db %s: %v", destroyedAccountDir, err)
+		return nil, fmt.Errorf("error opening deletion-db %s: %w", destroyedAccountDir, err)
 	}
 	return NewDestroyedAccountDB(backend), nil
 }
@@ -60,11 +62,8 @@ func (db *DestroyedAccountDB) SetDestroyedAccounts(block uint64, tx int, des []t
 
 func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]types.Address, []types.Address, error) {
 	data, err := db.backend.Get(encodeDestroyedAccountKey(block, tx))
-	if err != nil {
+	if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
 		return nil, nil, err
-	}
-	if data == nil {
-		return nil, nil, nil
 	}
 	list, err := DecodeAddressList(data)
 	return list.DestroyedAccounts, list.ResurrectedAccounts, err
@@ -146,7 +145,7 @@ func (db *DestroyedAccountDB) GetFirstKey() (uint64, error) {
 	for iter.Next() {
 		firstBlock, _, err := DecodeDestroyedAccountKey(iter.Key())
 		if err != nil {
-			return 0, fmt.Errorf("cannot decode updateset key; %v", err)
+			return 0, fmt.Errorf("cannot decode updateset key; %w", err)
 		}
 		return firstBlock, nil
 	}
@@ -162,7 +161,7 @@ func (db *DestroyedAccountDB) GetLastKey() (uint64, error) {
 	for iter.Next() {
 		block, _, err = DecodeDestroyedAccountKey(iter.Key())
 		if err != nil {
-			return 0, fmt.Errorf("cannot decode updateset key; %v", err)
+			return 0, fmt.Errorf("cannot decode updateset key; %w", err)
 		}
 	}
 	iter.Release()

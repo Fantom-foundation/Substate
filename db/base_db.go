@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"io"
 
@@ -87,7 +86,7 @@ func MakeDefaultBaseDBFromBaseDB(db BaseDB) BaseDB {
 func newBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*baseDB, error) {
 	b, err := leveldb.OpenFile(path, o)
 	if err != nil {
-		return nil, fmt.Errorf("cannot open leveldb; %v", err)
+		return nil, fmt.Errorf("cannot open leveldb; %w", err)
 	}
 	return &baseDB{
 		backend: b,
@@ -124,13 +123,7 @@ func (db *baseDB) Has(key []byte) (bool, error) {
 }
 
 func (db *baseDB) Get(key []byte) ([]byte, error) {
-	b, err := db.backend.Get(key, db.ro)
-	if err != nil {
-		if errors.Is(err, leveldb.ErrNotFound) {
-			return nil, nil
-		}
-	}
-	return b, nil
+	return db.backend.Get(key, db.ro)
 }
 
 func (db *baseDB) NewBatch() Batch {
