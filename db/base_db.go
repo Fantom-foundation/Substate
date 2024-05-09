@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -87,6 +88,17 @@ func MakeDefaultBaseDBFromBaseDB(db BaseDB) BaseDB {
 func NewReadOnlyBaseDB(path string) (BaseDB, error) {
 	return newBaseDB(path, &opt.Options{ReadOnly: true}, nil, nil)
 }
+
+// OpenBaseDB opens existing database. If it does not exists error is returned instead.
+func OpenBaseDB(path string) (BaseDB, error) {
+	_, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewDefaultBaseDB(path)
+}
+
 func newBaseDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.ReadOptions) (*baseDB, error) {
 	b, err := leveldb.OpenFile(path, o)
 	if err != nil {
