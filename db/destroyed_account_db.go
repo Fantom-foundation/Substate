@@ -2,10 +2,8 @@ package db
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 
-	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
 	"github.com/Fantom-foundation/Substate/types"
@@ -56,7 +54,10 @@ func (db *DestroyedAccountDB) SetDestroyedAccounts(block uint64, tx int, des []t
 
 func (db *DestroyedAccountDB) GetDestroyedAccounts(block uint64, tx int) ([]types.Address, []types.Address, error) {
 	data, err := db.backend.Get(encodeDestroyedAccountKey(block, tx))
-	if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
+	if data == nil {
+		return nil, nil, nil
+	}
+	if err != nil {
 		return nil, nil, err
 	}
 	list, err := DecodeAddressList(data)
