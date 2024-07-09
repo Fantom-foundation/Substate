@@ -1,65 +1,78 @@
 package rlp
 
 import (
-	"math/big"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/Fantom-foundation/Substate/substate"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/rlp"
 )
 
+func NewRLP(substate *substate.Substate) *RLP {
+	return &RLP{
+		InputSubstate:  NewWorldState(substate.InputSubstate),
+		OutputSubstate: NewWorldState(substate.OutputSubstate),
+		Env:            NewEnv(substate.Env),
+		Message:        NewMessage(substate.Message),
+		Result:         NewResult(substate.Result),
+	}
+}
+
 type RLP struct {
-	InputAlloc  Alloc
-	OutputAlloc Alloc
-	Env         *Env
-	Message     *Message
-	Result      *Result
+	InputSubstate  WorldState
+	OutputSubstate WorldState
+	Env            *Env
+	Message        *Message
+	Result         *Result
 }
 
-type Alloc struct {
-	Addresses []common.Address
-	Accounts  []*Account
+// Decode decodes val into RLP and returns it.
+func Decode(val []byte) (*RLP, error) {
+	var (
+		substateRLP = new(RLP)
+		err         error
+	)
+
+	err = rlp.DecodeBytes(val, substateRLP)
+	if err == nil {
+		return substateRLP, nil
+	}
+
+	var berlin berlinRLP
+	err = rlp.DecodeBytes(val, &berlin)
+	if err == nil {
+		return berlin.toLondon(), nil
+	}
+
+	var legacy legacySubstateRLP
+	err = rlp.DecodeBytes(val, &legacy)
+	if err != nil {
+		return nil, err
+	}
+
+	return legacy.toLondon(), nil
 }
 
-type Account struct {
-	Nonce    uint64
-	Balance  *big.Int
-	CodeHash common.Hash
-	Storage  [][2]common.Hash
-}
+// ToSubstate transforms every attribute of r from RLP to substate.Substate.
+func (r *RLP) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error), block uint64, tx int) (*substate.Substate, error) {
+	msg, err := r.Message.ToSubstate(getHashFunc)
+	if err != nil {
+		return nil, err
+	}
 
-type Env struct {
-	Coinbase    common.Address
-	Difficulty  *big.Int
-	GasLimit    uint64
-	Number      uint64
-	Timestamp   uint64
-	BlockHashes [][2]common.Hash
-}
-
-type Message struct {
-	Nonce      uint64
-	CheckNonce bool
-	GasPrice   *big.Int
-	Gas        uint64
-
-	From  common.Address
-	To    *common.Address `rlp:"nil"` // nil means contract creation
-	Value *big.Int
-	Data  []byte
-
-	InitCodeHash *common.Hash `rlp:"nil"` // NOT nil for contract creation
-
-	AccessList types.AccessList // missing in substate DB from Geth v1.9.x
-
-	GasFeeCap *big.Int // missing in substate DB from Geth <= v1.10.3
-	GasTipCap *big.Int // missing in substate DB from Geth <= v1.10.3
-}
-
-type Result struct {
-	Status uint64
-	Bloom  types.Bloom
-	Logs   []*types.Log
-
-	ContractAddress common.Address
-	GasUsed         uint64
+	input, err := r.InputSubstate.ToSubstate(getHashFunc)
+	if err != nil {
+		return nil, err
+	}
+	output, err := r.OutputSubstate.ToSubstate(getHashFunc)
+	if err != nil {
+		return nil, err
+	}
+	return &substate.Substate{
+		InputSubstate:  input,
+		OutputSubstate: output,
+		Env:            r.Env.ToSubstate(),
+		Message:        msg,
+		Result:         r.Result.ToSubstate(),
+		Block:          block,
+		Transaction:    tx,
+	}, nil
 }

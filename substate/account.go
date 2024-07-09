@@ -2,16 +2,19 @@ package substate
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
+	"strings"
 
-	"github.com/Fantom-foundation/Substate/common"
+	"github.com/Fantom-foundation/Substate/types"
+	"github.com/Fantom-foundation/Substate/types/hash"
 )
 
 // Account holds any information about account used in a transaction.
 type Account struct {
 	Nonce   uint64
 	Balance *big.Int
-	Storage map[common.Hash]common.Hash
+	Storage map[types.Hash]types.Hash
 	Code    []byte
 }
 
@@ -19,7 +22,7 @@ func NewAccount(nonce uint64, balance *big.Int, code []byte) *Account {
 	return &Account{
 		Nonce:   nonce,
 		Balance: balance,
-		Storage: make(map[common.Hash]common.Hash),
+		Storage: make(map[types.Hash]types.Hash),
 		Code:    code,
 	}
 }
@@ -45,8 +48,8 @@ func (a *Account) Equal(y *Account) bool {
 	}
 
 	for aKey, aVal := range a.Storage {
-		yValue, exist := y.Storage[aKey]
-		if !(exist && aVal == yValue) {
+		yValue, exists := y.Storage[aKey]
+		if !(exists && aVal == yValue) {
 			return false
 		}
 	}
@@ -56,16 +59,28 @@ func (a *Account) Equal(y *Account) bool {
 
 // Copy returns a hard copy of a
 func (a *Account) Copy() *Account {
-	cpy := NewAccount(a.Nonce, a.Balance, a.Code)
+	accCopy := NewAccount(a.Nonce, a.Balance, a.Code)
 
 	for key, value := range a.Storage {
-		cpy.Storage[key] = value
+		accCopy.Storage[key] = value
 	}
 
-	return cpy
+	return accCopy
 }
 
 // CodeHash returns hashed code
-//func (a *Account) CodeHash() common.Hash { todo uncomment when eth is copied
-//	return crypto.Keccak256Hash(a.Code)
-//}
+func (a *Account) CodeHash() types.Hash {
+	return hash.Keccak256Hash(a.Code)
+}
+
+func (a *Account) String() string {
+	var builder strings.Builder
+
+	builder.WriteString(fmt.Sprintf("Nonce: %v\nBalance: %v\nCode: %v\nStorage:", a.Nonce, a.Balance.String(), string(a.Code)))
+
+	for key, val := range a.Storage {
+		builder.WriteString(fmt.Sprintf("%s: %s\n", key, val))
+	}
+
+	return builder.String()
+}
