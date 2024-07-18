@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"slices"
 	"strings"
 
 	"github.com/Fantom-foundation/Substate/types"
@@ -30,6 +31,10 @@ type Message struct {
 	// London hard fork, EIP-1559: Fee market
 	GasFeeCap *big.Int // GasPrice if EIP-1559 is not activated
 	GasTipCap *big.Int // GasPrice if EIP-1559 is not activated
+
+	// Cancun hard fork, EIP-4844
+	BlobGasFeeCap *big.Int
+	BlobHashes    []types.Hash
 }
 
 func NewMessage(
@@ -44,20 +49,25 @@ func NewMessage(
 	dataHash *types.Hash,
 	accessList types.AccessList,
 	gasFeeCap *big.Int,
-	gasTipCap *big.Int) *Message {
+	gasTipCap *big.Int,
+	blobGasFeeCap *big.Int,
+	blobHashes []types.Hash,
+) *Message {
 	return &Message{
-		Nonce:      nonce,
-		CheckNonce: checkNonce,
-		GasPrice:   gasPrice,
-		Gas:        gas,
-		From:       from,
-		To:         to,
-		Value:      value,
-		Data:       data,
-		dataHash:   dataHash,
-		AccessList: accessList,
-		GasFeeCap:  gasFeeCap,
-		GasTipCap:  gasTipCap,
+		Nonce:         nonce,
+		CheckNonce:    checkNonce,
+		GasPrice:      gasPrice,
+		Gas:           gas,
+		From:          from,
+		To:            to,
+		Value:         value,
+		Data:          data,
+		dataHash:      dataHash,
+		AccessList:    accessList,
+		GasFeeCap:     gasFeeCap,
+		GasTipCap:     gasTipCap,
+		BlobGasFeeCap: blobGasFeeCap,
+		BlobHashes:    blobHashes,
 	}
 }
 
@@ -83,8 +93,13 @@ func (m *Message) Equal(y *Message) bool {
 		bytes.Equal(m.Data, y.Data) &&
 		len(m.AccessList) == len(y.AccessList) &&
 		m.GasFeeCap.Cmp(y.GasFeeCap) == 0 &&
-		m.GasTipCap.Cmp(y.GasTipCap) == 0
+		m.GasTipCap.Cmp(y.GasTipCap) == 0 &&
+		m.BlobGasFeeCap.Cmp(y.BlobGasFeeCap) == 0
 	if !equal {
+		return false
+	}
+
+	if !slices.Equal(m.BlobHashes, y.BlobHashes) {
 		return false
 	}
 
