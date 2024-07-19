@@ -11,18 +11,20 @@ import (
 
 func NewMessage(message *substate.Message) *Message {
 	m := &Message{
-		Nonce:        message.Nonce,
-		CheckNonce:   message.CheckNonce,
-		GasPrice:     message.GasPrice,
-		Gas:          message.Gas,
-		From:         message.From,
-		To:           message.To,
-		Value:        new(big.Int).Set(message.Value),
-		Data:         message.Data,
-		InitCodeHash: nil,
-		AccessList:   message.AccessList,
-		GasFeeCap:    message.GasFeeCap,
-		GasTipCap:    message.GasTipCap,
+		Nonce:         message.Nonce,
+		CheckNonce:    message.CheckNonce,
+		GasPrice:      message.GasPrice,
+		Gas:           message.Gas,
+		From:          message.From,
+		To:            message.To,
+		Value:         new(big.Int).Set(message.Value),
+		Data:          message.Data,
+		InitCodeHash:  nil,
+		AccessList:    message.AccessList,
+		GasFeeCap:     message.GasFeeCap,
+		GasTipCap:     message.GasTipCap,
+		BlobGasFeeCap: message.BlobGasFeeCap,
+		BlobHashes:    message.BlobHashes,
 	}
 
 	if m.To == nil {

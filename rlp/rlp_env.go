@@ -36,7 +36,7 @@ func NewEnv(env *substate.Env) *Env {
 	}
 
 	e.BlobBaseFee = nil
-	if env.BaseFee != nil {
+	if env.BlobBaseFee != nil {
 		blobBaseFee := types.BigToHash(env.BlobBaseFee)
 		e.BlobBaseFee = &blobBaseFee
 	}
