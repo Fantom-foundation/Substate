@@ -120,7 +120,7 @@ func (db *updateDB) GetUpdateSet(block uint64) (*updateset.UpdateSet, error) {
 	key := UpdateDBKey(block)
 	value, err := db.Get(key)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get updateset block: %v, key %v; %v", block, key, err)
+		return nil, fmt.Errorf("cannot get updateset block: %v, key %v; %w", block, key, err)
 	}
 
 	if value == nil {
@@ -130,7 +130,7 @@ func (db *updateDB) GetUpdateSet(block uint64) (*updateset.UpdateSet, error) {
 	// decode value
 	var updateSetRLP updateset.UpdateSetRLP
 	if err = trlp.DecodeBytes(value, &updateSetRLP); err != nil {
-		return nil, fmt.Errorf("cannot decode update-set rlp block: %v, key %v; %v", block, key, err)
+		return nil, fmt.Errorf("cannot decode update-set rlp block: %v, key %v; %w", block, key, err)
 	}
 
 	return updateSetRLP.ToWorldState(db.GetCode, block)

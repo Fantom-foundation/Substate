@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"testing"
@@ -98,8 +99,12 @@ func TestSubstateDB_DeleteSubstate(t *testing.T) {
 	}
 
 	ss, err := db.GetSubstate(37_534_834, 1)
-	if err != nil {
-		t.Fatalf("get substate returned error; %v", err)
+	if err == nil {
+		t.Fatal("get substate must fail")
+	}
+
+	if got, want := err, leveldb.ErrNotFound; !errors.Is(got, want) {
+		t.Fatalf("unexpected err, got: %v, want: %v", got, want)
 	}
 
 	if ss != nil {
