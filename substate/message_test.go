@@ -160,6 +160,34 @@ func TestMessage_EqualGasTipCap(t *testing.T) {
 	}
 }
 
+func TestMessage_EqualBlobGasFeeCap(t *testing.T) {
+	msg := &Message{BlobGasFeeCap: new(big.Int).SetUint64(0)}
+	comparedMsg := &Message{BlobGasFeeCap: new(big.Int).SetUint64(1)}
+
+	if msg.Equal(comparedMsg) {
+		t.Fatal("messages BlobGasFeeCap are different but equal returned true")
+	}
+
+	comparedMsg.BlobGasFeeCap = msg.BlobGasFeeCap
+	if !msg.Equal(comparedMsg) {
+		t.Fatal("messages BlobGasFeeCap are same but equal returned false")
+	}
+}
+
+func TestMessage_EqualBlobHashes(t *testing.T) {
+	msg := &Message{BlobHashes: []types.Hash{types.BytesToHash([]byte{0x0})}}
+	comparedMsg := &Message{BlobHashes: []types.Hash{types.BytesToHash([]byte{0x1})}}
+
+	if msg.Equal(comparedMsg) {
+		t.Fatal("messages BlobHashes are different but equal returned true")
+	}
+
+	comparedMsg.BlobHashes = msg.BlobHashes
+	if !msg.Equal(comparedMsg) {
+		t.Fatal("messages BlobHashes are same but equal returned false")
+	}
+}
+
 func TestMessage_DataHashReturnsIfExists(t *testing.T) {
 	want := types.BytesToHash([]byte{1})
 	msg := &Message{dataHash: &want}

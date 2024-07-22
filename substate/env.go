@@ -18,6 +18,8 @@ type Env struct {
 
 	// London hard fork, EIP-1559
 	BaseFee *big.Int // nil if EIP-1559 is not activated
+	// Cancun hard fork EIP-4844
+	BlobBaseFee *big.Int // nil if EIP-4844 is not activated
 }
 
 func NewEnv(
@@ -27,6 +29,7 @@ func NewEnv(
 	number uint64,
 	timestamp uint64,
 	baseFee *big.Int,
+	blobBaseFee *big.Int,
 	blockHashes map[uint64]types.Hash) *Env {
 	return &Env{
 		Coinbase:    coinbase,
@@ -36,6 +39,7 @@ func NewEnv(
 		Timestamp:   timestamp,
 		BlockHashes: blockHashes,
 		BaseFee:     baseFee,
+		BlobBaseFee: blobBaseFee,
 	}
 }
 
@@ -56,7 +60,8 @@ func (e *Env) Equal(y *Env) bool {
 		e.Number == y.Number &&
 		e.Timestamp == y.Timestamp &&
 		len(e.BlockHashes) == len(y.BlockHashes) &&
-		e.BaseFee.Cmp(y.BaseFee) == 0
+		e.BaseFee.Cmp(y.BaseFee) == 0 &&
+		e.BlobBaseFee.Cmp(y.BlobBaseFee) == 0
 	if !equal {
 		return false
 	}
@@ -80,6 +85,7 @@ func (e *Env) String() string {
 	builder.WriteString(fmt.Sprintf("Number: %v\n", e.Number))
 	builder.WriteString(fmt.Sprintf("Timestamp: %v\n", e.Timestamp))
 	builder.WriteString(fmt.Sprintf("Base Fee: %v\n", e.BaseFee.String()))
+	builder.WriteString(fmt.Sprintf("Blob Base Fee: %v\n", e.BlobBaseFee.String()))
 	builder.WriteString("Block Hashes: \n")
 
 	for number, hash := range e.BlockHashes {

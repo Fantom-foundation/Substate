@@ -35,6 +35,12 @@ func NewEnv(env *substate.Env) *Env {
 		e.BaseFee = &baseFeeHash
 	}
 
+	e.BlobBaseFee = nil
+	if env.BlobBaseFee != nil {
+		blobBaseFee := types.BigToHash(env.BlobBaseFee)
+		e.BlobBaseFee = &blobBaseFee
+	}
+
 	return e
 }
 
@@ -46,14 +52,19 @@ type Env struct {
 	Timestamp   uint64
 	BlockHashes [][2]types.Hash
 
-	BaseFee *types.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
+	BaseFee     *types.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
+	BlobBaseFee *types.Hash `rlp:"nil"` // missing in substate DB before Cancun
 }
 
 // ToSubstate transforms e from Env to substate.Env.
 func (e Env) ToSubstate() *substate.Env {
-	var baseFee *big.Int
+	var baseFee, blobBaseFee *big.Int
 	if e.BaseFee != nil {
 		baseFee = e.BaseFee.Big()
+	}
+
+	if e.BlobBaseFee != nil {
+		blobBaseFee = e.BlobBaseFee.Big()
 	}
 
 	se := &substate.Env{
@@ -64,6 +75,7 @@ func (e Env) ToSubstate() *substate.Env {
 		Timestamp:   e.Timestamp,
 		BlockHashes: make(map[uint64]types.Hash),
 		BaseFee:     baseFee,
+		BlobBaseFee: blobBaseFee,
 	}
 
 	// iterate through BlockHashes

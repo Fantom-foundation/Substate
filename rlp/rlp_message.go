@@ -11,18 +11,20 @@ import (
 
 func NewMessage(message *substate.Message) *Message {
 	m := &Message{
-		Nonce:        message.Nonce,
-		CheckNonce:   message.CheckNonce,
-		GasPrice:     message.GasPrice,
-		Gas:          message.Gas,
-		From:         message.From,
-		To:           message.To,
-		Value:        new(big.Int).Set(message.Value),
-		Data:         message.Data,
-		InitCodeHash: nil,
-		AccessList:   message.AccessList,
-		GasFeeCap:    message.GasFeeCap,
-		GasTipCap:    message.GasTipCap,
+		Nonce:         message.Nonce,
+		CheckNonce:    message.CheckNonce,
+		GasPrice:      message.GasPrice,
+		Gas:           message.Gas,
+		From:          message.From,
+		To:            message.To,
+		Value:         new(big.Int).Set(message.Value),
+		Data:          message.Data,
+		InitCodeHash:  nil,
+		AccessList:    message.AccessList,
+		GasFeeCap:     message.GasFeeCap,
+		GasTipCap:     message.GasTipCap,
+		BlobGasFeeCap: message.BlobGasFeeCap,
+		BlobHashes:    message.BlobHashes,
 	}
 
 	if m.To == nil {
@@ -52,22 +54,27 @@ type Message struct {
 
 	GasFeeCap *big.Int // missing in substate DB from Geth <= v1.10.3
 	GasTipCap *big.Int // missing in substate DB from Geth <= v1.10.3
+
+	BlobGasFeeCap *big.Int     // missing in substate DB from Geth before Cancun
+	BlobHashes    []types.Hash // missing in substate DB from Geth before Cancun
 }
 
 // ToSubstate transforms m from Message to substate.Message.
 func (m Message) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, error)) (*substate.Message, error) {
 	sm := &substate.Message{
-		Nonce:      m.Nonce,
-		CheckNonce: m.CheckNonce,
-		GasPrice:   m.GasPrice,
-		Gas:        m.Gas,
-		From:       m.From,
-		To:         m.To,
-		Value:      m.Value,
-		Data:       m.Data,
-		AccessList: m.AccessList,
-		GasFeeCap:  m.GasFeeCap,
-		GasTipCap:  m.GasTipCap,
+		Nonce:         m.Nonce,
+		CheckNonce:    m.CheckNonce,
+		GasPrice:      m.GasPrice,
+		Gas:           m.Gas,
+		From:          m.From,
+		To:            m.To,
+		Value:         m.Value,
+		Data:          m.Data,
+		AccessList:    m.AccessList,
+		GasFeeCap:     m.GasFeeCap,
+		GasTipCap:     m.GasTipCap,
+		BlobGasFeeCap: m.BlobGasFeeCap,
+		BlobHashes:    m.BlobHashes,
 	}
 
 	// if receiver is nil, we have to extract the data from the DB using getHashFunc

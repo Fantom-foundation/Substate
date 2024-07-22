@@ -120,3 +120,21 @@ func TestEnv_EqualBaseFee(t *testing.T) {
 		t.Fatal("envs BaseFee are same but equal returned false")
 	}
 }
+
+func TestEnv_EqualBlobBaseFee(t *testing.T) {
+	env := &Env{
+		BlobBaseFee: new(big.Int).SetUint64(0),
+	}
+	comparedEnv := &Env{
+		BlobBaseFee: new(big.Int).SetUint64(1),
+	}
+
+	if env.Equal(comparedEnv) {
+		t.Fatal("envs BlobBaseFee are different but equal returned true")
+	}
+
+	comparedEnv.BlobBaseFee = env.BlobBaseFee
+	if !env.Equal(comparedEnv) {
+		t.Fatal("envs BlobBaseFee are same but equal returned false")
+	}
+}
