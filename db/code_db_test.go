@@ -2,6 +2,7 @@ package db
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -82,8 +83,12 @@ func TestCodeDB_DeleteCode(t *testing.T) {
 	}
 
 	code, err := db.GetCode(hash)
-	if err != nil {
-		t.Fatalf("get code returned error; %v", err)
+	if err == nil {
+		t.Fatal("get code must fail")
+	}
+
+	if got, want := err, leveldb.ErrNotFound; !errors.Is(got, want) {
+		t.Fatalf("unexpected err, got: %v, want: %v", got, want)
 	}
 
 	if code != nil {

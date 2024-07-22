@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"testing"
@@ -98,8 +99,12 @@ func TestUpdateDB_DeleteUpdateSet(t *testing.T) {
 	}
 
 	us, err := db.GetUpdateSet(testUpdateSet.Block)
-	if err != nil {
-		t.Fatalf("get update=set returned error; %v", err)
+	if err == nil {
+		t.Fatal("get update-set must fail")
+	}
+
+	if got, want := err, leveldb.ErrNotFound; !errors.Is(got, want) {
+		t.Fatalf("unexpected err, got: %v, want: %v", got, want)
 	}
 
 	if us != nil {
