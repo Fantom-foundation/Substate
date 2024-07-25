@@ -11,49 +11,16 @@ import (
 
 func NewMessage(message *substate.Message) *Message {
 	m := &Message{
-		Nonce:         message.Nonce,
-		CheckNonce:    message.CheckNonce,
-		GasPrice:      message.GasPrice,
-		Gas:           message.Gas,
-		From:          message.From,
-		To:            message.To,
-		Value:         new(big.Int).Set(message.Value),
-		Data:          message.Data,
-		InitCodeHash:  nil,
-		AccessList:    message.AccessList,
-		GasFeeCap:     message.GasFeeCap,
-		GasTipCap:     message.GasTipCap,
+		londonMessage: newLondonMessage(message),
 		BlobGasFeeCap: message.BlobGasFeeCap,
 		BlobHashes:    message.BlobHashes,
-	}
-
-	if m.To == nil {
-		// put contract creation init code into codeDB
-		dataHash := message.DataHash()
-		m.InitCodeHash = &dataHash
-		m.Data = nil
 	}
 
 	return m
 }
 
 type Message struct {
-	Nonce      uint64
-	CheckNonce bool
-	GasPrice   *big.Int
-	Gas        uint64
-
-	From  types.Address
-	To    *types.Address `rlp:"nil"` // nil means contract creation
-	Value *big.Int
-	Data  []byte
-
-	InitCodeHash *types.Hash `rlp:"nil"` // NOT nil for contract creation
-
-	AccessList types.AccessList // missing in substate DB from Geth v1.9.x
-
-	GasFeeCap *big.Int // missing in substate DB from Geth <= v1.10.3
-	GasTipCap *big.Int // missing in substate DB from Geth <= v1.10.3
+	londonMessage
 
 	BlobGasFeeCap *big.Int     // missing in substate DB from Geth before Cancun
 	BlobHashes    []types.Hash // missing in substate DB from Geth before Cancun

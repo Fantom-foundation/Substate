@@ -26,20 +26,19 @@ type RLP struct {
 
 // Decode decodes val into RLP and returns it.
 func Decode(val []byte) (*RLP, error) {
-	var (
-		substateRLP = new(RLP)
-		err         error
-	)
+	var err error
 
-	err = rlp.DecodeBytes(val, substateRLP)
+	// londonRLP has currently the biggest representation the DB, so it should always be first.
+	var london londonRLP
+	err = rlp.DecodeBytes(val, &london)
 	if err == nil {
-		return substateRLP, nil
+		return london.toRLP(), nil
 	}
 
 	var berlin berlinRLP
 	err = rlp.DecodeBytes(val, &berlin)
 	if err == nil {
-		return berlin.toLondon(), nil
+		return berlin.toRLP(), nil
 	}
 
 	var legacy legacySubstateRLP
@@ -48,7 +47,14 @@ func Decode(val []byte) (*RLP, error) {
 		return nil, err
 	}
 
-	return legacy.toLondon(), nil
+	// cancun
+	var substateRLP RLP
+	err = rlp.DecodeBytes(val, &substateRLP)
+	if err == nil {
+		return &substateRLP, nil
+	}
+
+	return legacy.toRLP(), nil
 }
 
 // ToSubstate transforms every attribute of r from RLP to substate.Substate.

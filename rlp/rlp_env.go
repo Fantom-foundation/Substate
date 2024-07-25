@@ -9,30 +9,7 @@ import (
 
 func NewEnv(env *substate.Env) *Env {
 	e := &Env{
-		Coinbase:    env.Coinbase,
-		Difficulty:  env.Difficulty,
-		GasLimit:    env.GasLimit,
-		Number:      env.Number,
-		Timestamp:   env.Timestamp,
-		BlockHashes: nil,
-	}
-
-	var sortedNum64 []uint64
-	for num64 := range env.BlockHashes {
-		sortedNum64 = append(sortedNum64, num64)
-	}
-
-	for _, num64 := range sortedNum64 {
-		num := types.BigToHash(new(big.Int).SetUint64(num64))
-		blockHash := env.BlockHashes[num64]
-		pair := [2]types.Hash{num, blockHash}
-		e.BlockHashes = append(e.BlockHashes, pair)
-	}
-
-	e.BaseFee = nil
-	if env.BaseFee != nil {
-		baseFeeHash := types.BigToHash(env.BaseFee)
-		e.BaseFee = &baseFeeHash
+		londonEnv: newLondonEnv(env),
 	}
 
 	e.BlobBaseFee = nil
@@ -45,14 +22,7 @@ func NewEnv(env *substate.Env) *Env {
 }
 
 type Env struct {
-	Coinbase    types.Address
-	Difficulty  *big.Int
-	GasLimit    uint64
-	Number      uint64
-	Timestamp   uint64
-	BlockHashes [][2]types.Hash
-
-	BaseFee     *types.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
+	londonEnv
 	BlobBaseFee *types.Hash `rlp:"nil"` // missing in substate DB before Cancun
 }
 
