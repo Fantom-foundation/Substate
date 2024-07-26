@@ -9,7 +9,18 @@ import (
 
 func NewEnv(env *substate.Env) *Env {
 	e := &Env{
-		londonEnv: newLondonEnv(env),
+		Coinbase:    env.Coinbase,
+		Difficulty:  env.Difficulty,
+		GasLimit:    env.GasLimit,
+		Number:      env.Number,
+		Timestamp:   env.Timestamp,
+		BlockHashes: createBlockHashes(env.BlockHashes),
+	}
+
+	e.BaseFee = nil
+	if env.BaseFee != nil {
+		baseFee := types.BigToHash(env.BaseFee)
+		e.BaseFee = &baseFee
 	}
 
 	e.BlobBaseFee = nil
@@ -22,7 +33,14 @@ func NewEnv(env *substate.Env) *Env {
 }
 
 type Env struct {
-	londonEnv
+	Coinbase    types.Address
+	Difficulty  *big.Int
+	GasLimit    uint64
+	Number      uint64
+	Timestamp   uint64
+	BlockHashes [][2]types.Hash
+
+	BaseFee     *types.Hash `rlp:"nil"` // missing in substate DB from Geth <= v1.10.3
 	BlobBaseFee *types.Hash `rlp:"nil"` // missing in substate DB before Cancun
 }
 

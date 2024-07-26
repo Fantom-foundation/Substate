@@ -43,8 +43,8 @@ func Decode(val []byte) (*RLP, error) {
 
 	var legacy legacySubstateRLP
 	err = rlp.DecodeBytes(val, &legacy)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		return legacy.toRLP(), nil
 	}
 
 	// cancun
@@ -54,7 +54,7 @@ func Decode(val []byte) (*RLP, error) {
 		return &substateRLP, nil
 	}
 
-	return legacy.toRLP(), nil
+	return nil, err
 }
 
 // ToSubstate transforms every attribute of r from RLP to substate.Substate.

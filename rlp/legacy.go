@@ -43,22 +43,20 @@ type legacyMessage struct {
 // toMessage transforms m into RLP format which is compatible with the currently used Geth fork.
 func (m legacyMessage) toMessage() *Message {
 	return &Message{
-		londonMessage: londonMessage{
-			Nonce:        m.Nonce,
-			CheckNonce:   m.CheckNonce,
-			GasPrice:     m.GasPrice,
-			Gas:          m.Gas,
-			From:         m.From,
-			To:           m.To,
-			Value:        new(big.Int).Set(m.Value),
-			Data:         m.Data,
-			InitCodeHash: m.InitCodeHash,
-			AccessList:   nil, // access list was not present before berlin fork?
+		Nonce:        m.Nonce,
+		CheckNonce:   m.CheckNonce,
+		GasPrice:     m.GasPrice,
+		Gas:          m.Gas,
+		From:         m.From,
+		To:           m.To,
+		Value:        new(big.Int).Set(m.Value),
+		Data:         m.Data,
+		InitCodeHash: m.InitCodeHash,
+		AccessList:   nil, // access list was not present before berlin fork?
 
-			// Same behavior as AccessListTx.gasFeeCap() and AccessListTx.gasTipCap()
-			GasFeeCap: m.GasPrice,
-			GasTipCap: m.GasPrice,
-		},
+		// Same behavior as AccessListTx.gasFeeCap() and AccessListTx.gasTipCap()
+		GasFeeCap: m.GasPrice,
+		GasTipCap: m.GasPrice,
 	}
 }
 
@@ -74,13 +72,11 @@ type legacyEnv struct {
 // toEnv transforms e into RLP format which is compatible with the currently used Geth fork.
 func (e legacyEnv) toEnv() *Env {
 	return &Env{
-		londonEnv: londonEnv{
-			Coinbase:    e.Coinbase,
-			Difficulty:  e.Difficulty,
-			GasLimit:    e.GasLimit,
-			Number:      e.Number,
-			Timestamp:   e.Timestamp,
-			BlockHashes: e.BlockHashes,
-		},
+		Coinbase:    e.Coinbase,
+		Difficulty:  e.Difficulty,
+		GasLimit:    e.GasLimit,
+		Number:      e.Number,
+		Timestamp:   e.Timestamp,
+		BlockHashes: e.BlockHashes,
 	}
 }

@@ -9,18 +9,43 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-func NewMessage(message *substate.Message) *Message {
-	m := &Message{
-		londonMessage: newLondonMessage(message),
-		BlobGasFeeCap: message.BlobGasFeeCap,
-		BlobHashes:    message.BlobHashes,
+func NewMessage(sm *substate.Message) *Message {
+	mess := &Message{
+		Nonce:         sm.Nonce,
+		CheckNonce:    sm.CheckNonce,
+		GasPrice:      sm.GasPrice,
+		Gas:           sm.Gas,
+		From:          sm.From,
+		To:            sm.To,
+		Value:         new(big.Int).Set(sm.Value),
+		Data:          sm.Data,
+		AccessList:    sm.AccessList,
+		GasFeeCap:     sm.GasFeeCap,
+		GasTipCap:     sm.GasTipCap,
+		BlobGasFeeCap: sm.BlobGasFeeCap,
+		BlobHashes:    sm.BlobHashes,
 	}
 
-	return m
+	return mess
 }
 
 type Message struct {
-	londonMessage
+	Nonce      uint64
+	CheckNonce bool
+	GasPrice   *big.Int
+	Gas        uint64
+
+	From  types.Address
+	To    *types.Address `rlp:"nil"` // nil means contract creation
+	Value *big.Int
+	Data  []byte
+
+	InitCodeHash *types.Hash `rlp:"nil"` // NOT nil for contract creation
+
+	AccessList types.AccessList // missing in substate DB from Geth v1.9.x
+
+	GasFeeCap *big.Int // missing in substate DB from Geth <= v1.10.3
+	GasTipCap *big.Int // missing in substate DB from Geth <= v1.10.3
 
 	BlobGasFeeCap *big.Int     // missing in substate DB from Geth before Cancun
 	BlobHashes    []types.Hash // missing in substate DB from Geth before Cancun

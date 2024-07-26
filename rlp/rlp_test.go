@@ -14,10 +14,30 @@ var (
 	hash1 = types.Hash{0x01}
 )
 
-func Test_DecodeLondon(t *testing.T) {
+func Test_Decode(t *testing.T) {
 	london := RLP{
 		Message: &Message{Data: []byte{1}, Value: big.NewInt(1), GasPrice: big.NewInt(1)},
 		Env:     &Env{},
+		Result:  &Result{}}
+	b, err := rlp.EncodeToBytes(london)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := Decode(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(res.Message.Data, []byte{1}) {
+		t.Fatal("incorrect data")
+	}
+}
+
+func Test_DecodeLondon(t *testing.T) {
+	london := londonRLP{
+		Message: londonMessage{Data: []byte{1}, Value: big.NewInt(1), GasPrice: big.NewInt(1)},
+		Env:     londonEnv{},
 		Result:  &Result{}}
 	b, err := rlp.EncodeToBytes(london)
 	if err != nil {

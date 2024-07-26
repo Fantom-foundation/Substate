@@ -6,13 +6,6 @@ import (
 	"github.com/Fantom-foundation/Substate/types"
 )
 
-const berlinBlock = 37_455_223
-
-// IsBerlinFork returns true if block is part of the berlin fork block range
-func IsBerlinFork(block uint64) bool {
-	return block >= berlinBlock && block < londonBlock
-}
-
 // berlinRLP represents legacy RLP structure between Berlin and London fork starting at berlinBlock ending at londonBlock
 type berlinRLP struct {
 	InputAlloc  WorldState
@@ -53,21 +46,19 @@ type berlinMessage struct {
 // toMessage transforms m into RLP format which is compatible with the currently used Geth fork.
 func (m berlinMessage) toMessage() *Message {
 	return &Message{
-		londonMessage: londonMessage{
-			Nonce:        m.Nonce,
-			CheckNonce:   m.CheckNonce,
-			GasPrice:     m.GasPrice,
-			Gas:          m.Gas,
-			From:         m.From,
-			To:           m.To,
-			Value:        new(big.Int).Set(m.Value),
-			Data:         m.Data,
-			InitCodeHash: m.InitCodeHash,
-			AccessList:   m.AccessList,
+		Nonce:        m.Nonce,
+		CheckNonce:   m.CheckNonce,
+		GasPrice:     m.GasPrice,
+		Gas:          m.Gas,
+		From:         m.From,
+		To:           m.To,
+		Value:        new(big.Int).Set(m.Value),
+		Data:         m.Data,
+		InitCodeHash: m.InitCodeHash,
+		AccessList:   m.AccessList,
 
-			// Same behavior as AccessListTx.gasFeeCap() and AccessListTx.gasTipCap()
-			GasFeeCap: m.GasPrice,
-			GasTipCap: m.GasPrice,
-		},
+		// Same behavior as AccessListTx.gasFeeCap() and AccessListTx.gasTipCap()
+		GasFeeCap: m.GasPrice,
+		GasTipCap: m.GasPrice,
 	}
 }

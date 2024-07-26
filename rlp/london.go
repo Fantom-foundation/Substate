@@ -7,13 +7,6 @@ import (
 	"github.com/Fantom-foundation/Substate/types"
 )
 
-const londonBlock = 37_534_833
-
-// IsLondonFork returns true if block is part of the london fork block range
-func IsLondonFork(block uint64) bool {
-	return block >= londonBlock
-}
-
 func NewLondonRLP(substate *substate.Substate) *londonRLP {
 	return &londonRLP{
 		InputSubstate:  NewWorldState(substate.InputSubstate),
@@ -46,23 +39,12 @@ func (r londonRLP) toRLP() *RLP {
 
 func newLondonEnv(env *substate.Env) londonEnv {
 	e := londonEnv{
-		Coinbase:   env.Coinbase,
-		Difficulty: env.Difficulty,
-		GasLimit:   env.GasLimit,
-		Number:     env.Number,
-		Timestamp:  env.Timestamp,
-	}
-
-	var sortedNum64 []uint64
-	for num64 := range env.BlockHashes {
-		sortedNum64 = append(sortedNum64, num64)
-	}
-
-	for _, num64 := range sortedNum64 {
-		num := types.BigToHash(new(big.Int).SetUint64(num64))
-		blockHash := env.BlockHashes[num64]
-		pair := [2]types.Hash{num, blockHash}
-		e.BlockHashes = append(e.BlockHashes, pair)
+		Coinbase:    env.Coinbase,
+		Difficulty:  env.Difficulty,
+		GasLimit:    env.GasLimit,
+		Number:      env.Number,
+		Timestamp:   env.Timestamp,
+		BlockHashes: createBlockHashes(env.BlockHashes),
 	}
 
 	e.BaseFee = nil
@@ -72,6 +54,21 @@ func newLondonEnv(env *substate.Env) londonEnv {
 	}
 
 	return e
+}
+
+func createBlockHashes(m map[uint64]types.Hash) (blockHashes [][2]types.Hash) {
+	var sortedNum64 []uint64
+	for num64 := range m {
+		sortedNum64 = append(sortedNum64, num64)
+	}
+
+	for _, num64 := range sortedNum64 {
+		num := types.BigToHash(new(big.Int).SetUint64(num64))
+		blockHash := m[num64]
+		pair := [2]types.Hash{num, blockHash}
+		blockHashes = append(blockHashes, pair)
+	}
+	return blockHashes
 }
 
 type londonEnv struct {
@@ -88,7 +85,13 @@ type londonEnv struct {
 // toEnv transforms m into RLP format which is compatible with the currently used Geth fork.
 func (e londonEnv) toEnv() *Env {
 	return &Env{
-		londonEnv: e,
+		Coinbase:    e.Coinbase,
+		Difficulty:  e.Difficulty,
+		GasLimit:    e.GasLimit,
+		Number:      e.Number,
+		Timestamp:   e.Timestamp,
+		BlockHashes: e.BlockHashes,
+		BaseFee:     e.BaseFee,
 	}
 }
 
@@ -140,6 +143,16 @@ type londonMessage struct {
 // toMessage transforms m into RLP format which is compatible with the currently used Geth fork.
 func (m londonMessage) toMessage() *Message {
 	return &Message{
-		londonMessage: m,
+		Nonce:        m.Nonce,
+		CheckNonce:   m.CheckNonce,
+		GasPrice:     m.GasPrice,
+		From:         m.From,
+		To:           m.To,
+		Value:        m.Value,
+		Data:         m.Data,
+		InitCodeHash: m.InitCodeHash,
+		AccessList:   m.AccessList,
+		GasFeeCap:    m.GasFeeCap,
+		GasTipCap:    m.GasFeeCap,
 	}
 }
