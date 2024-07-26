@@ -9,32 +9,24 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-func NewMessage(message *substate.Message) *Message {
-	m := &Message{
-		Nonce:         message.Nonce,
-		CheckNonce:    message.CheckNonce,
-		GasPrice:      message.GasPrice,
-		Gas:           message.Gas,
-		From:          message.From,
-		To:            message.To,
-		Value:         new(big.Int).Set(message.Value),
-		Data:          message.Data,
-		InitCodeHash:  nil,
-		AccessList:    message.AccessList,
-		GasFeeCap:     message.GasFeeCap,
-		GasTipCap:     message.GasTipCap,
-		BlobGasFeeCap: message.BlobGasFeeCap,
-		BlobHashes:    message.BlobHashes,
+func NewMessage(sm *substate.Message) *Message {
+	mess := &Message{
+		Nonce:         sm.Nonce,
+		CheckNonce:    sm.CheckNonce,
+		GasPrice:      sm.GasPrice,
+		Gas:           sm.Gas,
+		From:          sm.From,
+		To:            sm.To,
+		Value:         new(big.Int).Set(sm.Value),
+		Data:          sm.Data,
+		AccessList:    sm.AccessList,
+		GasFeeCap:     sm.GasFeeCap,
+		GasTipCap:     sm.GasTipCap,
+		BlobGasFeeCap: sm.BlobGasFeeCap,
+		BlobHashes:    sm.BlobHashes,
 	}
 
-	if m.To == nil {
-		// put contract creation init code into codeDB
-		dataHash := message.DataHash()
-		m.InitCodeHash = &dataHash
-		m.Data = nil
-	}
-
-	return m
+	return mess
 }
 
 type Message struct {

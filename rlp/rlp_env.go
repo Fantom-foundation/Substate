@@ -14,25 +14,13 @@ func NewEnv(env *substate.Env) *Env {
 		GasLimit:    env.GasLimit,
 		Number:      env.Number,
 		Timestamp:   env.Timestamp,
-		BlockHashes: nil,
-	}
-
-	var sortedNum64 []uint64
-	for num64 := range env.BlockHashes {
-		sortedNum64 = append(sortedNum64, num64)
-	}
-
-	for _, num64 := range sortedNum64 {
-		num := types.BigToHash(new(big.Int).SetUint64(num64))
-		blockHash := env.BlockHashes[num64]
-		pair := [2]types.Hash{num, blockHash}
-		e.BlockHashes = append(e.BlockHashes, pair)
+		BlockHashes: createBlockHashes(env.BlockHashes),
 	}
 
 	e.BaseFee = nil
 	if env.BaseFee != nil {
-		baseFeeHash := types.BigToHash(env.BaseFee)
-		e.BaseFee = &baseFeeHash
+		baseFee := types.BigToHash(env.BaseFee)
+		e.BaseFee = &baseFee
 	}
 
 	e.BlobBaseFee = nil
