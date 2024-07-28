@@ -146,6 +146,7 @@ func (m londonMessage) toMessage() *Message {
 		Nonce:        m.Nonce,
 		CheckNonce:   m.CheckNonce,
 		GasPrice:     m.GasPrice,
+		Gas:          m.Gas,
 		From:         m.From,
 		To:           m.To,
 		Value:        m.Value,
