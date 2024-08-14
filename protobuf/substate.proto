@@ -1,0 +1,119 @@
+yntax = "proto2";
+package research;
+
+// For a single optional bytes, use `optional BytesValue`
+// For an optional list of bytes, use `repeated bytes`
+import "google/protobuf/wrappers.proto";
+
+option go_package = "../research";
+
+message Substate {
+
+    message Account {
+        required uint64 nonce = 1;
+        required bytes balance = 2;
+
+        message StorageEntry {
+            required bytes key = 1;
+            required bytes value = 2;
+        }
+        repeated StorageEntry storage = 3;
+
+        oneof contract {
+            bytes code = 4;
+            bytes code_hash = 5;
+        }
+    }
+    message AllocEntry {
+        required bytes address = 1;
+        required Account account = 2;
+    }
+    message Alloc {
+        repeated AllocEntry alloc = 1;
+    }
+    required Alloc input_alloc = 1;
+    required Alloc output_alloc = 2;
+
+    message BlockEnv {
+        required bytes coinbase = 1;
+        required bytes difficulty = 2;
+        required uint64 gas_limit = 3;
+        required uint64 number = 4;
+        required uint64 timestamp = 5;
+
+        message BlockHashEntry {
+            required uint64 key = 1;
+            required bytes value = 2;
+        }
+        repeated BlockHashEntry block_hashes = 6;
+        // London hard fork introduced BASEFEE instruction
+        optional google.protobuf.BytesValue base_fee = 7;
+        // The Merge hard fork replaced DIFFICULTY with PREVRANDAO
+        optional google.protobuf.BytesValue random = 8;
+        // Cancun hard fork introduced BLOBBASEFEE instruction
+        optional google.protobuf.BytesValue blob_base_fee = 9;
+    }
+    required BlockEnv block_env = 3;
+
+    message TxMessage {
+        required uint64 nonce = 1;
+        required bytes gas_price = 2;
+        required uint64 gas = 3;
+
+        required bytes from = 4;
+        // TxMessage.to is nil for contract creation
+        optional google.protobuf.BytesValue to = 5;
+        required bytes value = 6;
+
+        oneof input {
+            bytes data = 7;
+            bytes init_code_hash = 8;
+        }
+
+        enum TxType {
+            TXTYPE_LEGACY = 0;
+            // Berlin hard fork introduced optional access list
+            TXTYPE_ACCESSLIST = 1;
+            // London hard fork introduced optional dynamic fee market
+            TXTYPE_DYNAMICFEE = 2;
+            // Cancun hard fork introduced optional tx blob
+            TXTYPE_BLOB = 3;
+        }
+        required TxType tx_type = 9;
+
+        // AccessList from TXTYPE_ACCESSLIST
+        // nil for tx types prior to TXTYPE_ACCESSLIST
+        message AccessListEntry {
+            required bytes address = 1;
+            repeated bytes storage_keys = 2;
+        }
+        repeated AccessListEntry access_list = 10;
+
+        // GasFeeCap, GasTipCap from TXTYPE_DYNAMICFEE
+        // nil for tx types prior to TXTYPE_DYNAMICFEE
+        optional google.protobuf.BytesValue gas_fee_cap = 11;
+        optional google.protobuf.BytesValue gas_tip_cap = 12;
+
+        // BlobFeeCap, BlobHashes, optional Sidecar from TXTYPE_BLOB
+        // nil for tx types prior to TXTYPE_BLOB
+        optional google.protobuf.BytesValue blob_gas_fee_cap = 13;
+        repeated bytes blob_hashes = 14;
+    }
+    required TxMessage tx_message = 4;
+
+    message Result {
+        required uint64 status = 1;
+        required bytes bloom = 2;
+
+        message Log {
+            required bytes address = 1;
+            repeated bytes topics = 2;
+            required bytes data = 3;
+        }
+        repeated Log logs = 3;
+
+        required uint64 gas_used = 4;
+    }
+    required Result result = 5;
+
+}
