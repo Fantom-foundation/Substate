@@ -26,6 +26,13 @@ func NewMessage(sm *substate.Message) *Message {
 		BlobHashes:    sm.BlobHashes,
 	}
 
+	if mess.To == nil {
+		// put contract creation init code into codeDB
+		dataHash := sm.DataHash()
+		mess.InitCodeHash = &dataHash
+		mess.Data = nil
+	}
+
 	return mess
 }
 
