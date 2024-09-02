@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/golang/protobuf/proto"
 
 	"github.com/Fantom-foundation/Substate/rlp"
+	pb "github.com/Fantom-foundation/Substate/protobuf"
 	"github.com/Fantom-foundation/Substate/substate"
 )
 
@@ -33,8 +35,9 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 		return nil, fmt.Errorf("invalid substate key: %v; %w", key, err)
 	}
 
-	rlpSubstate, err := rlp.Decode(value)
-	if err != nil {
+	//rlpSubstate, err := rlp.Decode(value)
+	pbSubstate := &pb.Substate{}
+	if err := proto.Unmarshal(value, pbSubstate); err != nil {
 		return nil, err
 	}
 
