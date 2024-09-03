@@ -14,7 +14,7 @@ func (s *pb.Substate) Decode() (*substate.Substate, error) {
 		return nil, err
 	}
 
-	output, err := s.GetInputAlloc().decode()
+	output, err := s.GetOutputAlloc().decode()
 	if err != nil {
 		return nil, err
 	}
@@ -51,13 +51,31 @@ func (alloc *pb.Substate_Alloc) decode() (*substate.WorldState, error) {
 
 	for _, entry := range alloc.GetAlloc() {
 		addr, acct, err := entry.decode()
+		if err != nil {
+			return nil, fmt.Errorf("Error decoding alloc entry; %w", err)
+		}
+
+		address := types.BytesToAddress(addr)
+		nonce, balance, codehash, err := acct.decode()
+		if err != nil {
+			return nil, fmt.Errorf("Error decoding entry account; %w", err)
+		}
+
+		world = world.Add(address, nonce, balance, codehash)
 	}
 
-	return nil, fmt.Errorf("Not Implemented")
+	return world, nil
 }
 
 func (entry *pb.Substate_AllocEntry) decode() ([]byte, *pb.Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
+}
+
+func (acct *pb.Substate_Account) decode() (uint64, *big.Int, []byte, error) {
+	return 	acct.GetNonce(),
+		new(big.Int).SetBytes(acct.GetBalance()),
+		acct.GetCodeHash(),
+		nil
 }
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
