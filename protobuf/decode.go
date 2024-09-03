@@ -4,6 +4,7 @@ import (
 	"github.com/Fantom-foundation/Substate/types"
 	"github.com/Fantom-foundation/Substate/substate"
 	pb "github.com/Fantom-foundation/Substate/protobuf"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
@@ -46,25 +47,51 @@ func (s *pb.Substate) Decode() (*substate.Substate, error) {
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
 func (alloc *pb.Substate_Alloc) decode() (*substate.WorldState, error) {
-	world := make(substate.WorldState)
+	world := make(substate.WorldState, len(alloc.GetAlloc()))
 
-	for _, entry := range Substate_AllocEntry {
-		addr := types.BytesToAddress(entry.Address)
-		acct := entry.Account
-
+	for _, entry := range alloc.GetAlloc() {
+		addr, acct, err := entry.decode()
 	}
 
 	return nil, fmt.Errorf("Not Implemented")
 }
 
+func (entry *pb.Substate_AllocEntry) decode() ([]byte, *pb.Substate_Account, error) {
+	return entry.GetAddress(), entry.GetAccount(), nil
+}
+
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
 func (env *pb.Substate_BlockEnv) decode() (*substate.Env, error) {
-	return nil, fmt.Errorf("Not Implemented")
+	blockHashes := make(map[uint64]types.Hash, len(env.GetBlockHashes()))
+	for _, entry := range env.GetBlockHashes() {
+		key, value, err := entry.decode()
+		if err != nil {
+			return nil, err
+		}
+		blockHashes[key] := types.BytesToHash(value)
+	}
+
+	return &substate.Env{
+		Coinbase: types.BytesToAddress(env.GetCoinbase()),
+		Difficulty: new(big.Int).SetBytes(env.GetDifficulty()),
+		GasLimit: env.GetGasLimit(),
+		Number: env.GetNumber(),
+		Timestamp: env.GetTimestamp(),
+		BlockHashes: blockHashes,
+		BaseFee := new(big.Int).SetBytes(env.GetBaseFee().GetValue()),
+		//Random := env.GetRandom(), // does not exist
+		BlobBaseFee := new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue()),
+	}, nil
 }
+
+func (entry *pb.Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) {
+	return entry.GetKey(), entry.GetValue(), nil
+}
+
 
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
 func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
-	/*return &Message{
+	/*return &substate.Message{
 		Nonce:         &msg.Nonce,
 		CheckNonce:    nil,
 		GasPrice:      nil,
@@ -85,6 +112,21 @@ func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
 
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
 func (res *pb.Substate_Result) decode() (*substate.Result, error) {
-	return nil, fmt.Errorf("Not Implemented")
+	logs := make([]types.Log, 0, len(res.Logs))
+	for i, log := res.Logs {
+		logs[i] := log.decode()
+	}
+
+	return &substate.Result{
+		Status: &res.Status,
+		Bloom: types.BytesToBloom(res.Bloom),
+		Logs: logs,
+		ContractAddress: nil,
+		GasUsed: &res.GasUsed,
+	}, nil
 }
 
+// decode converts protobuf-encoded Substate_Result_Log into aida-comprehensible ResultLogs
+func (log *pb.Substate_Result_Log) decode() (*types.Log, error) {
+	return nil, fmt.Errorf("Not Implemented")
+}
