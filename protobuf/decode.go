@@ -37,8 +37,8 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 	}
 
 	return &substate.Substate{
-		InputSubstate:  &input,
-		OutputSubstate: &output,
+		InputSubstate:  *input,
+		OutputSubstate: *output,
 		Env:            environment,
 		Message:        message,
 		Result:         result,
@@ -130,7 +130,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
 	if msg.GetAccessList() != nil {
-		accessList = make([]AccessTuple, len(msg.GetAccessList()))
+		accessList = make([]types.AccessTuple, len(msg.GetAccessList()))
 		for i, entry := range msg.GetAccessList() {
 			addr, keys, err := entry.decode()
 			if err != nil {
@@ -140,10 +140,10 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 			address := types.BytesToAddress(addr)
 			storageKeys := make([]types.Hash, len(keys))
 			for j, key := range keys {
-				storageKeys[j] := types.BytesToHash(key)
+				storageKeys[j] = types.BytesToHash(key)
 			}
 
-			accessList[i] := &AccessTuple{
+			accessList[i] = &types.AccessTuple{
 				Address:     address,
 				StorageKeys: storageKeys,
 			}
