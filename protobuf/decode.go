@@ -106,27 +106,85 @@ func (entry *pb.Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, erro
 	return entry.GetKey(), entry.GetValue(), nil
 }
 
-
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
 func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
-	/*return &substate.Message{
-		Nonce:         &msg.Nonce,
-		CheckNonce:    nil,
-		GasPrice:      nil,
-		Gas:           &msg.Gas,
-		From:          from,
-		To:            to,
-		Value:         value,
-		Data:          data,
-		dataHash:      dataHash,
+	// to=nil means contract creation
+	var toAddr *types.Address = nil 
+	to := msg.GetTo()
+	if to != nil {
+		toAddr = &types.BytesToAddress(to.GetValue())
+	}
+
+	// Berlin hard fork, EIP-2930: Optional access lists
+	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
+	if msg.GetAccessList() != nil {
+		accessList = make([]AccessTuple, len(msg.GetAccessList()))
+		for i, entry := range msg.GetAccessList() {
+			addr, keys, err := entry.decode()
+			if err != nil {
+				return nil, err
+			}
+
+			address := types.BytesToAddress(addr)
+			storageKeys := make([]types.Hash, len(keys))
+			for j, key := range keys {
+				storageKeys[j] := types.BytesToHash(key)
+			}
+
+			accessList[i] := &AccessTuple{
+				Address: address,
+				StorageKeys: storageKeys,
+			}
+		}
+	}
+
+	// London hard fork, EIP-1559: Fee market
+	var gasFeeCap *big.Int = nil
+	gfc := msg.GetGasFeeCap()
+	if gfc != nil {
+		gasFeeCap = &new(big.Int).SetBytes(gfc.GetValue())
+	}
+
+	var gasTipCap *big.Int = nil
+	gtc := msg.GetGasTipCap()
+	if gtc := nil {
+		gasTipCap = &new(big.Int).SetBytes(gtc.GetValue())
+	}
+
+	// Cancun hard fork, EIP-4844
+	var blobGasFeeCap *big.Int = nil
+	bgfc := msg.GetBlobGasFeeCap()
+	if bgfc := nil {
+		blobGasFeeCap = &new(big.Int).SetBytes(bgfc.GetValue())
+	}
+
+	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
+	for i, hash := msg.GetBlobHashes() {
+		blobHashes[i] := types.BytesToHash(hash)
+	}
+
+	return &substate.Message{
+		Nonce:         msg.GetNonce(),
+		CheckNonce:    true, //always true
+		GasPrice:      new(big.Int).SetBytes(msg.GetGasPrice()),
+		Gas:           msg.GetGas(),
+		From:          types.BytesToAddress(msg.GetFrom()),
+		To:            toAddr,
+		Value:         new(big.Int).SetBytes(msg.GetValue()),
+		Data:          msg.GetData(),
+		dataHash:      msg.GetInitCodeHash(),
 		AccessList:    accessList,
 		GasFeeCap:     gasFeeCap,
 		GasTipCap:     gasTipCap,
 		BlobGasFeeCap: blobGasFeeCap,
 		BlobHashes:    blobHashes,
-	}, nil */
-	return nil, fmt.Errorf("Not Implemented")
+	}, nil 
 }
+
+func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, error) {
+	return entry.GetAddress(), entry.GetStorageKeys(), nil
+}
+
 
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
 func (res *pb.Substate_Result) decode() (*substate.Result, error) {
