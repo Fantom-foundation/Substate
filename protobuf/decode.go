@@ -128,7 +128,8 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var pTo *types.Address = nil
 	to := msg.GetTo()
 	if to != nil {
-		pTo = *types.BytesToAddress(to.GetValue())
+		address := types.BytesToAddress(to.GetValue())
+		pTo = &address
 	}
 
 	// Berlin hard fork, EIP-2930: Optional access lists
