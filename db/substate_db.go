@@ -122,7 +122,7 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 		return nil, err
 	}
 
-	fmt.Printf("%+v\n", pbSubstate)
+	fmt.Printf("GetSubstate: %+v\n", pbSubstate)
 
 	return pbSubstate.Decode(block, tx)
 }

@@ -41,6 +41,9 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 	if err := proto.Unmarshal(value, pbSubstate); err != nil {
 		return nil, err
 	}
+	
+	fmt.Printf("iterator: %+v\n", pbSubstate)
+
 	return pbSubstate.Decode(block, tx)
 }
 
