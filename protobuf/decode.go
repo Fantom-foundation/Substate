@@ -166,10 +166,10 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 
 	// dataHash defaults to nil
 	var dataHash types.Hash
-	dh := msg.GetInitCodeHash()
-	if dh != nil {
-		dataHash = types.BytesToHash(dh)
-	}
+	//dh := msg.GetInitCodeHash()
+	//if dh != nil {
+	//	dataHash = types.BytesToHash(dh)
+	//}
 
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = nil
