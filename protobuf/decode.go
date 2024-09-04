@@ -91,19 +91,24 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		blockHashes[key] = types.BytesToHash(value)
 	}
 
+	var diff *big.Int = nil
+	if env.GetDifficulty() != nil {
+		diff.SetBytes(env.GetDifficulty())
+	}
+
 	var baseFee *big.Int = nil
 	if env.GetBaseFee() != nil {
-		baseFee = &new(big.Int).SetBytes(env.GetBaseFee().GetValue())
+		baseFee.SetBytes(env.GetBaseFee().GetValue())
 	}
 
 	var blobBaseFee *big.Int = nil
 	if env.GetBlobBaseFee() != nil {
-		blobBaseFee = &new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
+		blobBaseFee.SetBytes(env.GetBlobBaseFee().GetValue())
 	}
 
 	return &substate.Env{
 		Coinbase:    types.BytesToAddress(env.GetCoinbase()),
-		Difficulty:  new(big.Int).SetBytes(env.GetDifficulty()),
+		Difficulty:  diff,
 		GasLimit:    env.GetGasLimit(),
 		Number:      env.GetNumber(),
 		Timestamp:   env.GetTimestamp(),
