@@ -126,10 +126,10 @@ func (entry *Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) 
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
 func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	// to=nil means contract creation
-	var toAddr *types.Address = nil
+	var pTo *types.Address = nil
 	to := msg.GetTo()
 	if to != nil {
-		toAddr = &types.BytesToAddress(to.GetValue())
+		pTo = types.BytesToAddress(to.GetValue())
 	}
 
 	// Berlin hard fork, EIP-2930: Optional access lists
@@ -148,7 +148,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 				storageKeys[j] = types.BytesToHash(key)
 			}
 
-			accessList[i] = &types.AccessTuple{
+			accessList[i] = types.AccessTuple{
 				Address:     address,
 				StorageKeys: storageKeys,
 			}
@@ -159,20 +159,20 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var gasFeeCap *big.Int = nil
 	gfc := msg.GetGasFeeCap()
 	if gfc != nil {
-		gasFeeCap = *new(big.Int).SetBytes(gfc.GetValue())
+		gasFeeCap.SetBytes(gfc.GetValue())
 	}
 
 	var gasTipCap *big.Int = nil
 	gtc := msg.GetGasTipCap()
 	if gtc != nil {
-		gasTipCap = *new(big.Int).SetBytes(gtc.GetValue())
+		gasTipCap.SetBytes(gtc.GetValue())
 	}
 
 	// Cancun hard fork, EIP-4844
 	var blobGasFeeCap *big.Int = nil
 	bgfc := msg.GetBlobGasFeeCap()
 	if bgfc != nil {
-		blobGasFeeCap = *new(big.Int).SetBytes(bgfc.GetValue())
+		blobGasFeeCap.SetBytes(bgfc.GetValue())
 	}
 
 	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
@@ -184,13 +184,13 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	return substate.NewMessage(
 		msg.GetNonce(),                           // nonce
 		true,                                     // CheckNonce
-		new(big.Int).SetBytes(msg.GetGasPrice()), //GasPrice
+		new(big.Int).SetBytes(msg.GetGasPrice()), // GasPrice
 		msg.GetGas(),                             // Gas
 		types.BytesToAddress(msg.GetFrom()),      // From
 		toAddr,                                   // To
 		new(big.Int).SetBytes(msg.GetValue()),    // Value
 		msg.GetData(),                            // Data
-		msg.GetInitCodeHash(),                    // dataHash
+		types.BytesToHash(msg.GetInitCodeHash()), // dataHash
 		accessList,                               // AccessList
 		gasFeeCap,                                // GasFeeCap
 		gasTipCap,                                // GasTipCap
@@ -205,17 +205,20 @@ func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, err
 
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
 func (res *Substate_Result) decode() (*substate.Result, error) {
-	logs := make([]types.Log, len(res.GetLogs))
+	logs := make([]types.Log, len(res.GetLogs()))
 	for i, log := range res.GetLogs() {
-		logs[i] := log.decode()
+		logs[i], err := log.decode()
+		if err != nil {
+			return nil, fmt.Errorf("Error decoding result; %w", err)
+		}
 	}
 
 	return &substate.Result{
-		Status:          &res.Status,
+		Status:          res.GetStatus(),
 		Bloom:           types.BytesToBloom(res.Bloom),
 		Logs:            logs,
 		ContractAddress: nil, // to be processed downstream
-		GasUsed:         &res.GasUsed,
+		GasUsed:         res.GetGasUsed(),
 	}, nil
 }
 
