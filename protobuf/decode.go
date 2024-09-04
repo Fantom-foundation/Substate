@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
 )
@@ -30,7 +31,8 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 		return nil, err
 	}
 
-	result, err := s.GetResult().decode()
+	contractAddress := s.GetTxMessage().GetContractAddress()
+	result, err := s.GetResult().decode(contractAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +94,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var diff *big.Int = nil
 	if env.GetDifficulty() != nil {
+		fmt.Println(env.GetDifficulty())
 		diff.SetBytes(env.GetDifficulty())
 	}
 
@@ -209,8 +212,23 @@ func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, err
 	return entry.GetAddress(), entry.GetStorageKeys(), nil
 }
 
+// getContractAddress returns the address of the newly created contract if any.
+// returns nil otherwise.
+func (msg *Substate_TxMessage) getContractAddress() *Type.address {
+	var contractAddress types.Address
+	
+	// *to==nil means contract creation and thus address of newly created contract
+	to := msg.GetTo()
+	if to == nil {
+		fromAddr := types.BytesToAddress(msg.GetFrom())
+		contractAddress = crypto.CreateAddress(fromAddr, msg.GetNonce())
+	}
+
+	return contractAddress
+}
+
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
-func (res *Substate_Result) decode() (*substate.Result, error) {
+func (res *Substate_Result) decode(contractAddress *types.Address) (*substate.Result, error) {
 	var err error = nil
 	logs := make([]*types.Log, len(res.GetLogs()))
 	for i, log := range res.GetLogs() {
@@ -220,13 +238,12 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 		}
 	}
 
-	var nilAddr types.Address
 
 	return substate.NewResult(
 		res.GetStatus(),               // Status
 		types.BytesToBloom(res.Bloom), // Bloom
 		logs,                          // Logs
-		nilAddr,                       // ContractAddress, to be processed downstream
+		*contractAddress,              // ContractAddress
 		res.GetGasUsed(),              // GasUsed
 	), nil
 }
