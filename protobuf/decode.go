@@ -211,7 +211,7 @@ func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, err
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
 func (res *Substate_Result) decode() (*substate.Result, error) {
 	var err error = nil
-	logs := make([]types.Log, len(res.GetLogs()))
+	logs := make([]*types.Log, len(res.GetLogs()))
 	for i, log := range res.GetLogs() {
 		logs[i], err = log.decode()
 		if err != nil {
@@ -223,7 +223,7 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 		Status:          res.GetStatus(),
 		Bloom:           types.BytesToBloom(res.Bloom),
 		Logs:            logs,
-		ContractAddress: nil, // to be processed downstream
+		ContractAddress: []bytes{}, // to be processed downstream
 		GasUsed:         res.GetGasUsed(),
 	}, nil
 }
