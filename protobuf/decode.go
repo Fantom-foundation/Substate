@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
@@ -31,7 +32,7 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 		return nil, err
 	}
 
-	contractAddress := s.GetTxMessage().GetContractAddress()
+	contractAddress := s.GetTxMessage().getContractAddress()
 	result, err := s.GetResult().decode(contractAddress)
 	if err != nil {
 		return nil, err
@@ -214,13 +215,13 @@ func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, err
 
 // getContractAddress returns the address of the newly created contract if any.
 // returns nil otherwise.
-func (msg *Substate_TxMessage) getContractAddress() *Type.address {
-	var contractAddress types.Address
-	
+func (msg *Substate_TxMessage) getContractAddress() *common.Address {
+	var contractAddress common.Address
+
 	// *to==nil means contract creation and thus address of newly created contract
 	to := msg.GetTo()
 	if to == nil {
-		fromAddr := types.BytesToAddress(msg.GetFrom())
+		fromAddr := common.BytesToAddress(msg.GetFrom())
 		contractAddress = crypto.CreateAddress(fromAddr, msg.GetNonce())
 	}
 
@@ -237,7 +238,6 @@ func (res *Substate_Result) decode(contractAddress *types.Address) (*substate.Re
 			return nil, fmt.Errorf("Error decoding result; %w", err)
 		}
 	}
-
 
 	return substate.NewResult(
 		res.GetStatus(),               // Status
