@@ -97,7 +97,7 @@ func (env *pb.Substate_BlockEnv) decode() (*substate.Env, error) {
 		Timestamp: env.GetTimestamp(),
 		BlockHashes: blockHashes,
 		BaseFee := new(big.Int).SetBytes(env.GetBaseFee().GetValue()),
-		//Random := env.GetRandom(), // does not exist
+		//Random := env.GetRandom(), // does not exist in substate.Env
 		BlobBaseFee := new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue()),
 	}, nil
 }
@@ -130,7 +130,7 @@ func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
 
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
 func (res *pb.Substate_Result) decode() (*substate.Result, error) {
-	logs := make([]types.Log, 0, len(res.Logs))
+	logs := make([]types.Log, len(res.Logs))
 	for i, log := res.Logs {
 		logs[i] := log.decode()
 	}
@@ -139,12 +139,20 @@ func (res *pb.Substate_Result) decode() (*substate.Result, error) {
 		Status: &res.Status,
 		Bloom: types.BytesToBloom(res.Bloom),
 		Logs: logs,
-		ContractAddress: nil,
+		ContractAddress: nil, // to be processed downstream
 		GasUsed: &res.GasUsed,
 	}, nil
 }
 
-// decode converts protobuf-encoded Substate_Result_Log into aida-comprehensible ResultLogs
 func (log *pb.Substate_Result_Log) decode() (*types.Log, error) {
-	return nil, fmt.Errorf("Not Implemented")
+	topics := make([]types.Hash, len(log.GetTopics()))
+	for i, topic := range log.GetTopics() {
+		topics[i] := types.BytesToHash(topic)
+	}
+
+	return &types.Log{
+		Address: types.BytesToAddress(log.GetAddress()),
+		Topics:  topics,
+		Data: log.GetData(),
+	}, nil
 }
