@@ -128,7 +128,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var pTo *types.Address = nil
 	to := msg.GetTo()
 	if to != nil {
-		pTo = *types.BytesToAddress(to.GetValue())
+		pTo = types.BytesToAddress(to.GetValue())
 	}
 
 	// Berlin hard fork, EIP-2930: Optional access lists
@@ -157,7 +157,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var dataHash *types.Hash = nil
 	dh := msg.GetInitCodeHash()
 	if dh != nil {
-		dataHash = *types.BytesToHash(dh)
+		dataHash = types.BytesToHash(dh)
 	}
 
 	// London hard fork, EIP-1559: Fee market
@@ -210,6 +210,7 @@ func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, err
 
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
 func (res *Substate_Result) decode() (*substate.Result, error) {
+	var err error = nil
 	logs := make([]types.Log, len(res.GetLogs()))
 	for i, log := range res.GetLogs() {
 		logs[i], err = log.decode()
@@ -221,7 +222,7 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 	return &substate.Result{
 		Status:          res.GetStatus(),
 		Bloom:           types.BytesToBloom(res.Bloom),
-		Logs:            *logs,
+		Logs:            logs,
 		ContractAddress: nil, // to be processed downstream
 		GasUsed:         res.GetGasUsed(),
 	}, nil
