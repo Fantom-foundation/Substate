@@ -1,6 +1,9 @@
 package protobuf
 
 import (
+	"fmt"
+	"math/big"
+
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -34,8 +37,8 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 	}
 
 	return &substate.Substate{
-		InputSubstate:  input,
-		OutputSubstate: output,
+		InputSubstate:  &input,
+		OutputSubstate: &output,
 		Env:            environment,
 		Message:        message,
 		Result:         result,
@@ -63,10 +66,10 @@ func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
 		world = world.Add(address, nonce, balance, codehash)
 	}
 
-	return world, nil
+	return &world, nil
 }
 
-func (entry *Substate_AllocEntry) decode() ([]byte, *pb.Substate_Account, error) {
+func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
@@ -85,7 +88,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		if err != nil {
 			return nil, err
 		}
-		blockHashes[key] := types.BytesToHash(value)
+		blockHashes[key] = types.BytesToHash(value)
 	}
 
 	var baseFee *big.Int = nil
