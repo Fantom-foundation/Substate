@@ -1,14 +1,13 @@
 package protobuf
 
 import (
-	"github.com/Fantom-foundation/Substate/types"
 	"github.com/Fantom-foundation/Substate/substate"
-	pb "github.com/Fantom-foundation/Substate/protobuf"
+	"github.com/Fantom-foundation/Substate/types"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
-func (s *pb.Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
+func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 	input, err := s.GetInputAlloc().decode()
 	if err != nil {
 		return nil, err
@@ -46,7 +45,7 @@ func (s *pb.Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 }
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
-func (alloc *pb.Substate_Alloc) decode() (*substate.WorldState, error) {
+func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
 	world := make(substate.WorldState, len(alloc.GetAlloc()))
 
 	for _, entry := range alloc.GetAlloc() {
@@ -67,19 +66,19 @@ func (alloc *pb.Substate_Alloc) decode() (*substate.WorldState, error) {
 	return world, nil
 }
 
-func (entry *pb.Substate_AllocEntry) decode() ([]byte, *pb.Substate_Account, error) {
+func (entry *Substate_AllocEntry) decode() ([]byte, *pb.Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *pb.Substate_Account) decode() (uint64, *big.Int, []byte, error) {
-	return 	acct.GetNonce(),
+func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, error) {
+	return acct.GetNonce(),
 		new(big.Int).SetBytes(acct.GetBalance()),
 		acct.GetCodeHash(),
 		nil
 }
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
-func (env *pb.Substate_BlockEnv) decode() (*substate.Env, error) {
+func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 	blockHashes := make(map[uint64]types.Hash, len(env.GetBlockHashes()))
 	for _, entry := range env.GetBlockHashes() {
 		key, value, err := entry.decode()
@@ -89,27 +88,37 @@ func (env *pb.Substate_BlockEnv) decode() (*substate.Env, error) {
 		blockHashes[key] := types.BytesToHash(value)
 	}
 
+	var baseFee *big.Int = nil
+	if env.GetBaseFee() != nil {
+		baseFee = &new(big.Int).SetBytes(env.GetBaseFee().GetValue())
+	}
+
+	var blobBaseFee *big.Int = nil
+	if env.GetBlobBaseFee() != nil {
+		blobBaseFee = &new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
+	}
+
 	return &substate.Env{
-		Coinbase: types.BytesToAddress(env.GetCoinbase()),
-		Difficulty: new(big.Int).SetBytes(env.GetDifficulty()),
-		GasLimit: env.GetGasLimit(),
-		Number: env.GetNumber(),
-		Timestamp: env.GetTimestamp(),
+		Coinbase:    types.BytesToAddress(env.GetCoinbase()),
+		Difficulty:  new(big.Int).SetBytes(env.GetDifficulty()),
+		GasLimit:    env.GetGasLimit(),
+		Number:      env.GetNumber(),
+		Timestamp:   env.GetTimestamp(),
 		BlockHashes: blockHashes,
-		BaseFee := new(big.Int).SetBytes(env.GetBaseFee().GetValue()),
-		//Random := env.GetRandom(), // does not exist in substate.Env
-		BlobBaseFee := new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue()),
+		BaseFee:     baseFee,
+		//Random: env.GetRandom(), // does not exist in substate.Env
+		BlobBaseFee: blobBaseFee,
 	}, nil
 }
 
-func (entry *pb.Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) {
+func (entry *Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) {
 	return entry.GetKey(), entry.GetValue(), nil
 }
 
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
-func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
+func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	// to=nil means contract creation
-	var toAddr *types.Address = nil 
+	var toAddr *types.Address = nil
 	to := msg.GetTo()
 	if to != nil {
 		toAddr = &types.BytesToAddress(to.GetValue())
@@ -132,7 +141,7 @@ func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
 			}
 
 			accessList[i] := &AccessTuple{
-				Address: address,
+				Address:     address,
 				StorageKeys: storageKeys,
 			}
 		}
@@ -147,19 +156,19 @@ func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
 
 	var gasTipCap *big.Int = nil
 	gtc := msg.GetGasTipCap()
-	if gtc := nil {
+	if gtc != nil {
 		gasTipCap = &new(big.Int).SetBytes(gtc.GetValue())
 	}
 
 	// Cancun hard fork, EIP-4844
 	var blobGasFeeCap *big.Int = nil
 	bgfc := msg.GetBlobGasFeeCap()
-	if bgfc := nil {
+	if bgfc != nil {
 		blobGasFeeCap = &new(big.Int).SetBytes(bgfc.GetValue())
 	}
 
 	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
-	for i, hash := msg.GetBlobHashes() {
+	for i, hash := range msg.GetBlobHashes() {
 		blobHashes[i] := types.BytesToHash(hash)
 	}
 
@@ -178,31 +187,30 @@ func (msg *pb.Substate_TxMessage) decode() (*substate.Message, error) {
 		GasTipCap:     gasTipCap,
 		BlobGasFeeCap: blobGasFeeCap,
 		BlobHashes:    blobHashes,
-	}, nil 
+	}, nil
 }
 
 func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, error) {
 	return entry.GetAddress(), entry.GetStorageKeys(), nil
 }
 
-
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
-func (res *pb.Substate_Result) decode() (*substate.Result, error) {
-	logs := make([]types.Log, len(res.Logs))
-	for i, log := res.Logs {
+func (res *Substate_Result) decode() (*substate.Result, error) {
+	logs := make([]types.Log, len(res.GetLogs))
+	for i, log := range res.GetLogs() {
 		logs[i] := log.decode()
 	}
 
 	return &substate.Result{
-		Status: &res.Status,
-		Bloom: types.BytesToBloom(res.Bloom),
-		Logs: logs,
+		Status:          &res.Status,
+		Bloom:           types.BytesToBloom(res.Bloom),
+		Logs:            logs,
 		ContractAddress: nil, // to be processed downstream
-		GasUsed: &res.GasUsed,
+		GasUsed:         &res.GasUsed,
 	}, nil
 }
 
-func (log *pb.Substate_Result_Log) decode() (*types.Log, error) {
+func (log *Substate_Result_Log) decode() (*types.Log, error) {
 	topics := make([]types.Hash, len(log.GetTopics()))
 	for i, topic := range log.GetTopics() {
 		topics[i] := types.BytesToHash(topic)
@@ -211,6 +219,6 @@ func (log *pb.Substate_Result_Log) decode() (*types.Log, error) {
 	return &types.Log{
 		Address: types.BytesToAddress(log.GetAddress()),
 		Topics:  topics,
-		Data: log.GetData(),
+		Data:    log.GetData(),
 	}, nil
 }

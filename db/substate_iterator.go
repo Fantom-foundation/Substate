@@ -3,11 +3,11 @@ package db
 import (
 	"fmt"
 
-	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/golang/protobuf/proto"
+	"github.com/syndtr/goleveldb/leveldb/util"
 
-	"github.com/Fantom-foundation/Substate/rlp"
 	pb "github.com/Fantom-foundation/Substate/protobuf"
+	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
 )
 
