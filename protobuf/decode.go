@@ -22,15 +22,21 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 		return nil, err
 	}
 
+	fmt.Printf("decode blockenv: %+v\n", s.GetBlockEnv())
+
 	environment, err := s.GetBlockEnv().decode()
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Printf("decode txmsg: %+v\n", s.GetTxMessage())
+
 	message, err := s.GetTxMessage().decode()
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("decode result: %+v\n", s.GetResult())
 
 	contractAddress := s.GetTxMessage().getContractAddress()
 	result, err := s.GetResult().decode(contractAddress)
@@ -95,17 +101,20 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var diff *big.Int = nil
 	if env.GetDifficulty() != nil {
-		diff.SetBytes(env.GetDifficulty())
+		d := new(big.Int).SetBytes(env.GetDifficulty())
+		diff = &d
 	}
 
 	var baseFee *big.Int = nil
 	if env.GetBaseFee() != nil {
-		baseFee.SetBytes(env.GetBaseFee().GetValue())
+		bf := new(big.Int).SetBytes(env.GetBaseFee().GetValue())
+		baseFee = &bf
 	}
 
 	var blobBaseFee *big.Int = nil
 	if env.GetBlobBaseFee() != nil {
-		blobBaseFee.SetBytes(env.GetBlobBaseFee().GetValue())
+		bfb := new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
+		blobBaseFee = &bfb
 	}
 
 	return &substate.Env{
@@ -158,6 +167,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		}
 	}
 
+	// dataHash defaults to nil
 	var dataHash types.Hash
 	dh := msg.GetInitCodeHash()
 	if dh != nil {
@@ -166,22 +176,23 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = nil
-	gfc := msg.GetGasFeeCap()
-	if gfc != nil {
-		gasFeeCap.SetBytes(gfc.GetValue())
+	if msg.GetGasFeeCap() != nil {
+		gfc := new(big.Int).SetBytes(msg.GetGasFeeCap().GetValue())
+		gasFeeCap = &gfc
 	}
 
 	var gasTipCap *big.Int = nil
-	gtc := msg.GetGasTipCap()
-	if gtc != nil {
-		gasTipCap.SetBytes(gtc.GetValue())
+	if msg.GetGasTipCap() != nil {
+		gtc := new(big.Int).SetBytes(msg.GetGasTipCap().GetValue())
+		gasTipCap = &gtc
 	}
 
 	// Cancun hard fork, EIP-4844
 	var blobGasFeeCap *big.Int = nil
 	bgfc := msg.GetBlobGasFeeCap()
-	if bgfc != nil {
-		blobGasFeeCap.SetBytes(bgfc.GetValue())
+	if msg.GetBlobGasFeeCap() != nil {
+		bgfc := new(big.Int).SetBytes(msg.GetBlobGasFeeCap().GetValue())
+		blobGasFeeCap = &bgfc
 	}
 
 	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
