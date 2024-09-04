@@ -101,20 +101,17 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var diff *big.Int = nil
 	if env.GetDifficulty() != nil {
-		d := new(big.Int).SetBytes(env.GetDifficulty())
-		diff = &d
+		diff := new(big.Int).SetBytes(env.GetDifficulty())
 	}
 
 	var baseFee *big.Int = nil
 	if env.GetBaseFee() != nil {
-		bf := new(big.Int).SetBytes(env.GetBaseFee().GetValue())
-		baseFee = &bf
+		baseFee := new(big.Int).SetBytes(env.GetBaseFee().GetValue())
 	}
 
 	var blobBaseFee *big.Int = nil
 	if env.GetBlobBaseFee() != nil {
-		bfb := new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
-		blobBaseFee = &bfb
+		blobBaseFee := new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
 	}
 
 	return &substate.Env{
@@ -177,22 +174,18 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = nil
 	if msg.GetGasFeeCap() != nil {
-		gfc := new(big.Int).SetBytes(msg.GetGasFeeCap().GetValue())
-		gasFeeCap = &gfc
+		gasFeeCap := new(big.Int).SetBytes(msg.GetGasFeeCap().GetValue())
 	}
 
 	var gasTipCap *big.Int = nil
 	if msg.GetGasTipCap() != nil {
-		gtc := new(big.Int).SetBytes(msg.GetGasTipCap().GetValue())
-		gasTipCap = &gtc
+		gasTipCap := new(big.Int).SetBytes(msg.GetGasTipCap().GetValue())
 	}
 
 	// Cancun hard fork, EIP-4844
 	var blobGasFeeCap *big.Int = nil
-	bgfc := msg.GetBlobGasFeeCap()
 	if msg.GetBlobGasFeeCap() != nil {
-		bgfc := new(big.Int).SetBytes(msg.GetBlobGasFeeCap().GetValue())
-		blobGasFeeCap = &bgfc
+		blobGasFeeCap := new(big.Int).SetBytes(msg.GetBlobGasFeeCap().GetValue())
 	}
 
 	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
