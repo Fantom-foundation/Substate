@@ -215,7 +215,7 @@ func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, err
 
 // getContractAddress returns the address of the newly created contract if any.
 // returns nil otherwise.
-func (msg *Substate_TxMessage) getContractAddress() *common.Address {
+func (msg *Substate_TxMessage) getContractAddress() common.Address {
 	var contractAddress common.Address
 
 	// *to==nil means contract creation and thus address of newly created contract
@@ -229,7 +229,7 @@ func (msg *Substate_TxMessage) getContractAddress() *common.Address {
 }
 
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
-func (res *Substate_Result) decode(contractAddress *types.Address) (*substate.Result, error) {
+func (res *Substate_Result) decode(contractAddress *common.Address) (*substate.Result, error) {
 	var err error = nil
 	logs := make([]*types.Log, len(res.GetLogs()))
 	for i, log := range res.GetLogs() {
