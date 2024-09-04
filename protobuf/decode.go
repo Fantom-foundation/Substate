@@ -154,10 +154,10 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		}
 	}
 
-	var dataHash *types.Hash = nil
+	var dataHash types.Hash = nil
 	dh := msg.GetInitCodeHash()
 	if dh != nil {
-		dataHash = &types.BytesToHash(dh)
+		dataHash = types.BytesToHash(dh)
 	}
 
 	// London hard fork, EIP-1559: Fee market
@@ -195,7 +195,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		pTo,                                      // To
 		new(big.Int).SetBytes(msg.GetValue()),    // Value
 		msg.GetData(),                            // Data
-		dataHash,                                 // dataHash
+		*dataHash,                                // dataHash
 		accessList,                               // AccessList
 		gasFeeCap,                                // GasFeeCap
 		gasTipCap,                                // GasTipCap
@@ -219,12 +219,12 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 		}
 	}
 
-	return &substate.Result{
-		Status:          res.GetStatus(),
-		Bloom:           types.BytesToBloom(res.Bloom),
-		Logs:            logs,
-		ContractAddress: []byte{}, // to be processed downstream
-		GasUsed:         res.GetGasUsed(),
+	return substate.NewResult{
+		res.GetStatus(),               // Status
+		types.BytesToBloom(res.Bloom), // Bloom
+		logs,                          // Logs
+		nil,                           // ContractAddress, to be processed downstream
+		res.GetGasUsed(),              // GasUsed
 	}, nil
 }
 
