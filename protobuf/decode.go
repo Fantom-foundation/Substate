@@ -219,12 +219,14 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 		}
 	}
 
+	var nilAddr types.Address
+
 	return substate.NewResult(
-		res.GetStatus(),                  // Status
-		types.BytesToBloom(res.Bloom),    // Bloom
-		logs,                             // Logs
-		types.BytesToAddress([20]byte{}), // ContractAddress, to be processed downstream
-		res.GetGasUsed(),                 // GasUsed
+		res.GetStatus(),               // Status
+		types.BytesToBloom(res.Bloom), // Bloom
+		logs,                          // Logs
+		nilAddr,                       // ContractAddress, to be processed downstream
+		res.GetGasUsed(),              // GasUsed
 	), nil
 }
 
