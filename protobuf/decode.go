@@ -229,7 +229,7 @@ func (msg *Substate_TxMessage) getContractAddress() common.Address {
 }
 
 // decode converts protobuf-encoded Substate_Result into aida-comprehensible Result
-func (res *Substate_Result) decode(contractAddress *common.Address) (*substate.Result, error) {
+func (res *Substate_Result) decode(contractAddress common.Address) (*substate.Result, error) {
 	var err error = nil
 	logs := make([]*types.Log, len(res.GetLogs()))
 	for i, log := range res.GetLogs() {
@@ -243,8 +243,8 @@ func (res *Substate_Result) decode(contractAddress *common.Address) (*substate.R
 		res.GetStatus(),               // Status
 		types.BytesToBloom(res.Bloom), // Bloom
 		logs,                          // Logs
-		*contractAddress,              // ContractAddress
-		res.GetGasUsed(),              // GasUsed
+		types.BytesToAddress(contractAddress.Bytes()), // ContractAddress
+		res.GetGasUsed(), // GasUsed
 	), nil
 }
 
