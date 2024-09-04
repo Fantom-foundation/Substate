@@ -8,7 +8,7 @@ import (
 )
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
-func (s *pb.Substate) Decode() (*substate.Substate, error) {
+func (s *pb.Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 	input, err := s.GetInputAlloc().decode()
 	if err != nil {
 		return nil, err

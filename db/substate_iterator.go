@@ -36,12 +36,13 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 	}
 
 	//rlpSubstate, err := rlp.Decode(value)
+	//return rlpSubstate.ToSubstate(i.db.GetCode, block, tx)
+
 	pbSubstate := &pb.Substate{}
 	if err := proto.Unmarshal(value, pbSubstate); err != nil {
 		return nil, err
 	}
-
-	return rlpSubstate.ToSubstate(i.db.GetCode, block, tx)
+	return pbSubstate.Decode(block, tx)
 }
 
 func (i *substateIterator) start(numWorkers int) {
