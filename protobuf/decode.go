@@ -6,7 +6,6 @@ import (
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
-	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
@@ -129,7 +128,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var pTo *types.Address = nil
 	to := msg.GetTo()
 	if to != nil {
-		pTo = types.BytesToAddress(to.GetValue())
+		pTo = *types.BytesToAddress(to.GetValue())
 	}
 
 	// Berlin hard fork, EIP-2930: Optional access lists
@@ -153,6 +152,12 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 				StorageKeys: storageKeys,
 			}
 		}
+	}
+
+	var dataHash *types.Hash = nil
+	dh := msg.GetInitCodeHash()
+	if dh != nil {
+		dataHash = *types.BytesToHash(dh)
 	}
 
 	// London hard fork, EIP-1559: Fee market
@@ -187,10 +192,10 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		new(big.Int).SetBytes(msg.GetGasPrice()), // GasPrice
 		msg.GetGas(),                             // Gas
 		types.BytesToAddress(msg.GetFrom()),      // From
-		toAddr,                                   // To
+		pTo,                                      // To
 		new(big.Int).SetBytes(msg.GetValue()),    // Value
 		msg.GetData(),                            // Data
-		types.BytesToHash(msg.GetInitCodeHash()), // dataHash
+		dataHash,                                 // dataHash
 		accessList,                               // AccessList
 		gasFeeCap,                                // GasFeeCap
 		gasTipCap,                                // GasTipCap
@@ -207,7 +212,7 @@ func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, err
 func (res *Substate_Result) decode() (*substate.Result, error) {
 	logs := make([]types.Log, len(res.GetLogs()))
 	for i, log := range res.GetLogs() {
-		logs[i], err := log.decode()
+		logs[i], err = log.decode()
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding result; %w", err)
 		}
@@ -216,7 +221,7 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 	return &substate.Result{
 		Status:          res.GetStatus(),
 		Bloom:           types.BytesToBloom(res.Bloom),
-		Logs:            logs,
+		Logs:            *logs,
 		ContractAddress: nil, // to be processed downstream
 		GasUsed:         res.GetGasUsed(),
 	}, nil
@@ -225,7 +230,7 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 func (log *Substate_Result_Log) decode() (*types.Log, error) {
 	topics := make([]types.Hash, len(log.GetTopics()))
 	for i, topic := range log.GetTopics() {
-		topics[i] := types.BytesToHash(topic)
+		topics[i] = types.BytesToHash(topic)
 	}
 
 	return &types.Log{
