@@ -154,7 +154,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		}
 	}
 
-	var dataHash types.Hash = nil
+	var dataHash types.Hash
 	dh := msg.GetInitCodeHash()
 	if dh != nil {
 		dataHash = types.BytesToHash(dh)
@@ -195,7 +195,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		pTo,                                      // To
 		new(big.Int).SetBytes(msg.GetValue()),    // Value
 		msg.GetData(),                            // Data
-		*dataHash,                                // dataHash
+		&dataHash,                                // dataHash
 		accessList,                               // AccessList
 		gasFeeCap,                                // GasFeeCap
 		gasTipCap,                                // GasTipCap
@@ -219,13 +219,13 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 		}
 	}
 
-	return substate.NewResult{
+	return substate.NewResult(
 		res.GetStatus(),               // Status
 		types.BytesToBloom(res.Bloom), // Bloom
 		logs,                          // Logs
 		nil,                           // ContractAddress, to be processed downstream
 		res.GetGasUsed(),              // GasUsed
-	}, nil
+	), nil
 }
 
 func (log *Substate_Result_Log) decode() (*types.Log, error) {
