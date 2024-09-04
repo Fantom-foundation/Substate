@@ -154,43 +154,44 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var gasFeeCap *big.Int = nil
 	gfc := msg.GetGasFeeCap()
 	if gfc != nil {
-		gasFeeCap = &new(big.Int).SetBytes(gfc.GetValue())
+		gasFeeCap = *new(big.Int).SetBytes(gfc.GetValue())
 	}
 
 	var gasTipCap *big.Int = nil
 	gtc := msg.GetGasTipCap()
 	if gtc != nil {
-		gasTipCap = &new(big.Int).SetBytes(gtc.GetValue())
+		gasTipCap = *new(big.Int).SetBytes(gtc.GetValue())
 	}
 
 	// Cancun hard fork, EIP-4844
 	var blobGasFeeCap *big.Int = nil
 	bgfc := msg.GetBlobGasFeeCap()
 	if bgfc != nil {
-		blobGasFeeCap = &new(big.Int).SetBytes(bgfc.GetValue())
+		blobGasFeeCap = *new(big.Int).SetBytes(bgfc.GetValue())
 	}
 
 	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
 	for i, hash := range msg.GetBlobHashes() {
-		blobHashes[i] := types.BytesToHash(hash)
+		blobHashes[i] = types.BytesToHash(hash)
 	}
 
-	return &substate.Message{
-		Nonce:         msg.GetNonce(),
-		CheckNonce:    true, //always true
-		GasPrice:      new(big.Int).SetBytes(msg.GetGasPrice()),
-		Gas:           msg.GetGas(),
-		From:          types.BytesToAddress(msg.GetFrom()),
-		To:            toAddr,
-		Value:         new(big.Int).SetBytes(msg.GetValue()),
-		Data:          msg.GetData(),
-		dataHash:      msg.GetInitCodeHash(),
-		AccessList:    accessList,
-		GasFeeCap:     gasFeeCap,
-		GasTipCap:     gasTipCap,
-		BlobGasFeeCap: blobGasFeeCap,
-		BlobHashes:    blobHashes,
-	}, nil
+	// dataHash is not exposed, so we must create Message using constructor
+	return substate.NewMessage(
+		msg.GetNonce(),                           // nonce
+		true,                                     // CheckNonce
+		new(big.Int).SetBytes(msg.GetGasPrice()), //GasPrice
+		msg.GetGas(),                             // Gas
+		types.BytesToAddress(msg.GetFrom()),      // From
+		toAddr,                                   // To
+		new(big.Int).SetBytes(msg.GetValue()),    // Value
+		msg.GetData(),                            // Data
+		msg.GetInitCodeHash(),                    // dataHash
+		accessList,                               // AccessList
+		gasFeeCap,                                // GasFeeCap
+		gasTipCap,                                // GasTipCap
+		blobGasFeeCap,                            // BlobGasFeeCap
+		blobHashes,                               // BlobHashes
+	), nil
 }
 
 func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, error) {
