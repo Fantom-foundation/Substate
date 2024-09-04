@@ -7,7 +7,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 
 	pb "github.com/Fantom-foundation/Substate/protobuf"
-	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
 )
 
