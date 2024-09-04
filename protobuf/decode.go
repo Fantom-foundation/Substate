@@ -220,11 +220,11 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 	}
 
 	return substate.NewResult(
-		res.GetStatus(),               // Status
-		types.BytesToBloom(res.Bloom), // Bloom
-		logs,                          // Logs
-		nil,                           // ContractAddress, to be processed downstream
-		res.GetGasUsed(),              // GasUsed
+		res.GetStatus(),                  // Status
+		types.BytesToBloom(res.Bloom),    // Bloom
+		logs,                             // Logs
+		types.BytesToAddress([20]byte{}), // ContractAddress, to be processed downstream
+		res.GetGasUsed(),                 // GasUsed
 	), nil
 }
 
