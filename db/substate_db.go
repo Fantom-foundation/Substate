@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"google.golang.org/protobuf/encoding/protojson"
+
 	pb "github.com/Fantom-foundation/Substate/protobuf"
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
@@ -121,6 +123,9 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 	if err := proto.Unmarshal(val, pbSubstate); err != nil {
 		return nil, err
 	}
+
+	jsonString := protojson.Format(val)
+	fmt.Println(jsonString)
 
 	return pbSubstate.Decode(block, tx)
 }

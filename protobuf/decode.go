@@ -95,7 +95,6 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var diff *big.Int = nil
 	if env.GetDifficulty() != nil {
-		fmt.Println(env.GetDifficulty())
 		diff.SetBytes(env.GetDifficulty())
 	}
 
