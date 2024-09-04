@@ -128,7 +128,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var pTo *types.Address = nil
 	to := msg.GetTo()
 	if to != nil {
-		pTo = types.BytesToAddress(to.GetValue())
+		pTo = *types.BytesToAddress(to.GetValue())
 	}
 
 	// Berlin hard fork, EIP-2930: Optional access lists
@@ -157,7 +157,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	var dataHash *types.Hash = nil
 	dh := msg.GetInitCodeHash()
 	if dh != nil {
-		dataHash = types.BytesToHash(dh)
+		dataHash = &types.BytesToHash(dh)
 	}
 
 	// London hard fork, EIP-1559: Fee market
@@ -223,7 +223,7 @@ func (res *Substate_Result) decode() (*substate.Result, error) {
 		Status:          res.GetStatus(),
 		Bloom:           types.BytesToBloom(res.Bloom),
 		Logs:            logs,
-		ContractAddress: []bytes{}, // to be processed downstream
+		ContractAddress: []byte{}, // to be processed downstream
 		GasUsed:         res.GetGasUsed(),
 	}, nil
 }
