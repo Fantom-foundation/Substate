@@ -108,12 +108,19 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %w", block, tx, err)
 	}
 
-	rlpSubstate, err := rlp.Decode(val)
-	if err != nil {
-		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
+	//rlpSubstate, err := rlp.Decode(val)
+	//if err != nil {
+	//	return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
+	//}
+
+	//return rlpSubstate.ToSubstate(db.GetCode, block, tx)
+
+	pbSubstate := &pb.Substate{}
+	if err := proto.Unmarshal(value, pbSubstate); err != nil {
+		return nil, err
 	}
 
-	return rlpSubstate.ToSubstate(db.GetCode, block, tx)
+	return pbSubstate.Decode(block, tx)
 }
 
 // GetBlockSubstates returns substates for given block if exists within DB.
