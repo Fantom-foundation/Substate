@@ -60,12 +60,12 @@ func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
 		}
 
 		address := types.BytesToAddress(addr)
-		nonce, balance, codehash, err := acct.decode()
+		nonce, balance, code, _, err := acct.decode()
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding entry account; %w", err)
 		}
 
-		world = world.Add(address, nonce, balance, codehash)
+		world = world.Add(address, nonce, balance, code)
 	}
 
 	return &world, nil
@@ -75,9 +75,10 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, error) {
-	return acct.GetNonce(),
+func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, []byte, error) {
+	return  acct.GetNonce(),
 		new(big.Int).SetBytes(acct.GetBalance()),
+		acct.GetCode(),
 		acct.GetCodeHash(),
 		nil
 }
