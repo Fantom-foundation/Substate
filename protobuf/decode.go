@@ -22,21 +22,21 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 		return nil, err
 	}
 
-	fmt.Printf("decode blockenv: %+v\n", s.GetBlockEnv())
+	fmt.Printf("decode blockenv [%d/%d]: %+v\n", block, tx, s.GetBlockEnv())
 
 	environment, err := s.GetBlockEnv().decode()
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("decode txmsg: %+v\n", s.GetTxMessage())
+	fmt.Printf("decode txmsg [%d/%d]: %+v\n", block, tx, s.GetTxMessage())
 
 	message, err := s.GetTxMessage().decode()
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("decode result: %+v\n", s.GetResult())
+	fmt.Printf("decode result [%d/%d]: %+v\n", block, tx, s.GetResult())
 
 	contractAddress := s.GetTxMessage().getContractAddress()
 	result, err := s.GetResult().decode(contractAddress)
