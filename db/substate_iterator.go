@@ -42,8 +42,6 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 		return nil, err
 	}
 
-	fmt.Printf("=================== iterator [%d/%d]: %+v\n", block, tx, pbSubstate)
-
 	return pbSubstate.Decode(block, tx)
 }
 
