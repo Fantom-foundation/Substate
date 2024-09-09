@@ -128,6 +128,10 @@ func (entry *Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) 
 
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
 func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
+	var jbytes []byte
+	jbytes, _ = json.MarshalIndent(msg, "", " ")
+	fmt.Printf("msg:\n%s\n", jbytes)
+
 	// to=nil means contract creation
 	var pTo *types.Address = nil
 	to := msg.GetTo()
