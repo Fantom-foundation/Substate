@@ -16,8 +16,16 @@ func (s *Substate) Dump(block uint64, tx int) error {
 	out := fmt.Sprintf("decoding block: %v Transaction: %v\n", block, tx)
 
 	var jbytes []byte
-	jbytes, _ = json.MarshalIndent(s, "", " ")
-	out += fmt.Sprintf("substate:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.GetInputAlloc(), "", " ")
+	out += fmt.Sprintf("i:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.GetBlockEnv(), "", " ")
+	out += fmt.Sprintf("i:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.GetTxMessage(), "", " ")
+	out += fmt.Sprintf("i:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.GetOutputAlloc(), "", " ")
+	out += fmt.Sprintf("i:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.GetResult(), "", " ")
+	out += fmt.Sprintf("i:\n%s\n", jbytes)
 
 	log.Println(out)
 
@@ -30,12 +38,12 @@ type CodeLookUp = func (types.Hash) ([]byte, error)
 func (s *Substate) Decode(lookup CodeLookUp, block uint64, tx int) (*substate.Substate, error) {
 	s.Dump(block, tx)
 
-	input, err := s.GetInputAlloc().decode(lookup)
+	input, err := s.GetInputAlloc().decode()
 	if err != nil {
 		return nil, err
 	}
 
-	output, err := s.GetOutputAlloc().decode(lookup)
+	output, err := s.GetOutputAlloc().decode()
 	if err != nil {
 		return nil, err
 	}
@@ -78,17 +86,12 @@ func (alloc *Substate_Alloc) decode(lookup CodeLookUp) (*substate.WorldState, er
 		}
 
 		address := types.BytesToAddress(addr)
-		nonce, balance, _, codehash, err := acct.decode()
+		nonce, balance, code, _, err := acct.decode()
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding entry account; %w", err)
 		}
 
-		c, err := lookup(codehash)
-		if err != nil {
-			return nil, fmt.Errorf("Error looking up %s; %w", codehash, err)
-		}
-
-		world = world.Add(address, nonce, balance, c)
+		world = world.Add(address, nonce, balance, code)
 	}
 
 	return &world, nil
