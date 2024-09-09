@@ -166,7 +166,7 @@ func (msg *Substate_TxMessage) decode(lookup CodeLookUp) (*substate.Message, err
 	var data []byte = msg.GetData()
 	if pTo == nil {
 		code, err := lookup(types.BytesToHash(msg.GetInitCodeHash()))
-		if err != nil {
+		if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
 			return nil, fmt.Errorf("failed to decode tx message; %w", err)
 		}
 		data = code
