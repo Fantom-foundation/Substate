@@ -78,7 +78,7 @@ func (alloc *Substate_Alloc) decode(lookup CodeLookUp) (*substate.WorldState, er
 		}
 
 		address := types.BytesToAddress(addr)
-		nonce, balance, code, codehash, err := acct.decode()
+		nonce, balance, _, codehash, err := acct.decode()
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding entry account; %w", err)
 		}
