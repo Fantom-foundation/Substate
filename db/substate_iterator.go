@@ -42,7 +42,7 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 		return nil, err
 	}
 
-	return pbSubstate.Decode(block, tx)
+	return pbSubstate.Decode(i.db.GetCode, block, tx)
 }
 
 func (i *substateIterator) start(numWorkers int) {

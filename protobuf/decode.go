@@ -24,16 +24,18 @@ func (s *Substate) Dump(block uint64, tx int) error {
 	return nil
 }
 
+type CodeLookUp = func (types.Hash) ([]byte, error)
+
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
-func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
+func (s *Substate) Decode(lookup CodeLookUp, block uint64, tx int) (*substate.Substate, error) {
 	s.Dump(block, tx)
 
-	input, err := s.GetInputAlloc().decode()
+	input, err := s.GetInputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
 	}
 
-	output, err := s.GetOutputAlloc().decode()
+	output, err := s.GetOutputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +45,7 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 		return nil, err
 	}
 
-	message, err := s.GetTxMessage().decode()
+	message, err := s.GetTxMessage().decode(lookup)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +68,7 @@ func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
 }
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
-func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
+func (alloc *Substate_Alloc) decode(lookup CodeLookUp) (*substate.WorldState, error) {
 	world := make(substate.WorldState, len(alloc.GetAlloc()))
 
 	for _, entry := range alloc.GetAlloc() {
@@ -76,9 +78,14 @@ func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
 		}
 
 		address := types.BytesToAddress(addr)
-		nonce, balance, code, _, err := acct.decode()
+		nonce, balance, code, codehash, err := acct.decode()
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding entry account; %w", err)
+		}
+
+		c := lookup(codehash)
+		if c != code {
+			return nil, fmt.Errorf("code lookup doesn't match code")
 		}
 
 		world = world.Add(address, nonce, balance, code)
@@ -143,7 +150,7 @@ func (entry *Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) 
 }
 
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
-func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
+func (msg *Substate_TxMessage) decode(lookup CodeLookUp) (*substate.Message, error) {
 
 	// to=nil means contract creation
 	var pTo *types.Address = nil
@@ -159,6 +166,14 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		data = msg.GetData()
 	case *Substate_TxMessage_InitCodeHash:
 		data = msg.GetInitCodeHash()
+	}
+
+	if pTo == nil {
+		code, err := lookup(msg.GetInitCodeHash())
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode tx message; %w", err)
+		}
+		data = code
 	}
 
 	fmt.Println("==nonce: ", msg.GetNonce())
