@@ -122,7 +122,7 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 		return nil, err
 	}
 
-	return pbSubstate.Decode(block, tx)
+	return pbSubstate.Decode(db.GetCode, block, tx)
 }
 
 // GetBlockSubstates returns substates for given block if exists within DB.
