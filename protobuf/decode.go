@@ -141,9 +141,12 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		pTo = &address
 	}
 
-	var data []byte = []byte{}
+	var data []byte = msg.GetData()
 	if msg.GetData() != nil {
 		data = msg.GetData()
+	}
+	if msg.GetInitCodeHash() != nil {
+		data = msg.GetInitCodeHash()
 	}
 	/*
 	switch msg.GetInput().(type) {
