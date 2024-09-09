@@ -144,6 +144,8 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		data = msg.GetInitCodeHash()
 	}
 
+	fmt.Println("data: ", data)
+
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
 	if msg.GetAccessList() != nil {
