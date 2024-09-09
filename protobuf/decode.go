@@ -136,7 +136,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		pTo = &address
 	}
 
-	var data []byte
+	var data []byte = []byte{}
 	switch msg.Input.(type) {
 	case *Substate_TxMessage_Data:
 		data = msg.GetData()
