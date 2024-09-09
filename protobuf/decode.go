@@ -12,6 +12,8 @@ import (
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
 func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
+	fmt.Println("decoding substate:", block, tx)
+
 	input, err := s.GetInputAlloc().decode()
 	if err != nil {
 		return nil, err
