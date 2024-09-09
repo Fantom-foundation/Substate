@@ -105,7 +105,7 @@ func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, []byte, error)
 	return acct.GetNonce(),
 		new(big.Int).SetBytes(acct.GetBalance()),
 		acct.GetCode(),
-		types.BytesToHash(acct.GetCodeHash())/,
+		types.BytesToHash(acct.GetCodeHash()),
 		nil
 }
 
