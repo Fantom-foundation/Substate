@@ -145,6 +145,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		data = msg.GetInitCodeHash()
 	}
 
+	fmt.Println("==nonce: ", msg.GetNonce())
 	fmt.Println("extracted: ", data)
 	fmt.Println("input ", msg.GetInput())
 	fmt.Println("data: ", msg.GetData())
