@@ -76,7 +76,7 @@ func (s *Substate) Decode(lookup CodeLookUp, block uint64, tx int) (*substate.Su
 }
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
-func (alloc *Substate_Alloc) decode(lookup CodeLookUp) (*substate.WorldState, error) {
+func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
 	world := make(substate.WorldState, len(alloc.GetAlloc()))
 
 	for _, entry := range alloc.GetAlloc() {
