@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"encoding/json"
+	"log"
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
