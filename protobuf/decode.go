@@ -3,6 +3,7 @@ package protobuf
 import (
 	"fmt"
 	"math/big"
+	"encoding/json"
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
