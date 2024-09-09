@@ -136,6 +136,14 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		pTo = &address
 	}
 
+	var data []byte
+	switch in := msg.Input.(type) {
+	case *Substate_TxMessage_Data:
+		data = msg.GetData()
+	case *Substate_TxMessage_InitCodeHash:
+		data = msg.GetInitCodeHash()
+	}
+
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
 	if msg.GetAccessList() != nil {
@@ -158,13 +166,6 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 			}
 		}
 	}
-
-	// dataHash defaults to nil
-	//var dataHash types.Hash
-	//dh := msg.GetInitCodeHash()
-	//if dh != nil {
-	//	dataHash = types.BytesToHash(dh)
-	//}
 
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
@@ -196,7 +197,7 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		From:          types.BytesToAddress(msg.GetFrom()),
 		To:            pTo,
 		Value:         new(big.Int).SetBytes(msg.GetValue()),
-		Data:          msg.GetData(),
+		Data:          data,
 		AccessList:    accessList,
 		GasFeeCap:     gasFeeCap,
 		GasTipCap:     gasTipCap,
