@@ -1,11 +1,11 @@
 package protobuf
 
 import (
-	"fmt"
-	"math/big"
 	"encoding/json"
-	"log"
 	"errors"
+	"fmt"
+	"log"
+	"math/big"
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
@@ -34,12 +34,10 @@ func (s *Substate) Dump(block uint64, tx int) error {
 	return nil
 }
 
-type CodeLookUp = func (types.Hash) ([]byte, error)
+type CodeLookUp = func(types.Hash) ([]byte, error)
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
 func (s *Substate) Decode(lookup CodeLookUp, block uint64, tx int) (*substate.Substate, error) {
-	s.Dump(block, tx)
-
 	input, err := s.GetInputAlloc().decode()
 	if err != nil {
 		return nil, err
@@ -173,12 +171,6 @@ func (msg *Substate_TxMessage) decode(lookup CodeLookUp) (*substate.Message, err
 		}
 		data = code
 	}
-
-	fmt.Println("==nonce: ", msg.GetNonce())
-	fmt.Println("extracted: ", data)
-	fmt.Println("input ", msg.GetInput())
-	fmt.Println("data: ", msg.GetData())
-	fmt.Println("init: ", msg.GetInitCodeHash())
 
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
