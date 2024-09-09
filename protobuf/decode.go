@@ -87,11 +87,8 @@ func (alloc *Substate_Alloc) decode(lookup CodeLookUp) (*substate.WorldState, er
 		if err != nil {
 			return nil, fmt.Errorf("Error looking up %s; %w", codehash, err)
 		}
-		if c != code {
-			return nil, fmt.Errorf("code lookup return %s, doesn't match found code %s", c, code)
-		}
 
-		world = world.Add(address, nonce, balance, code)
+		world = world.Add(address, nonce, balance, c)
 	}
 
 	return &world, nil
@@ -101,7 +98,7 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, []byte, error) {
+func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, types.Hash, error) {
 	return acct.GetNonce(),
 		new(big.Int).SetBytes(acct.GetBalance()),
 		acct.GetCode(),
