@@ -83,9 +83,12 @@ func (alloc *Substate_Alloc) decode(lookup CodeLookUp) (*substate.WorldState, er
 			return nil, fmt.Errorf("Error decoding entry account; %w", err)
 		}
 
-		c := lookup(codehash)
+		c, err := lookup(codehash)
+		if err != nil {
+			return nil, fmt.Errorf("Error looking up %s; %w", codehash, err)
+		}
 		if c != code {
-			return nil, fmt.Errorf("code lookup doesn't match code")
+			return nil, fmt.Errorf("code lookup return %s, doesn't match found code %s", c, code)
 		}
 
 		world = world.Add(address, nonce, balance, code)
@@ -102,7 +105,7 @@ func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, []byte, error)
 	return acct.GetNonce(),
 		new(big.Int).SetBytes(acct.GetBalance()),
 		acct.GetCode(),
-		acct.GetCodeHash(),
+		types.BytesToHash(acct.GetCodeHash())/,
 		nil
 }
 
@@ -160,16 +163,9 @@ func (msg *Substate_TxMessage) decode(lookup CodeLookUp) (*substate.Message, err
 		pTo = &address
 	}
 
-	var data []byte
-	switch msg.GetInput().(type) {
-	case *Substate_TxMessage_Data:
-		data = msg.GetData()
-	case *Substate_TxMessage_InitCodeHash:
-		data = msg.GetInitCodeHash()
-	}
-
+	var data []byte = msg.GetData()
 	if pTo == nil {
-		code, err := lookup(msg.GetInitCodeHash())
+		code, err := lookup(types.BytesToHash(msg.GetInitCodeHash()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode tx message; %w", err)
 		}
