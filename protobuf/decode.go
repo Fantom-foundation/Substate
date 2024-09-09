@@ -167,12 +167,12 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	//}
 
 	// London hard fork, EIP-1559: Fee market
-	var gasFeeCap *big.Int = nil
+	var gasFeeCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
 	if msg.GetGasFeeCap() != nil {
 		gasFeeCap = new(big.Int).SetBytes(msg.GetGasFeeCap().GetValue())
 	}
 
-	var gasTipCap *big.Int = nil
+	var gasTipCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
 	if msg.GetGasTipCap() != nil {
 		gasTipCap = new(big.Int).SetBytes(msg.GetGasTipCap().GetValue())
 	}
