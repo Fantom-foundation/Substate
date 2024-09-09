@@ -5,11 +5,13 @@ import (
 	"math/big"
 	"encoding/json"
 	"log"
+	"errors"
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func (s *Substate) Dump(block uint64, tx int) error {
