@@ -76,7 +76,7 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 }
 
 func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, []byte, error) {
-	return  acct.GetNonce(),
+	return acct.GetNonce(),
 		new(big.Int).SetBytes(acct.GetBalance()),
 		acct.GetCode(),
 		acct.GetCodeHash(),
@@ -188,23 +188,21 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 		blobHashes[i] = types.BytesToHash(hash)
 	}
 
-	// dataHash is not exposed, so we must create Message using constructor
-	return substate.NewMessage(
-		msg.GetNonce(),                           // nonce
-		true,                                     // CheckNonce
-		new(big.Int).SetBytes(msg.GetGasPrice()), // GasPrice
-		msg.GetGas(),                             // Gas
-		types.BytesToAddress(msg.GetFrom()),      // From
-		pTo,                                      // To
-		new(big.Int).SetBytes(msg.GetValue()),    // Value
-		msg.GetData(),                            // Data
-		&dataHash,                                // dataHash
-		accessList,                               // AccessList
-		gasFeeCap,                                // GasFeeCap
-		gasTipCap,                                // GasTipCap
-		blobGasFeeCap,                            // BlobGasFeeCap
-		blobHashes,                               // BlobHashes
-	), nil
+	return &substate.Message{
+		Nonce:         msg.GetNonce(),
+		CheckNonce:    true,
+		GasPrice:      new(big.Int).SetBytes(msg.GetGasPrice()),
+		Gas:           msg.GetGas(),
+		From:          types.BytesToAddress(msg.GetFrom()),
+		To:            pTo,
+		Value:         new(big.Int).SetBytes(msg.GetValue()),
+		Data:          msg.GetData(),
+		AccessList:    accessList,
+		GasFeeCap:     gasFeeCap,
+		GasTipCap:     gasTipCap,
+		BlobGasFeeCap: blobGasFeeCap,
+		BlobHashes:    blobHashes,
+	}, nil
 }
 
 func (entry *Substate_TxMessage_AccessListEntry) decode() ([]byte, [][]byte, error) {
