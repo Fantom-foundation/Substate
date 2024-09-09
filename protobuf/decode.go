@@ -3,6 +3,7 @@ package protobuf
 import (
 	"fmt"
 	"math/big"
+	"encoding/json"
 
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
@@ -10,9 +11,21 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+func (s *Substate) Dump(block uint64, tx int) error {
+	out := fmt.Sprintf("decoding block: %v Transaction: %v\n", block, tx)
+
+	var jbytes []byte
+	jbytes, _ = json.MarshalIndent(s, "", " ")
+	out += fmt.Sprintf("substate:\n%s\n", jbytes)
+
+	log.Println(out)
+
+	return nil
+}
+
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
 func (s *Substate) Decode(block uint64, tx int) (*substate.Substate, error) {
-	fmt.Println("decoding substate:", block, tx)
+	s.Dump(block, tx)
 
 	input, err := s.GetInputAlloc().decode()
 	if err != nil {
