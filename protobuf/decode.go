@@ -137,12 +137,16 @@ func (msg *Substate_TxMessage) decode() (*substate.Message, error) {
 	}
 
 	var data []byte = []byte{}
+	if msg.GetData() != nil {
+		data = msg.GetData()
+	}
+	/*
 	switch msg.GetInput().(type) {
 	case *Substate_TxMessage_Data:
 		data = msg.GetData()
 	case *Substate_TxMessage_InitCodeHash:
 		data = msg.GetInitCodeHash()
-	}
+	}*/
 
 	fmt.Println("data: ", data)
 
