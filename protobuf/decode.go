@@ -154,7 +154,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var random *big.Int = nil
 	if env.GetRandom() != nil {
-		random = new(big.Int).SetBytes(env.GetRandom().GetValue())
+		random = types.BytesToHash(env.GetRandom().GetValue())
 	}
 
 	var blobBaseFee *big.Int = nil
