@@ -117,9 +117,9 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *Substate_Account) decode() (uint64, *big.Int, Code, CodeHash, error) {
+func (acct *Substate_Account) decode() (uint64, *uint256, Code, CodeHash, error) {
 	return acct.GetNonce(),
-		new(big.Int).SetBytes(acct.GetBalance()),
+		types.BytesToUint256(acct.GetBalance()),
 		acct.GetCode(),
 		types.BytesToHash(acct.GetCodeHash()),
 		nil
@@ -144,7 +144,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var diff *big.Int = nil
 	if env.GetDifficulty() != nil {
-		diff = new(big.Int).SetBytes(env.GetDifficulty())
+		diff = types.BytesToBigInt(env.GetDifficulty())
 	}
 
 	var baseFee *big.Int = nil
@@ -164,7 +164,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	return &substate.Env{
 		Coinbase:    types.BytesToAddress(env.GetCoinbase()),
-		Difficulty:  diff,
+		Difficulty:  types.BytesToBigInt(env.GetDifficulty()),
 		GasLimit:    env.GetGasLimit(),
 		Number:      env.GetNumber(),
 		Timestamp:   env.GetTimestamp(),
