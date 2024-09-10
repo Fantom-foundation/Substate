@@ -148,7 +148,6 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		baseFee = new(big.Int).SetBytes(env.GetBaseFee().GetValue())
 	}
 
-
 	var blobBaseFee *big.Int = nil
 	if env.GetBlobBaseFee() != nil {
 		blobBaseFee = new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
