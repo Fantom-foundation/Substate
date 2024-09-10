@@ -3,7 +3,6 @@ package substate
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/holiman/uint256"
@@ -38,7 +37,7 @@ func (ws WorldState) Merge(y WorldState) {
 
 			// overwrite yAcc details in ws by y
 			ws[yAddr].Nonce = yAcc.Nonce
-			ws[yAddr].Balance = types.BytesToUint256(yAcc.Balance)
+			ws[yAddr].Balance = yAcc.Balance
 			ws[yAddr].Code = make([]byte, len(yAcc.Code))
 			copy(ws[yAddr].Code, yAcc.Code)
 		} else {
