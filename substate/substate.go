@@ -1,6 +1,7 @@
 package substate
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -92,7 +93,7 @@ func (s *Substate) Dump(block uint64, tx int) error {
 	out += fmt.Sprintf("msg:\n%s\n", jbytes)
 	jbytes, _ = json.MarshalIndent(s.OutputSubstate, "", " ")
 	out += fmt.Sprintf("output:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.GetResult(), "", " ")
+	jbytes, _ = json.MarshalIndent(s.Result, "", " ")
 	out += fmt.Sprintf("result:\n%s\n", jbytes)
 
 	fmt.Println(out)
