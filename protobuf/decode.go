@@ -11,8 +11,8 @@ import (
 	"github.com/Fantom-foundation/Substate/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/holiman/uint256"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func (s *Substate) Dump(block uint64, tx int) error {

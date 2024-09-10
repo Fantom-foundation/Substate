@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/holiman/uint256"
 	"github.com/Fantom-foundation/Substate/types"
+	"github.com/holiman/uint256"
 )
 
 const (
