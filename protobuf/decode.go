@@ -70,7 +70,7 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 		return nil, err
 	}
 
-	s := &substate.Substate{
+	stest := &substate.Substate{
 		InputSubstate:  *input,
 		OutputSubstate: *output,
 		Env:            environment,
@@ -80,8 +80,8 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 		Transaction:    tx,
 	}
 
-	fmt.Println(s)
-	return s, nil
+	fmt.Println(stest)
+	return stest, nil
 }
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
