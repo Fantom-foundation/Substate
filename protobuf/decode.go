@@ -30,7 +30,7 @@ func (s *Substate) Dump(block uint64, tx int) error {
 	jbytes, _ = json.MarshalIndent(s.GetResult(), "", " ")
 	out += fmt.Sprintf("i:\n%s\n", jbytes)
 
-	log.Println(out)
+	fmt.Println(out)
 
 	return nil
 }
