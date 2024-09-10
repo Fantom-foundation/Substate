@@ -41,6 +41,10 @@ type DbGetCode = func(CodeHash) (Code, error)
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
 func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Substate, error) {
+	if tx == 5 {
+		s.Dump(block, tx)
+	}
+
 	input, err := s.GetInputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
@@ -181,6 +185,10 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		pTo = &address
 	}
 
+	// if InitCodeHash exists:
+	// 1. code = lookup the code using InitCodeHash
+	// 2. set data -> code from (1)
+	// 3. clear InitCodeHash
 	var data []byte = msg.GetData()
 	if pTo == nil {
 		code, err := lookup(types.BytesToHash(msg.GetInitCodeHash()))
