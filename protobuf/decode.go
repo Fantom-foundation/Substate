@@ -2,7 +2,7 @@ package protobuf
 
 import (
 	"encoding/json"
-	"errors"
+	//"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -11,7 +11,7 @@ import (
 	"github.com/Fantom-foundation/Substate/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/syndtr/goleveldb/leveldb"
+	//"github.com/syndtr/goleveldb/leveldb"
 )
 
 func (s *Substate) Dump(block uint64, tx int) error {
@@ -34,16 +34,20 @@ func (s *Substate) Dump(block uint64, tx int) error {
 	return nil
 }
 
-type CodeLookUp = func(types.Hash) ([]byte, error)
+type CodeHash = types.Hash
+type Code = []byte
+type DbGetCode = func(CodeHash) (Code, error)
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
-func (s *Substate) Decode(lookup CodeLookUp, block uint64, tx int) (*substate.Substate, error) {
-	input, err := s.GetInputAlloc().decode()
+func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Substate, error) {
+	codeMap := s.generateCodeMap(lookup, make(CodeMap))
+
+	input, err := s.GetInputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
 	}
 
-	output, err := s.GetOutputAlloc().decode()
+	output, err := s.GetOutputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +79,9 @@ func (s *Substate) Decode(lookup CodeLookUp, block uint64, tx int) (*substate.Su
 	}, nil
 }
 
+
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
-func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
+func (alloc *Substate_Alloc) decode(lookup DbGetCode) (*substate.WorldState, error) {
 	world := make(substate.WorldState, len(alloc.GetAlloc()))
 
 	for _, entry := range alloc.GetAlloc() {
@@ -86,12 +91,17 @@ func (alloc *Substate_Alloc) decode() (*substate.WorldState, error) {
 		}
 
 		address := types.BytesToAddress(addr)
-		nonce, balance, code, _, err := acct.decode()
+		nonce, balance, _, codehash, err := acct.decode()
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding entry account; %w", err)
 		}
 
-		world = world.Add(address, nonce, balance, code)
+		code, err := lookup(codehash)
+		if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
+			return nil, fmt.Errorf("Error looking up codehash; %w", err)
+		}
+
+		world[address] = substate.NewAccount(nonce, balance, code)
 	}
 
 	return &world, nil
@@ -101,7 +111,7 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, types.Hash, error) {
+func (acct *Substate_Account) decode() (uint64, *big.Int, Code, CodeHash, error) {
 	return acct.GetNonce(),
 		new(big.Int).SetBytes(acct.GetBalance()),
 		acct.GetCode(),
