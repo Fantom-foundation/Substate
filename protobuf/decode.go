@@ -2,7 +2,7 @@ package protobuf
 
 import (
 	"encoding/json"
-	//"errors"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -11,7 +11,7 @@ import (
 	"github.com/Fantom-foundation/Substate/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	//"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func (s *Substate) Dump(block uint64, tx int) error {
@@ -40,8 +40,6 @@ type DbGetCode = func(CodeHash) (Code, error)
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
 func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Substate, error) {
-	codeMap := s.generateCodeMap(lookup, make(CodeMap))
-
 	input, err := s.GetInputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
@@ -163,7 +161,7 @@ func (entry *Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) 
 }
 
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
-func (msg *Substate_TxMessage) decode(lookup CodeLookUp) (*substate.Message, error) {
+func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, error) {
 
 	// to=nil means contract creation
 	var pTo *types.Address = nil
