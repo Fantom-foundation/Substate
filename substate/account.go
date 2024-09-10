@@ -3,7 +3,6 @@ package substate
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/Fantom-foundation/Substate/types"
