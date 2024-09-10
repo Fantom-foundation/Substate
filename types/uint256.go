@@ -1,6 +1,8 @@
 package types
 
 import (
+	"math/big"
+
 	"github.com/holiman/uint256"
 )
 
