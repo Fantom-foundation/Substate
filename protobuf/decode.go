@@ -152,6 +152,11 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		baseFee = new(big.Int).SetBytes(env.GetBaseFee().GetValue())
 	}
 
+	var random *big.Int = nil
+	if env.GetRandom() != nil {
+		random = new(big.Int).SetBytes(env.GetRandom().GetValue())
+	}
+
 	var blobBaseFee *big.Int = nil
 	if env.GetBlobBaseFee() != nil {
 		blobBaseFee = new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
@@ -165,7 +170,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		Timestamp:   env.GetTimestamp(),
 		BlockHashes: blockHashes,
 		BaseFee:     baseFee,
-		//Random: env.GetRandom(), // does not exist in substate.Env
+		Random:      random, // does not exist in substate.Env
 		BlobBaseFee: blobBaseFee,
 	}, nil
 }
