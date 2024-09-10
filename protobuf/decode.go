@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/holiman/uint256"
 )
 
 func (s *Substate) Dump(block uint64, tx int) error {
@@ -142,17 +143,12 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		blockHashes[key] = types.BytesToHash(value)
 	}
 
-	var diff *big.Int = nil
-	if env.GetDifficulty() != nil {
-		diff = types.BytesToBigInt(env.GetDifficulty())
-	}
-
 	var baseFee *big.Int = nil
 	if env.GetBaseFee() != nil {
 		baseFee = new(big.Int).SetBytes(env.GetBaseFee().GetValue())
 	}
 
-	var random *big.Int = nil
+	var random *types.Hash = nil
 	if env.GetRandom() != nil {
 		random = types.BytesToHash(env.GetRandom().GetValue())
 	}
