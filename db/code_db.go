@@ -79,6 +79,7 @@ func (db *codeDB) HasCode(codeHash types.Hash) (bool, error) {
 
 // GetCode gets the code for the given hash.
 func (db *codeDB) GetCode(codeHash types.Hash) ([]byte, error) {
+	fmt.Println("GetCode", codeHash)
 	if codeHash.IsEmpty() {
 		return nil, ErrorEmptyHash
 	}
@@ -88,17 +89,24 @@ func (db *codeDB) GetCode(codeHash types.Hash) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot get code %s: %w", codeHash, err)
 	}
+
+	fmt.Println("GetCode", codeHash, code)
+
 	return code, nil
 }
 
 // PutCode creates hash for given code and inserts it into the baseDB.
 func (db *codeDB) PutCode(code []byte) error {
+	fmt.Println("PutCode", code)
+
 	codeHash := hash.Keccak256Hash(code)
 	key := CodeDBKey(codeHash)
 	err := db.Put(key, code)
 	if err != nil {
 		return fmt.Errorf("cannot put code %s: %w", codeHash, err)
 	}
+
+	fmt.Println("PutCode", code, codeHash)
 
 	return nil
 }
