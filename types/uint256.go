@@ -23,7 +23,7 @@ func BytesToBigInt(b []byte) *big.Int {
 }
 
 // BigIntToUint256 strictly returns nil if big is nil
-func BigIntToUint256(i *big.Int) {
+func BigIntToUint256(i *big.Int) *uint256.Int  {
 	if i == nil {
 		return nil
 	}
