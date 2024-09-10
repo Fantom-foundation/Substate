@@ -77,7 +77,6 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 	}, nil
 }
 
-
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
 func (alloc *Substate_Alloc) decode(lookup DbGetCode) (*substate.WorldState, error) {
 	world := make(substate.WorldState, len(alloc.GetAlloc()))
@@ -100,6 +99,15 @@ func (alloc *Substate_Alloc) decode(lookup DbGetCode) (*substate.WorldState, err
 		}
 
 		world[address] = substate.NewAccount(nonce, balance, code)
+
+		for ix, entry := range alloc.GetStorage() {
+			key, value, err := entry.decode()
+			if err != nil {
+				return nil, fmt.Errorf("Error decoding account storage entry; %w", err)
+			}
+
+			world[address].Storage[key] = value
+		}
 	}
 
 	return &world, nil
@@ -115,6 +123,10 @@ func (acct *Substate_Account) decode() (uint64, *big.Int, Code, CodeHash, error)
 		acct.GetCode(),
 		types.BytesToHash(acct.GetCodeHash()),
 		nil
+}
+
+func (entry *Substate_Account_StorageEntry) decode() ([]byte, []byte, error) {
+	return entry.GetKey(), entry.GetValue(), nil
 }
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
