@@ -118,7 +118,7 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *Substate_Account) decode() (uint64, *uint256, Code, CodeHash, error) {
+func (acct *Substate_Account) decode() (uint64, *uint256.Int, Code, CodeHash, error) {
 	return acct.GetNonce(),
 		types.BytesToUint256(acct.GetBalance()),
 		acct.GetCode(),
@@ -148,10 +148,6 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		baseFee = new(big.Int).SetBytes(env.GetBaseFee().GetValue())
 	}
 
-	var random *types.Hash = nil
-	if env.GetRandom() != nil {
-		random = types.BytesToHash(env.GetRandom().GetValue())
-	}
 
 	var blobBaseFee *big.Int = nil
 	if env.GetBlobBaseFee() != nil {
@@ -166,7 +162,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		Timestamp:   env.GetTimestamp(),
 		BlockHashes: blockHashes,
 		BaseFee:     baseFee,
-		Random:      random, // does not exist in substate.Env
+		Random:      types.BytesToHash(env.GetRandom().GetValue()),
 		BlobBaseFee: blobBaseFee,
 	}, nil
 }
