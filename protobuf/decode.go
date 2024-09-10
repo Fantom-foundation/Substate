@@ -80,7 +80,10 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 		Transaction:    tx,
 	}
 
-	fmt.Println(stest)
+	if tx == 5 {
+		stest.Dump(block, tx)
+	}
+
 	return stest, nil
 }
 
