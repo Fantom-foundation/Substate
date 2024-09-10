@@ -34,27 +34,6 @@ func (s *Substate) Dump(block uint64, tx int) error {
 	return nil
 }
 
-func (s *substate.Substate) Dump(block uint64, tx int) error {
-	out := fmt.Sprintf("decoded block: %v Transaction: %v\n", block, tx)
-
-	var jbytes []byte
-	jbytes, _ = json.MarshalIndent(s.InputSubstate, "", " ")
-	out += fmt.Sprintf("input:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.Env, "", " ")
-	out += fmt.Sprintf("env:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.Message, "", " ")
-	out += fmt.Sprintf("msg:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.OutputSubstate, "", " ")
-	out += fmt.Sprintf("output:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.Result, "", " ")
-	out += fmt.Sprintf("result:\n%s\n", jbytes)
-
-	fmt.Println(out)
-
-	return nil
-}
-
-
 type CodeHash = types.Hash
 type Code = []byte
 type DbGetCode = func(CodeHash) (Code, error)
@@ -91,7 +70,7 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 		return nil, err
 	}
 
-	return &substate.Substate{
+	s := &substate.Substate{
 		InputSubstate:  *input,
 		OutputSubstate: *output,
 		Env:            environment,
@@ -99,7 +78,10 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 		Result:         result,
 		Block:          block,
 		Transaction:    tx,
-	}, nil
+	}
+
+	fmt.Println(s)
+	return s, nil
 }
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
