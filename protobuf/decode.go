@@ -40,10 +40,6 @@ type DbGetCode = func(CodeHash) (Code, error)
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
 func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Substate, error) {
-	if tx == 5 {
-		s.Dump(block, tx)
-	}
-
 	input, err := s.GetInputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
@@ -70,7 +66,7 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 		return nil, err
 	}
 
-	stest := &substate.Substate{
+	return &substate.Substate{
 		InputSubstate:  *input,
 		OutputSubstate: *output,
 		Env:            environment,
@@ -78,13 +74,7 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 		Result:         result,
 		Block:          block,
 		Transaction:    tx,
-	}
-
-	if tx == 5 {
-		stest.Dump(block, tx)
-	}
-
-	return stest, nil
+	}, nil
 }
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
@@ -143,13 +133,16 @@ func (entry *Substate_Account_StorageEntry) decode() (types.Hash, types.Hash, er
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
 func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
-	blockHashes := make(map[uint64]types.Hash, len(env.GetBlockHashes()))
-	for _, entry := range env.GetBlockHashes() {
-		key, value, err := entry.decode()
-		if err != nil {
-			return nil, err
+	var blockHashes map[uint64]types.Hash = nil
+	if env.GetBlockHashes() != nil {
+		blockHashes := make(map[uint64]types.Hash, len(env.GetBlockHashes()))
+		for _, entry := range env.GetBlockHashes() {
+			key, value, err := entry.decode()
+			if err != nil {
+				return nil, err
+			}
+			blockHashes[key] = types.BytesToHash(value)
 		}
-		blockHashes[key] = types.BytesToHash(value)
 	}
 
 	var baseFee *big.Int = nil
