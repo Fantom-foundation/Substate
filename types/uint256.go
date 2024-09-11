@@ -11,7 +11,7 @@ func BytesToUint256(b []byte) *uint256.Int {
 	if b == nil {
 		return nil
 	}
-	return uint256.MustFromBig(BytesToBigInt(b))
+	return new(uint256.Int).SetBytes(b)
 }
 
 // BytesToBigInt strictly returns nil if b is nil
