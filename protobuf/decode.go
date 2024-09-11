@@ -133,7 +133,7 @@ func (entry *Substate_Account_StorageEntry) decode() (types.Hash, types.Hash, er
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
 func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
-	var difficulty big.Int = nil
+	var difficulty *big.Int = nil
 	if env.GetDifficulty() != nil {
 		difficulty = types.BytesToBigInt(env.GetDifficulty())
 	}
@@ -152,12 +152,12 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var baseFee *big.Int = nil
 	if env.GetBaseFee() != nil {
-		baseFee = new(big.Int).SetBytes(env.GetBaseFee().GetValue())
+		baseFee = types.BytesToBigInt(env.GetBaseFee().GetValue())
 	}
 
 	var blobBaseFee *big.Int = nil
 	if env.GetBlobBaseFee() != nil {
-		blobBaseFee = new(big.Int).SetBytes(env.GetBlobBaseFee().GetValue())
+		blobBaseFee = types.BytesToBigInt(env.GetBlobBaseFee().GetValue())
 	}
 
 	return &substate.Env{
