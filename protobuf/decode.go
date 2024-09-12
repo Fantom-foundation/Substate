@@ -223,17 +223,17 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 			if err != nil {
 				return nil, err
 			}
-		}
 
-		address := types.BytesToAddress(addr)
-		storageKeys := make([]types.Hash, len(keys))
-		for j, key := range keys {
-			storageKeys[j] = types.BytesToHash(key)
-		}
+			address := types.BytesToAddress(addr)
+			storageKeys := make([]types.Hash, len(keys))
+			for j, key := range keys {
+				storageKeys[j] = types.BytesToHash(key)
+			}
 
-		accessList[i] = types.AccessTuple {
-			Address:     address,
-			StorageKeys: storageKeys,
+			accessList[i] = types.AccessTuple {
+				Address:     address,
+				StorageKeys: storageKeys,
+			}
 		}
 	}
 
