@@ -235,6 +235,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	}
 
 	var gasTipCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
+	switch txType {
 	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
 	case Substate_TxMessage_TXTYPE_BLOB:
 		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
