@@ -216,7 +216,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
 	switch txType {
-	case 2, 3:
+	case 1, 2, 3:
 		accessList = make([]types.AccessTuple, len(msg.GetAccessList()))
 		for i, entry := range msg.GetAccessList() {
 			addr, keys, err := entry.decode()
