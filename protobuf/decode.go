@@ -239,9 +239,8 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
-	switch txTyp := msg.GetTxType(); txTyp {
-	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
-	case Substate_TxMessage_TXTYPE_BLOB:
+	switch txType {
+	case 2, 3:
 		fmt.Println("I'm doing this!")
 		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
 		fmt.Println("gfp: ", gasFeeCap)
