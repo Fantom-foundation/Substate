@@ -201,7 +201,18 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		data = code
 	}
 
-	txType := msg.GetTxType()
+	var txType uint8 = 0 // txType defaults to TXTYPE_LEGACY
+	switch x := *msg.TxType; x {
+	case Substate_TxMessage_TXTYPE_ACCESSLIST:
+		txType = 1
+	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
+		txType = 2
+	case Substate_TxMessage_TXTYPE_BLOB:
+		txType = 3
+	}
+
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>", txType)
+	
 
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
@@ -228,7 +239,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
-	switch txTyp := *msg.TxType; txTyp {
+	switch txTyp := msg.GetTxType(); txTyp {
 	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
 	case Substate_TxMessage_TXTYPE_BLOB:
 		fmt.Println("I'm doing this!")
