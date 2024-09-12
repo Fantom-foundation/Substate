@@ -233,7 +233,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	case Substate_TxMessage_TXTYPE_BLOB:
 		fmt.Println("I'm doing this!")
 		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
-		fmt.Println("gfp: " gasFeeCap),
+		fmt.Println("gfp: ", gasFeeCap)
 	}
 
 	fmt.Println("========= gasfeecap: ", gasFeeCap)
