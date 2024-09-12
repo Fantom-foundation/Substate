@@ -201,6 +201,9 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		data = code
 	}
 
+	// TODO: using this switch directly does not produce expected result
+        // For some reason, an intermediate enum works
+ 	// To be figured out and removed
 	var txType uint8 = 0 // txType defaults to TXTYPE_LEGACY
 	switch x := *msg.TxType; x {
 	case Substate_TxMessage_TXTYPE_ACCESSLIST:
@@ -210,8 +213,6 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	case Substate_TxMessage_TXTYPE_BLOB:
 		txType = 3
 	}
-
-	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>", txType)
 
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
@@ -239,16 +240,10 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
-	switch txType {
-	case 2, 3:
-		fmt.Println("I'm doing this!")
-		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
-		fmt.Println("gfp: ", gasFeeCap)
-	}
-
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
 	case 2, 3:
+		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
 		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
 	}
 	
