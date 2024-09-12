@@ -227,14 +227,14 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	}
 
 	// London hard fork, EIP-1559: Fee market
-	var gasFeeCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
+	var gasFeeCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
 	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
 	case Substate_TxMessage_TXTYPE_BLOB:
 		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
 	}
 
-	var gasTipCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
+	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
 	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
 	case Substate_TxMessage_TXTYPE_BLOB:
@@ -243,11 +243,6 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	
 
 	// Cancun hard fork, EIP-4844
-	var blobGasFeeCap *big.Int = nil
-	if msg.GetBlobGasFeeCap() != nil {
-		blobGasFeeCap = new(big.Int).SetBytes(msg.GetBlobGasFeeCap().GetValue())
-	}
-
 	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
 	for i, hash := range msg.GetBlobHashes() {
 		blobHashes[i] = types.BytesToHash(hash)
@@ -256,16 +251,16 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	return &substate.Message{
 		Nonce:         msg.GetNonce(),
 		CheckNonce:    true,
-		GasPrice:      new(big.Int).SetBytes(msg.GetGasPrice()),
+		GasPrice:      types.BytesToBigInt(msg.GetGasPrice()),
 		Gas:           msg.GetGas(),
 		From:          types.BytesToAddress(msg.GetFrom()),
 		To:            pTo,
-		Value:         new(big.Int).SetBytes(msg.GetValue()),
+		Value:         types.BytesToBigInt(msg.GetValue()),
 		Data:          data,
 		AccessList:    accessList,
 		GasFeeCap:     gasFeeCap,
 		GasTipCap:     gasTipCap,
-		BlobGasFeeCap: blobGasFeeCap,
+		BlobGasFeeCap: BytesValueToBigInt(msg.GetBlobGasFeeCap()),
 		BlobHashes:    blobHashes,
 	}, nil
 }
