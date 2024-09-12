@@ -236,9 +236,10 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 
 	fmt.Println("========= gasfeecap: ", gasFeeCap)
 	fmt.Println("txType: ", txType)
+	fmt.Println("pre-ggp: ", msg.GetGasPrice())
 	fmt.Println("ggp: ", types.BytesToBigInt(msg.GetGasPrice()))
+	fmt.Println("pre-gfp: ", msg.GetGasFeeCap())
 	fmt.Println("gfp: ", BytesValueToBigInt(msg.GetGasFeeCap()))
-	
 
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
@@ -248,7 +249,9 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	}
 	fmt.Println("========= gastipcap: ", gasTipCap)
 	fmt.Println("txType: ", txType)
+	fmt.Println("pre-ggp: ", msg.GetGasPrice())
 	fmt.Println("ggp: ", types.BytesToBigInt(msg.GetGasPrice()))
+	fmt.Println("pre-ggp: ", msg.GetGasTipCap())
 	fmt.Println("gtp: ", BytesValueToBigInt(msg.GetGasTipCap()))
 	
 	// Cancun hard fork, EIP-4844
