@@ -254,9 +254,8 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	fmt.Println("gfp: ", BytesValueToBigInt(msg.GetGasFeeCap()))
 
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
-	switch txTyp := msg.GetTxType(); txTyp {
-	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
-	case Substate_TxMessage_TXTYPE_BLOB:
+	switch txType {
+	case 2, 3:
 		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
 	}
 	fmt.Println("========= gastipcap: ", gasTipCap)
@@ -268,8 +267,8 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	
 	// Cancun hard fork, EIP-4844
 	var blobHashes []types.Hash = nil
-	switch txTyp := msg.GetTxType(); txTyp {
-	case Substate_TxMessage_TXTYPE_BLOB:
+	switch txType {
+	case 3:
 		if msg.GetBlobHashes() != nil {
 			blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
 			for i, hash := range msg.GetBlobHashes() {
