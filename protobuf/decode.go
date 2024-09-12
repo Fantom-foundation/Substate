@@ -236,9 +236,9 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 
 	fmt.Println("========= gasfeecap: ", gasFeeCap)
 	fmt.Println("txType: ", txType)
-	fmt.Println("pre-ggp: ", msg.GetGasPrice())
+	fmt.Println("txType d: ", Substate_TxMessage_TXTYPE_DYNAMICFEE)
+	fmt.Println("txType b: ", Substate_TxMessage_TXTYPE_BLOB)
 	fmt.Println("ggp: ", types.BytesToBigInt(msg.GetGasPrice()))
-	fmt.Println("pre-gfp: ", msg.GetGasFeeCap())
 	fmt.Println("gfp: ", BytesValueToBigInt(msg.GetGasFeeCap()))
 
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
