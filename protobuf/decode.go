@@ -269,7 +269,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	
 	// Cancun hard fork, EIP-4844
 	var blobHashes []types.Hash = nil
-	switch txType {
+	switch txTyp := msg.GetTxType(); txTyp {
 	case Substate_TxMessage_TXTYPE_BLOB:
 		if msg.GetBlobHashes() != nil {
 			blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
