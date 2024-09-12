@@ -241,11 +241,16 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
 	}
 	
-
 	// Cancun hard fork, EIP-4844
-	blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
-	for i, hash := range msg.GetBlobHashes() {
-		blobHashes[i] = types.BytesToHash(hash)
+	var blobHashes = []types.Hash = nil
+	switch txType {
+	case Substate_TxMessage_TXTYPE_BLOB:
+		if msg.GetBlobHashes() != nil {
+			blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
+			for i, hash := range msg.GetBlobHashes() {
+				blobHashes[i] = types.BytesToHash(hash)
+			}
+		}
 	}
 
 	return &substate.Message{
