@@ -168,7 +168,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		Timestamp:   env.GetTimestamp(),
 		BlockHashes: blockHashes,
 		BaseFee:     baseFee,
-		Random:      types.BytesToHash(env.GetRandom().GetValue()),
+		Random:      BytesValueToHash(env.GetRandom()),
 		BlobBaseFee: blobBaseFee,
 	}, nil
 }
