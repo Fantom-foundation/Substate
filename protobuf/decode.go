@@ -201,6 +201,8 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		data = code
 	}
 
+	txType := msg.GetTxType()
+
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
 	if msg.GetAccessList() != nil {
@@ -226,14 +228,18 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 
 	// London hard fork, EIP-1559: Fee market
 	var gasFeeCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
-	if msg.GetGasFeeCap() != nil {
-		gasFeeCap = new(big.Int).SetBytes(msg.GetGasFeeCap().GetValue())
+	switch txType {
+	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
+	case Substate_TxMessage_TXTYPE_BLOB:
+		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
 	}
 
 	var gasTipCap *big.Int = new(big.Int).SetBytes(msg.GetGasPrice())
-	if msg.GetGasTipCap() != nil {
-		gasTipCap = new(big.Int).SetBytes(msg.GetGasTipCap().GetValue())
+	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
+	case Substate_TxMessage_TXTYPE_BLOB:
+		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
 	}
+	
 
 	// Cancun hard fork, EIP-4844
 	var blobGasFeeCap *big.Int = nil
