@@ -212,28 +212,28 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	}
 
 	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>", txType)
-	
 
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
-	if msg.GetAccessList() != nil {
-		accessList = make([]types.AccessTuple, len(msg.GetAccessList()))
+	switch txType {
+	case 2, 3:
+		accessList = make([]types.AccessTuple, len(msg.GetAccessList())
 		for i, entry := range msg.GetAccessList() {
 			addr, keys, err := entry.decode()
 			if err != nil {
 				return nil, err
 			}
+		}
 
-			address := types.BytesToAddress(addr)
-			storageKeys := make([]types.Hash, len(keys))
-			for j, key := range keys {
-				storageKeys[j] = types.BytesToHash(key)
-			}
+		address := types.BytesToAddress(addr)
+		storageKeys := make([]types.Hash, len(keys))
+		for j, key := range keys {
+			storageKeys[j] = types.BytesToHash(key)
+		}
 
-			accessList[i] = types.AccessTuple{
-				Address:     address,
-				StorageKeys: storageKeys,
-			}
+		accessList[i] = types.AccessTuple {
+			Address:     address,
+			StorageKeys: storageKeys,
 		}
 	}
 
@@ -246,24 +246,11 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		fmt.Println("gfp: ", gasFeeCap)
 	}
 
-	fmt.Println("========= gasfeecap: ", gasFeeCap)
-	fmt.Println("txType: ", txType)
-	fmt.Println("txType d: ", Substate_TxMessage_TXTYPE_DYNAMICFEE)
-	fmt.Println("txType b: ", Substate_TxMessage_TXTYPE_BLOB)
-	fmt.Println("ggp: ", types.BytesToBigInt(msg.GetGasPrice()))
-	fmt.Println("gfp: ", BytesValueToBigInt(msg.GetGasFeeCap()))
-
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
 	case 2, 3:
 		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
 	}
-	fmt.Println("========= gastipcap: ", gasTipCap)
-	fmt.Println("txType: ", txType)
-	fmt.Println("pre-ggp: ", msg.GetGasPrice())
-	fmt.Println("ggp: ", types.BytesToBigInt(msg.GetGasPrice()))
-	fmt.Println("pre-gtp: ", msg.GetGasTipCap())
-	fmt.Println("gtp: ", BytesValueToBigInt(msg.GetGasTipCap()))
 	
 	// Cancun hard fork, EIP-4844
 	var blobHashes []types.Hash = nil
