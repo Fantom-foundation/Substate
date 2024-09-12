@@ -234,12 +234,22 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
 	}
 
+	fmt.Println("========= gasfeecap: ", gasFeeCap)
+	fmt.Println("txType: ", txType)
+	fmt.Println("ggp: ", types.BytesToBigInt(msg.GetGasPrice()))
+	fmt.Println("gfp: ", BytesValueToBigInt(msg.GetGasFeeCap()))
+	
+
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
 	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
 	case Substate_TxMessage_TXTYPE_BLOB:
 		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
 	}
+	fmt.Println("========= gastipcap: ", gasTipCap)
+	fmt.Println("txType: ", txType)
+	fmt.Println("ggp: ", types.BytesToBigInt(msg.GetGasPrice()))
+	fmt.Println("gtp: ", BytesValueToBigInt(msg.GetGasTipCap()))
 	
 	// Cancun hard fork, EIP-4844
 	var blobHashes []types.Hash = nil
