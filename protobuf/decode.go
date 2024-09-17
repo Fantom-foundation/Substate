@@ -254,6 +254,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		if msg.GetBlobHashes() != nil {
 			blobHashes := make([]types.Hash, len(msg.GetBlobHashes()))
 			for i, hash := range msg.GetBlobHashes() {
+				fmt.Println(">>>>>", i, types.BytesToHash(hash))
 				blobHashes[i] = types.BytesToHash(hash)
 			}
 		}
