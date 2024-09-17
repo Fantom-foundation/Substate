@@ -140,7 +140,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	var blockHashes map[uint64]types.Hash = nil
 	if env.GetBlockHashes() != nil {
-		blockHashes := make(map[uint64]types.Hash, len(env.GetBlockHashes()))
+		blockHashes = make(map[uint64]types.Hash, len(env.GetBlockHashes()))
 		for _, entry := range env.GetBlockHashes() {
 			key, value, err := entry.decode()
 			if err != nil {
