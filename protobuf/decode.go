@@ -200,22 +200,13 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		data = code
 	}
 
-	// TODO: using this switch directly does not produce expected result
-        // For some reason, an intermediate enum works
- 	// To be figured out and removed
-	var txType uint8 = 0 // txType defaults to TXTYPE_LEGACY
-	switch x := *msg.TxType; x {
-	case Substate_TxMessage_TXTYPE_ACCESSLIST:
-		txType = 1
-	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
-		txType = 2
-	case Substate_TxMessage_TXTYPE_BLOB:
-	}
-
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
 	switch txType {
-	case 1, 2, 3:
+	case 	Substate_TxMessage_TXTYPE_ACCESSLIST,
+		Substate_TxMessage_TXTYPE_DYNAMICFEE,
+		Substate_TxMessage_TXTYPE_BLOB:
+
 		accessList = make([]types.AccessTuple, len(msg.GetAccessList()))
 		for i, entry := range msg.GetAccessList() {
 			addr, keys, err := entry.decode()
@@ -229,7 +220,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 				storageKeys[j] = types.BytesToHash(key)
 			}
 
-			accessList[i] = types.AccessTuple {
+			accessList[i] = types.AccessTuple{
 				Address:     address,
 				StorageKeys: storageKeys,
 			}
@@ -240,15 +231,17 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	var gasFeeCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
-	case 2, 3:
+	case 	Substate_TxMessage_TXTYPE_DYNAMICFEE, 
+		Substate_TxMessage_TXTYPE_BLOB:
+
 		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())
 		gasTipCap = BytesValueToBigInt(msg.GetGasTipCap())
 	}
-	
+
 	// Cancun hard fork, EIP-4844
 	var blobHashes []types.Hash = nil
 	switch txType {
-	case 3:
+	case Substate_TxMessage_TXTYPE_BLOB:
 		if msg.GetBlobHashes() != nil {
 			blobHashes = make([]types.Hash, msg.GetBlobHashes())
 			for i, hash := range msg.GetBlobHashes() {

@@ -3,8 +3,8 @@ package protobuf
 import (
 	"math/big"
 
-	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	"github.com/Fantom-foundation/Substate/types"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func BytesValueToHash(bv *wrapperspb.BytesValue) *types.Hash {
