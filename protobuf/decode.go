@@ -99,7 +99,6 @@ func (alloc *Substate_Alloc) decode(lookup DbGetCode) (*substate.WorldState, err
 		}
 
 		world[address] = substate.NewAccount(nonce, balance, code)
-
 		for _, storage := range acct.GetStorage() {
 			key, value, err := storage.decode()
 			if err != nil {
@@ -211,7 +210,6 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 	case Substate_TxMessage_TXTYPE_DYNAMICFEE:
 		txType = 2
 	case Substate_TxMessage_TXTYPE_BLOB:
-		txType = 3
 	}
 
 	// Berlin hard fork, EIP-2930: Optional access lists
@@ -254,10 +252,7 @@ func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, erro
 		if msg.GetBlobHashes() != nil {
 			hashes :=  msg.GetBlobHashes()
 			blobHashes = make([]types.Hash, len(hashes))
-			fmt.Println("#####", len(hashes))
 			for i, hash := range hashes {
-				fmt.Println("##########", i)
-				fmt.Println("##########", i, types.BytesToHash(hash))
 				blobHashes[i] = types.BytesToHash(hash)
 			}
 		}
