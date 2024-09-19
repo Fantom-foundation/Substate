@@ -81,7 +81,6 @@ func (alloc *Substate_Alloc) decode(lookup dbGetCode) (*substate.WorldState, err
 			if err != nil {
 				return nil, fmt.Errorf("Error decoding account storage entry; %w", err)
 			}
-
 			world[address].Storage[key] = value
 		}
 	}
@@ -109,10 +108,11 @@ func (entry *Substate_Account_StorageEntry) decode() (types.Hash, types.Hash, er
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
 func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
-	/*var difficulty *big.Int = nil
-	if env.GetDifficulty() != nil && env.GetRandom() == nil {
+	var difficulty *big.Int = nil
+	//if env.GetDifficulty() != nil && env.GetRandom() == nil {
+	if env.GetDifficulty() != nil {
 		difficulty = types.BytesToBigInt(env.GetDifficulty())
-	}*/
+	}
 
 	var blockHashes map[uint64]types.Hash = nil
 	if env.GetBlockHashes() != nil {
