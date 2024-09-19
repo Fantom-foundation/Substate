@@ -43,6 +43,9 @@ type SubstateDB interface {
 
 	// GetLastSubstate returns last substate (block and transaction wise) inside given DB.
 	GetLastSubstate() (*substate.Substate, error)
+
+	// SetDecoder sets the decoder func to the provided encoding
+	SetDecoder(encoding string) *substateDB
 }
 
 // NewDefaultSubstateDB creates new instance of SubstateDB with default options.

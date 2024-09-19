@@ -10,12 +10,12 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-// decodeUsing sets the runtime parsing behavior of substateDB
+// SetDecoder sets the runtime parsing behavior of substateDB
 // intended usage:
 //
-//	db := &substateDB{..} // initializing db
-//	db.DecodeSubstateUsing(<encoding>) // end of init, or right before decoding
-func (db *substateDB) DecodeSubstateUsing(encoding string) *substateDB {
+//	db := &substateDB{..}           // initializing db
+//	        .SetDecoder(<encoding>) // end of init, or right before decoding
+func (db *substateDB) SetDecoder(encoding string) *substateDB {
 	db.decodeSubstate = getDecoderFunc(encoding, db.GetCode)
 	return db
 }
@@ -26,7 +26,7 @@ type substateDecoder interface {
 
 func (db *substateDB) DecodeSubstate(bytes []byte, block uint64, tx int) (*substate.Substate, error) {
 	if db.decodeSubstate == nil {
-		db.decodeUsing("default")
+		db.SetDecoder("default")
 	}
 	return db.decodeSubstate(bytes, block, tx)
 }
@@ -47,7 +47,6 @@ func getDecoderFunc(encoding string, lookup codeLookup) decoderFunc {
 			return decodeProtobuf(bytes, lookup, block, tx)
 		}
 	default:
-		fmt.Println("Defaulting getDecoderFunc")
 		fallthrough
 	case "rlp":
 		return func(bytes []byte, block uint64, tx int) (*substate.Substate, error) {
