@@ -16,8 +16,7 @@ import (
 //	db := &substateDB{..} // initializing db
 //	db.decodeUsing(<encoding>) // end of init, or right before decoding
 func (db *substateDB) decodeUsing(encoding string) *substateDB {
-	f := getDecoderFunc(encoding, db.GetCode)
-	db.decodeSubstate = &f
+	db.decodeSubstate = getDecoderFunc(encoding, db.GetCode)
 	return db
 }
 
