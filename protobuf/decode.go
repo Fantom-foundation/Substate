@@ -138,7 +138,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	return &substate.Env{
 		Coinbase:    types.BytesToAddress(env.GetCoinbase()),
-		Difficulty:  types.BytesToBigInt(env.GetDifficulty()),
+		Difficulty:  difficulty,
 		GasLimit:    env.GetGasLimit(),
 		Number:      env.GetNumber(),
 		Timestamp:   env.GetTimestamp(),
@@ -154,7 +154,7 @@ func (entry *Substate_BlockEnv_BlockHashEntry) decode() (uint64, []byte, error) 
 }
 
 // decode converts protobuf-encoded Substate_TxMessage into aida-comprehensible Message
-func (msg *Substate_TxMessage) decode(lookup DbGetCode) (*substate.Message, error) {
+func (msg *Substate_TxMessage) decode(lookup dbGetCode) (*substate.Message, error) {
 
 	// to=nil means contract creation
 	var pTo *types.Address = nil
