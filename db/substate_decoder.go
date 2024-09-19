@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	pb "github.com/Fantom-foundation/Substate/protobuf"
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
@@ -15,18 +17,26 @@ import (
 //	db := &substateDB{..} // initializing db
 //	db.decodeUsing(<encoding>) // end of init, or right before decoding
 func (db *substateDB) decodeUsing(encoding string) *substateDB {
-	db.decodeSubstate = getDecoderFunc(encoding, db.GetCode)
+	f := getDecoderFunc(encoding, db.GetCode)
+	db.decodeSubstate = &f
 	return db
 }
 
 type substateDecoder interface {
-	Decode(bytes []byte, block uint64, tx int) (*substate.Substate, error)
+	DecodeSubstate(bytes []byte, block uint64, tx int) (*substate.Substate, error)
+}
+
+func (db *substateDB) DecodeSubstate(bytes []byte, block uint64, tx int) (*substate.Substate, error) {
+	if db.decodeSubstate == nil {
+		db.decodeUsing("default")
+	}
+	return db.decodeSubstate(bytes, block, tx)
 }
 
 // decoderFunc aliases the common function used to decode substate
 type decoderFunc func([]byte, uint64, int) (*substate.Substate, error)
 
-func (decode *decoderFunc) Decode(bytes []byte, block uint64, tx int) {
+func (decode decoderFunc) DecodeSubstate(bytes []byte, block uint64, tx int) {
 	decode(bytes, block, tx)
 }
 

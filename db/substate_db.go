@@ -85,7 +85,7 @@ func newSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.Re
 
 type substateDB struct {
 	*codeDB
-	decodeSubstate decoderFunc
+	decodeSubstate *decoderFunc
 }
 
 func (db *substateDB) GetFirstSubstate() *substate.Substate {
@@ -111,10 +111,7 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %w", block, tx, err)
 	}
 
-	if db.decodeSubstate == nil {
-		db.decodeUsing("default")
-	}
-	return db.decodeSubstate(val, block, tx)
+	return db.DecodeSubstate(val, block, tx)
 }
 
 // GetBlockSubstates returns substates for given block if exists within DB.
@@ -139,11 +136,7 @@ func (db *substateDB) GetBlockSubstates(block uint64) (map[int]*substate.Substat
 			return nil, fmt.Errorf("record-replay: GetBlockSubstates(%v) iterated substates from block %v", block, b)
 		}
 
-		if db.decodeSubstate == nil {
-			db.decodeUsing("default")
-		}
-
-		sbstt, err := db.decodeSubstate(val, block, tx)
+		sbstt, err := db.DecodeSubstate(value, block, tx)
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding block %d, tx %d; %w", block, tx, err)
 		}
