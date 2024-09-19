@@ -14,8 +14,8 @@ import (
 // intended usage:
 //
 //	db := &substateDB{..} // initializing db
-//	db.decodeUsing(<encoding>) // end of init, or right before decoding
-func (db *substateDB) decodeUsing(encoding string) *substateDB {
+//	db.DecodeSubstateUsing(<encoding>) // end of init, or right before decoding
+func (db *substateDB) DecodeSubstateUsing(encoding string) *substateDB {
 	db.decodeSubstate = getDecoderFunc(encoding, db.GetCode)
 	return db
 }
