@@ -85,6 +85,7 @@ func newSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.Re
 
 type substateDB struct {
 	*codeDB
+	decodeSubstate decoderFunc
 }
 
 func (db *substateDB) GetFirstSubstate() *substate.Substate {
@@ -110,19 +111,10 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %w", block, tx, err)
 	}
 
-	//rlpSubstate, err := rlp.Decode(val)
-	//if err != nil {
-	//	return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
-	//}
-
-	//return rlpSubstate.ToSubstate(db.GetCode, block, tx)
-
-	pbSubstate := &pb.Substate{}
-	if err := proto.Unmarshal(val, pbSubstate); err != nil {
-		return nil, err
+	if db.decodeSubstate == nil {
+		db.decodeUsing("default")
 	}
-
-	return pbSubstate.Decode(db.GetCode, block, tx)
+	return db.decodeSubstate(val, block, tx)
 }
 
 // GetBlockSubstates returns substates for given block if exists within DB.
@@ -147,24 +139,13 @@ func (db *substateDB) GetBlockSubstates(block uint64) (map[int]*substate.Substat
 			return nil, fmt.Errorf("record-replay: GetBlockSubstates(%v) iterated substates from block %v", block, b)
 		}
 
-		//rlpSubstate, err := rlp.Decode(value)
-		//if err != nil {
-		//	return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
-		//}
-
-		//sbstt, err := rlpSubstate.ToSubstate(db.GetCode, block, tx)
-		//if err != nil {
-		//	return nil, fmt.Errorf("cannot decode data into substate: %w", err)
-		//}
-
-		pbSubstate := &pb.Substate{}
-		if err := proto.Unmarshal(value, pbSubstate); err != nil {
-			return nil, err
+		if db.decodeSubstate == nil {
+			db.decodeUsing("default")
 		}
 
-		sbstt, err := pbSubstate.Decode(db.GetCode, block, tx)
+		sbstt, err := db.decodeSubstate(val, block, tx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Error decoding block %d, tx %d; %w", block, tx, err)
 		}
 
 		txSubstate[tx] = sbstt
