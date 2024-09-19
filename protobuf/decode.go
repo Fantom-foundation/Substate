@@ -14,26 +14,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-func (s *Substate) Dump(block uint64, tx int) error {
-	out := fmt.Sprintf("decoding block: %v Transaction: %v\n", block, tx)
-
-	var jbytes []byte
-	jbytes, _ = json.MarshalIndent(s.GetInputAlloc(), "", " ")
-	out += fmt.Sprintf("input:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.GetBlockEnv(), "", " ")
-	out += fmt.Sprintf("env:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.GetTxMessage(), "", " ")
-	out += fmt.Sprintf("msg:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.GetOutputAlloc(), "", " ")
-	out += fmt.Sprintf("output:\n%s\n", jbytes)
-	jbytes, _ = json.MarshalIndent(s.GetResult(), "", " ")
-	out += fmt.Sprintf("result:\n%s\n", jbytes)
-
-	fmt.Println(out)
-
-	return nil
-}
-
 type CodeHash = types.Hash
 type Code = []byte
 type DbGetCode = func(CodeHash) (Code, error)
@@ -132,10 +112,10 @@ func (entry *Substate_Account_StorageEntry) decode() (types.Hash, types.Hash, er
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
 func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
-	var difficulty *big.Int = nil
+	/*var difficulty *big.Int = nil
 	if env.GetDifficulty() != nil && env.GetRandom() == nil {
 		difficulty = types.BytesToBigInt(env.GetDifficulty())
-	}
+	}*/
 
 	var blockHashes map[uint64]types.Hash = nil
 	if env.GetBlockHashes() != nil {
@@ -161,7 +141,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	return &substate.Env{
 		Coinbase:    types.BytesToAddress(env.GetCoinbase()),
-		Difficulty:  difficulty,
+		Difficulty:  types.BytesToBigInt(env.GetDifficulty()),
 		GasLimit:    env.GetGasLimit(),
 		Number:      env.GetNumber(),
 		Timestamp:   env.GetTimestamp(),
