@@ -108,10 +108,13 @@ func (entry *Substate_Account_StorageEntry) decode() (types.Hash, types.Hash, er
 
 // decode converts protobuf-encoded Substate_BlockEnv into aida-comprehensible Env
 func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
+	/*
 	var difficulty *big.Int = nil
-	if env.GetDifficulty() != nil && env.GetRandom() == nil {
+	//if env.GetDifficulty() != nil && env.GetRandom() == nil {
+	if env.GetDifficulty() != nil {
 		difficulty = types.BytesToBigInt(env.GetDifficulty())
 	}
+	*/
 
 	var blockHashes map[uint64]types.Hash = nil
 	if env.GetBlockHashes() != nil {
@@ -137,7 +140,7 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 
 	return &substate.Env{
 		Coinbase:    types.BytesToAddress(env.GetCoinbase()),
-		Difficulty:  difficulty,
+		Difficulty:  types.BytesToBigInt(env.GetDifficulty()),
 		GasLimit:    env.GetGasLimit(),
 		Number:      env.GetNumber(),
 		Timestamp:   env.GetTimestamp(),
