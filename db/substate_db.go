@@ -4,11 +4,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	pb "github.com/Fantom-foundation/Substate/protobuf"
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
 	trlp "github.com/Fantom-foundation/Substate/types/rlp"
-	"github.com/golang/protobuf/proto"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -85,7 +83,7 @@ func newSubstateDB(path string, o *opt.Options, wo *opt.WriteOptions, ro *opt.Re
 
 type substateDB struct {
 	*codeDB
-	decodeSubstate *decoderFunc
+	decodeSubstate decoderFunc
 }
 
 func (db *substateDB) GetFirstSubstate() *substate.Substate {

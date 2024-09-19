@@ -7,7 +7,6 @@ import (
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
 	"github.com/Fantom-foundation/Substate/types"
-	trlp "github.com/Fantom-foundation/Substate/types/rlp"
 	"github.com/golang/protobuf/proto"
 )
 
