@@ -13,12 +13,10 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-type CodeHash = types.Hash
-type Code = []byte
-type DbGetCode = func(CodeHash) (Code, error)
+type dbGetCode = func(types.Hash) ([]byte, error)
 
 // Decode converts protobuf-encoded Substate into aida-comprehensible substate
-func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Substate, error) {
+func (s *Substate) Decode(lookup dbGetCode, block uint64, tx int) (*substate.Substate, error) {
 	input, err := s.GetInputAlloc().decode(lookup)
 	if err != nil {
 		return nil, err
@@ -57,7 +55,7 @@ func (s *Substate) Decode(lookup DbGetCode, block uint64, tx int) (*substate.Sub
 }
 
 // decode converts protobuf-encoded Substate_Alloc into aida-comprehensible WorldState
-func (alloc *Substate_Alloc) decode(lookup DbGetCode) (*substate.WorldState, error) {
+func (alloc *Substate_Alloc) decode(lookup dbGetCode) (*substate.WorldState, error) {
 	world := make(substate.WorldState, len(alloc.GetAlloc()))
 
 	for _, entry := range alloc.GetAlloc() {
@@ -95,7 +93,7 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *Substate_Account) decode() (uint64, *uint256.Int, Code, CodeHash, error) {
+func (acct *Substate_Account) decode() (uint64, *uint256.Int, []byte, types.Hash, error) {
 	return acct.GetNonce(),
 		types.BytesToUint256(acct.GetBalance()),
 		acct.GetCode(),
