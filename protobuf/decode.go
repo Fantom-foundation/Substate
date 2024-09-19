@@ -120,16 +120,6 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		}
 	}
 
-	var baseFee *big.Int = nil
-	if env.GetBaseFee() != nil {
-		baseFee = types.BytesToBigInt(env.GetBaseFee().GetValue())
-	}
-
-	var blobBaseFee *big.Int = nil
-	if env.GetBlobBaseFee() != nil {
-		blobBaseFee = types.BytesToBigInt(env.GetBlobBaseFee().GetValue())
-	}
-
 	return &substate.Env{
 		Coinbase:    types.BytesToAddress(env.GetCoinbase()),
 		Difficulty:  types.BytesToBigInt(env.GetDifficulty()),
@@ -137,9 +127,9 @@ func (env *Substate_BlockEnv) decode() (*substate.Env, error) {
 		Number:      env.GetNumber(),
 		Timestamp:   env.GetTimestamp(),
 		BlockHashes: blockHashes,
-		BaseFee:     baseFee,
+		BaseFee:     BytesValueToBigInt(env.GetBaseFee()),
 		Random:      BytesValueToHash(env.GetRandom()),
-		BlobBaseFee: blobBaseFee,
+		BlobBaseFee: BytesValueToBigInt(env.GetBlobBaseFee()),
 	}, nil
 }
 
