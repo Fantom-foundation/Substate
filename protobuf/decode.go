@@ -1,7 +1,6 @@
 package protobuf
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
