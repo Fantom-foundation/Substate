@@ -92,9 +92,9 @@ func (entry *Substate_AllocEntry) decode() ([]byte, *Substate_Account, error) {
 	return entry.GetAddress(), entry.GetAccount(), nil
 }
 
-func (acct *Substate_Account) decode() (uint64, *uint256.Int, []byte, types.Hash, error) {
+func (acct *Substate_Account) decode() (uint64, *big.Int, []byte, types.Hash, error) {
 	return acct.GetNonce(),
-		types.BytesToUint256(acct.GetBalance()),
+		types.BytesToBigInt(acct.GetBalance()),
 		acct.GetCode(),
 		types.BytesToHash(acct.GetCodeHash()),
 		nil
