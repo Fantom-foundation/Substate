@@ -8,7 +8,6 @@ import (
 
 	"github.com/Fantom-foundation/Substate/types"
 	"github.com/Fantom-foundation/Substate/types/hash"
-	"github.com/holiman/uint256"
 )
 
 // Account holds any information about account used in a transaction.
