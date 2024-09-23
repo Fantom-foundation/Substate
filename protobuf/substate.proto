@@ -1,11 +1,11 @@
-yntax = "proto2";
-package research;
+syntax = "proto2";
+package protobuf;
 
 // For a single optional bytes, use `optional BytesValue`
 // For an optional list of bytes, use `repeated bytes`
 import "google/protobuf/wrappers.proto";
 
-option go_package = "../research";
+option go_package = "../protobuf";
 
 message Substate {
 

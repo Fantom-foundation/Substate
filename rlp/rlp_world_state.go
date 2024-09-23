@@ -41,7 +41,11 @@ func (ws WorldState) ToSubstate(getHashFunc func(codeHash types.Hash) ([]byte, e
 		if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
 			return nil, err
 		}
-		sws[addr] = substate.NewAccount(acc.Nonce, acc.Balance, code)
+		sws[addr] = substate.NewAccount(
+			acc.Nonce,
+			types.BigIntToUint256(acc.Balance),
+			code,
+		)
 		for pos := range acc.Storage {
 			sws[addr].Storage[acc.Storage[pos][0]] = acc.Storage[pos][1]
 		}

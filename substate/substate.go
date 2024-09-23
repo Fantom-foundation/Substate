@@ -1,6 +1,7 @@
 package substate
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -78,4 +79,24 @@ func (s *Substate) String() string {
 	builder.WriteString(fmt.Sprintf("Result World State: %v\n", s.Result.String()))
 
 	return builder.String()
+}
+
+func (s *Substate) Dump(block uint64, tx int) error {
+	out := fmt.Sprintf("decoded block: %v Transaction: %v\n", block, tx)
+
+	var jbytes []byte
+	jbytes, _ = json.MarshalIndent(s.InputSubstate, "", " ")
+	out += fmt.Sprintf("input:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.Env, "", " ")
+	out += fmt.Sprintf("env:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.Message, "", " ")
+	out += fmt.Sprintf("msg:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.OutputSubstate, "", " ")
+	out += fmt.Sprintf("output:\n%s\n", jbytes)
+	jbytes, _ = json.MarshalIndent(s.Result, "", " ")
+	out += fmt.Sprintf("result:\n%s\n", jbytes)
+
+	fmt.Println(out)
+
+	return nil
 }

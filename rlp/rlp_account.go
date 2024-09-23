@@ -11,7 +11,7 @@ import (
 func NewRLPAccount(acc *substate.Account) *SubstateAccountRLP {
 	a := &SubstateAccountRLP{
 		Nonce:    acc.Nonce,
-		Balance:  new(big.Int).Set(acc.Balance),
+		Balance:  acc.Balance.ToBig(),
 		CodeHash: acc.CodeHash(),
 		Storage:  [][2]types.Hash{},
 	}

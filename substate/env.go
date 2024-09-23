@@ -20,6 +20,8 @@ type Env struct {
 	BaseFee *big.Int // nil if EIP-1559 is not activated
 	// Cancun hard fork EIP-4844
 	BlobBaseFee *big.Int // nil if EIP-4844 is not activated
+
+	Random *types.Hash
 }
 
 func NewEnv(

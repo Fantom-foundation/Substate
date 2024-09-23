@@ -4,9 +4,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	pb "github.com/Fantom-foundation/Substate/protobuf"
 	"github.com/Fantom-foundation/Substate/rlp"
 	"github.com/Fantom-foundation/Substate/substate"
 	trlp "github.com/Fantom-foundation/Substate/types/rlp"
+	"github.com/golang/protobuf/proto"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -108,12 +110,19 @@ func (db *substateDB) GetSubstate(block uint64, tx int) (*substate.Substate, err
 		return nil, fmt.Errorf("cannot get substate block: %v, tx: %v from db; %w", block, tx, err)
 	}
 
-	rlpSubstate, err := rlp.Decode(val)
-	if err != nil {
-		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
+	//rlpSubstate, err := rlp.Decode(val)
+	//if err != nil {
+	//	return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
+	//}
+
+	//return rlpSubstate.ToSubstate(db.GetCode, block, tx)
+
+	pbSubstate := &pb.Substate{}
+	if err := proto.Unmarshal(val, pbSubstate); err != nil {
+		return nil, err
 	}
 
-	return rlpSubstate.ToSubstate(db.GetCode, block, tx)
+	return pbSubstate.Decode(db.GetCode, block, tx)
 }
 
 // GetBlockSubstates returns substates for given block if exists within DB.
@@ -138,14 +147,24 @@ func (db *substateDB) GetBlockSubstates(block uint64) (map[int]*substate.Substat
 			return nil, fmt.Errorf("record-replay: GetBlockSubstates(%v) iterated substates from block %v", block, b)
 		}
 
-		rlpSubstate, err := rlp.Decode(value)
-		if err != nil {
-			return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
+		//rlpSubstate, err := rlp.Decode(value)
+		//if err != nil {
+		//	return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
+		//}
+
+		//sbstt, err := rlpSubstate.ToSubstate(db.GetCode, block, tx)
+		//if err != nil {
+		//	return nil, fmt.Errorf("cannot decode data into substate: %w", err)
+		//}
+
+		pbSubstate := &pb.Substate{}
+		if err := proto.Unmarshal(value, pbSubstate); err != nil {
+			return nil, err
 		}
 
-		sbstt, err := rlpSubstate.ToSubstate(db.GetCode, block, tx)
+		sbstt, err := pbSubstate.Decode(db.GetCode, block, tx)
 		if err != nil {
-			return nil, fmt.Errorf("cannot decode data into substate: %w", err)
+			return nil, err
 		}
 
 		txSubstate[tx] = sbstt

@@ -3,9 +3,10 @@ package db
 import (
 	"fmt"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/syndtr/goleveldb/leveldb/util"
 
-	"github.com/Fantom-foundation/Substate/rlp"
+	pb "github.com/Fantom-foundation/Substate/protobuf"
 	"github.com/Fantom-foundation/Substate/substate"
 )
 
@@ -33,12 +34,15 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 		return nil, fmt.Errorf("invalid substate key: %v; %w", key, err)
 	}
 
-	rlpSubstate, err := rlp.Decode(value)
-	if err != nil {
+	//rlpSubstate, err := rlp.Decode(value)
+	//return rlpSubstate.ToSubstate(i.db.GetCode, block, tx)
+
+	pbSubstate := &pb.Substate{}
+	if err := proto.Unmarshal(value, pbSubstate); err != nil {
 		return nil, err
 	}
 
-	return rlpSubstate.ToSubstate(i.db.GetCode, block, tx)
+	return pbSubstate.Decode(i.db.GetCode, block, tx)
 }
 
 func (i *substateIterator) start(numWorkers int) {
