@@ -166,7 +166,7 @@ func (msg *Substate_TxMessage) decode(lookup dbGetCode) (*substate.Message, erro
 	// Berlin hard fork, EIP-2930: Optional access lists
 	var accessList types.AccessList = nil // nil if EIP-2930 is not activated
 	switch txType {
-	case 	Substate_TxMessage_TXTYPE_ACCESSLIST,
+	case Substate_TxMessage_TXTYPE_ACCESSLIST,
 		Substate_TxMessage_TXTYPE_DYNAMICFEE,
 		Substate_TxMessage_TXTYPE_BLOB:
 
@@ -194,7 +194,7 @@ func (msg *Substate_TxMessage) decode(lookup dbGetCode) (*substate.Message, erro
 	var gasFeeCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	var gasTipCap *big.Int = types.BytesToBigInt(msg.GetGasPrice())
 	switch txType {
-	case 	Substate_TxMessage_TXTYPE_DYNAMICFEE, 
+	case Substate_TxMessage_TXTYPE_DYNAMICFEE,
 		Substate_TxMessage_TXTYPE_BLOB:
 
 		gasFeeCap = BytesValueToBigInt(msg.GetGasFeeCap())

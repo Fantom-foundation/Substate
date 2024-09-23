@@ -34,9 +34,6 @@ func (i *substateIterator) decode(data rawEntry) (*substate.Substate, error) {
 		return nil, fmt.Errorf("invalid substate key: %v; %w", key, err)
 	}
 
-	//rlpSubstate, err := rlp.Decode(value)
-	//return rlpSubstate.ToSubstate(i.db.GetCode, block, tx)
-
 	pbSubstate := &pb.Substate{}
 	if err := proto.Unmarshal(value, pbSubstate); err != nil {
 		return nil, err
