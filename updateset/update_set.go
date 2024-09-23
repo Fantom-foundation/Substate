@@ -63,7 +63,7 @@ func (up UpdateSetRLP) ToWorldState(getCodeFunc func(codeHash types.Hash) ([]byt
 
 		acc := substate.Account{
 			Nonce:   worldStateAcc.Nonce,
-			Balance: types.BigIntToUint256(worldStateAcc.Balance),
+			Balance: worldStateAcc.Balance,
 			Storage: make(map[types.Hash]types.Hash),
 			Code:    code,
 		}

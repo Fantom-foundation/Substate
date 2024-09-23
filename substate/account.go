@@ -3,6 +3,7 @@ package substate
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/Fantom-foundation/Substate/types"
@@ -13,12 +14,12 @@ import (
 // Account holds any information about account used in a transaction.
 type Account struct {
 	Nonce   uint64
-	Balance *uint256.Int
+	Balance *big.Int
 	Storage map[types.Hash]types.Hash
 	Code    []byte
 }
 
-func NewAccount(nonce uint64, balance *uint256.Int, code []byte) *Account {
+func NewAccount(nonce uint64, balance *big.Int, code []byte) *Account {
 	return &Account{
 		Nonce:   nonce,
 		Balance: balance,

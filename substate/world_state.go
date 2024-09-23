@@ -3,10 +3,10 @@ package substate
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/Fantom-foundation/Substate/types"
-	"github.com/holiman/uint256"
 )
 
 const (
@@ -22,7 +22,7 @@ func NewWorldState() WorldState {
 type WorldState map[types.Address]*Account
 
 // Add assigns new Account to an Address
-func (ws WorldState) Add(addr types.Address, nonce uint64, balance *uint256.Int, code []byte) WorldState {
+func (ws WorldState) Add(addr types.Address, nonce uint64, balance *big.Int, code []byte) WorldState {
 	ws[addr] = NewAccount(nonce, balance, code)
 	return ws
 }
