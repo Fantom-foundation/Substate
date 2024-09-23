@@ -88,7 +88,6 @@ func (db *codeDB) GetCode(codeHash types.Hash) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot get code %s: %w", codeHash, err)
 	}
-
 	return code, nil
 }
 
