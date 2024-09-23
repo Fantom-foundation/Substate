@@ -24,6 +24,7 @@ type substateDecoder interface {
 	DecodeSubstate(bytes []byte, block uint64, tx int) (*substate.Substate, error)
 }
 
+// DecodeSubstate implemented by substateDB
 func (db *substateDB) DecodeSubstate(bytes []byte, block uint64, tx int) (*substate.Substate, error) {
 	if db.decodeSubstate == nil {
 		db.SetDecoder("default")
@@ -33,10 +34,6 @@ func (db *substateDB) DecodeSubstate(bytes []byte, block uint64, tx int) (*subst
 
 // decoderFunc aliases the common function used to decode substate
 type decoderFunc func([]byte, uint64, int) (*substate.Substate, error)
-
-func (decode decoderFunc) DecodeSubstate(bytes []byte, block uint64, tx int) {
-	decode(bytes, block, tx)
-}
 
 type codeLookup = func(types.Hash) ([]byte, error)
 
