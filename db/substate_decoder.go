@@ -56,7 +56,7 @@ func getDecoderFunc(encoding string, lookup codeLookup) decoderFunc {
 func decodeRlp(bytes []byte, lookup codeLookup, block uint64, tx int) (*substate.Substate, error) {
 	rlpSubstate, err := rlp.Decode(bytes)
 	if err != nil {
-		return nil, fmt.Errorf("cannot decode data into rlp block: %v, tx %v; %w", block, tx, err)
+		return nil, fmt.Errorf("cannot decode substate data from rlp block: %v, tx %v; %w", block, tx, err)
 	}
 
 	return rlpSubstate.ToSubstate(lookup, block, tx)
@@ -66,7 +66,7 @@ func decodeRlp(bytes []byte, lookup codeLookup, block uint64, tx int) (*substate
 func decodeProtobuf(bytes []byte, lookup codeLookup, block uint64, tx int) (*substate.Substate, error) {
 	pbSubstate := &pb.Substate{}
 	if err := proto.Unmarshal(bytes, pbSubstate); err != nil {
-		return nil, fmt.Errorf("cannot decode data into protobuf block: %v, tx %v; %w", block, tx, err)
+		return nil, fmt.Errorf("cannot decode substate data from protobuf block: %v, tx %v; %w", block, tx, err)
 	}
 
 	return pbSubstate.Decode(lookup, block, tx)

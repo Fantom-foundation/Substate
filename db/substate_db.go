@@ -139,7 +139,7 @@ func (db *substateDB) GetBlockSubstates(block uint64) (map[int]*substate.Substat
 
 		sbstt, err := db.DecodeSubstate(value, block, tx)
 		if err != nil {
-			return nil, fmt.Errorf("Error decoding block %d, tx %d; %w", block, tx, err)
+			return nil, fmt.Errorf("failed to decode substate, block: %d, tx: %d; %w", block, tx, err)
 		}
 
 		txSubstate[tx] = sbstt
